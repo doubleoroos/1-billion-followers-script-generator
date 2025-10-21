@@ -326,7 +326,13 @@ const RichTextField: React.FC<{
 const SceneEditorCard: React.FC<{scene: Scene, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void}> = ({ scene, onChange }) => {
     return (
         <div id={scene.id} className="p-4 bg-slate-900/70 rounded-lg border border-slate-700 space-y-3">
-            <h4 className="text-lg font-bold text-yellow-400">{scene.title}</h4>
+            <input
+                type="text"
+                value={scene.title}
+                onChange={(e) => onChange(scene.id, 'title', e.target.value)}
+                aria-label="Scene Title"
+                className="w-full bg-transparent text-lg font-bold text-yellow-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-md p-1 -m-1"
+            />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <EditableField label="Location" field="location" value={scene.location} sceneId={scene.id} onChange={onChange} />
                 <EditableField label="Time of Day" field="timeOfDay" value={scene.timeOfDay} sceneId={scene.id} onChange={onChange} />
