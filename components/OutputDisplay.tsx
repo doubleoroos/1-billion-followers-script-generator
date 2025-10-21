@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { GeneratedAssets, ScriptBlock, Scene, Character, ReferenceImage, VisualStyle } from '../types';
 import { generateVideoForScene, regenerateVideoPromptForScene } from '../services/geminiService';
