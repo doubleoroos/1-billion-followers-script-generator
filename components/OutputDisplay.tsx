@@ -242,9 +242,76 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
     );
 };
 
-const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) => void }> = ({ outline, onSave }) => {
+const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; onClose: () => void; }> = ({ scene, onSave, onClose }) => {
+    const [localScene, setLocalScene] = useState<Scene>(scene);
+
+    const handleInputChange = (field: keyof Scene, value: string) => {
+        setLocalScene(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSave = () => {
+        onSave(localScene);
+    };
+
+    const ModalField: React.FC<{ field: keyof Scene, label: string, isTextarea?: boolean }> = ({ field, label, isTextarea }) => {
+        const value = localScene[field] as string;
+        const commonClasses = "w-full bg-gray-900/50 border border-gray-700 rounded p-2 text-white focus:ring-cyan-400 focus:border-cyan-400";
+        return (
+            <div>
+                <label className="block text-gray-400 font-semibold mb-1">{label}</label>
+                {isTextarea ? (
+                    <textarea
+                        value={value}
+                        onChange={(e) => handleInputChange(field, e.target.value)}
+                        className={`${commonClasses} h-28 min-h-[40px]`}
+                    />
+                ) : (
+                    <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => handleInputChange(field, e.target.value)}
+                        className={commonClasses}
+                    />
+                )}
+            </div>
+        );
+    };
+    
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
+            <div className="bg-[#161b22] p-6 rounded-xl border border-white/10 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <h3 className="text-xl font-bold text-white mb-6">Edit Scene</h3>
+                <div className="space-y-4">
+                    <ModalField field="title" label="Scene Title" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <ModalField field="location" label="Location" />
+                        <ModalField field="timeOfDay" label="Time of Day" />
+                    </div>
+                    <ModalField field="atmosphere" label="Atmosphere" />
+                    <ModalField field="description" label="Description" isTextarea />
+                    <ModalField field="keyVisualElements" label="Key Visual Elements" isTextarea />
+                    <ModalField field="visuals" label="Visuals" isTextarea />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <ModalField field="pacingEmotion" label="Pacing & Emotion" />
+                        <ModalField field="transition" label="Transition" />
+                    </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-8">
+                    <button onClick={onClose} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+                    <button onClick={handleSave} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md transition-colors">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    )
+};
+
+
+const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) => void, onVideoSave: (updatedScene: Scene) => void, visualStyle: VisualStyle }> = ({ outline, onSave, onVideoSave, visualStyle }) => {
     const [editedOutline, setEditedOutline] = useState<Scene[]>(outline);
     const [sceneToDelete, setSceneToDelete] = useState<Scene | null>(null);
+    const [editingScene, setEditingScene] = useState<Scene | null>(null);
+    const [generationStatus, setGenerationStatus] = useState<Record<string, { status: 'idle' | 'loading' | 'error', error?: string }>>({});
+
     const { status, save } = useAutosave({ onSave });
 
     const dragItem = useRef<number | null>(null);
@@ -254,14 +321,6 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
     useEffect(() => {
         setEditedOutline(outline);
     }, [outline]);
-
-    const handleInputChange = (sceneId: string, field: keyof Scene, value: string) => {
-        const newOutline = editedOutline.map(scene =>
-            scene.id === sceneId ? { ...scene, [field]: value } : scene
-        );
-        setEditedOutline(newOutline);
-        save(newOutline);
-    };
 
     const handleDeleteClick = (scene: Scene) => {
         setSceneToDelete(scene);
@@ -274,9 +333,12 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         save(newOutline);
         setSceneToDelete(null);
     };
-
-    const handleCancelDelete = () => {
-        setSceneToDelete(null);
+    
+    const handleModalSave = (updatedScene: Scene) => {
+        const newOutline = editedOutline.map(s => s.id === updatedScene.id ? updatedScene : s);
+        setEditedOutline(newOutline);
+        save(newOutline);
+        setEditingScene(null);
     };
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -328,29 +390,26 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         save(newOutline);
     };
 
-    const EditableField: React.FC<{scene: Scene, field: keyof Scene, label: string, isTextarea?: boolean}> = ({ scene, field, label, isTextarea }) => {
-        const value = scene[field] as string;
-        const commonClasses = "w-full bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 focus:ring-cyan-400 focus:border-cyan-400";
-        return (
-            <div>
-                <label className="block text-gray-400 font-semibold mb-1">{label}</label>
-                {isTextarea ? (
-                     <textarea
-                        value={value}
-                        onChange={(e) => handleInputChange(scene.id, field, e.target.value)}
-                        className={`${commonClasses} h-24 min-h-[40px]`}
-                    />
-                ) : (
-                    <input
-                        type="text"
-                        value={value}
-                        onChange={(e) => handleInputChange(scene.id, field, e.target.value)}
-                        className={commonClasses}
-                    />
-                )}
-            </div>
-        );
-    }
+    const handleGenerateVideo = async (scene: Scene) => {
+        setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'loading' } }));
+        try {
+            const downloadLink = await generateVideoForScene(scene, visualStyle);
+            const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
+            
+            onVideoSave({ ...scene, videoUrl: finalUrl });
+            setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'idle' } }));
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'error', error: errorMessage } }));
+        }
+    };
+
+    const InfoField: React.FC<{label: string, value: string | undefined, fullWidth?: boolean}> = ({ label, value, fullWidth = false }) => (
+        <div className={fullWidth ? 'md:col-span-2' : ''}>
+            <p className="block text-gray-400 font-semibold mb-1">{label}</p>
+            <p className="text-gray-200 bg-gray-900/40 p-2 rounded-md min-h-[2.5rem] whitespace-pre-wrap">{value || '...'}</p>
+        </div>
+    );
     
     return (
         <div>
@@ -376,27 +435,69 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                             `}
                         >
                             { isDraggedOver && <div className="absolute top-0 left-6 right-6 h-1 bg-cyan-400 rounded-full animate-pulse"></div> }
-                            <div className="flex items-end gap-4 mb-4">
-                                <div className="flex-grow">
-                                    <EditableField scene={scene} field="title" label="Scene Title" />
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                                <h4 className="text-xl font-bold text-white flex-grow">{scene.title}</h4>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    <button onClick={() => setEditingScene(scene)} title="Edit Scene" className="p-2 rounded-full text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
+                                    </button>
+                                    <button onClick={() => handleDeleteClick(scene)} title="Delete Scene" className="p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200">
+                                        <TrashIcon />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => handleDeleteClick(scene)}
-                                    title="Delete Scene"
-                                    className="mb-2 p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
-                                >
-                                    <TrashIcon />
-                                </button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                               <EditableField scene={scene} field="location" label="Location" />
-                               <EditableField scene={scene} field="timeOfDay" label="Time of Day" />
-                               <div className="md:col-span-2"><EditableField scene={scene} field="atmosphere" label="Atmosphere" /></div>
-                               <div className="md:col-span-2"><EditableField scene={scene} field="description" label="Description" isTextarea /></div>
-                               <div className="md:col-span-2"><EditableField scene={scene} field="keyVisualElements" label="Key Visual Elements" isTextarea /></div>
-                               <div className="md:col-span-2"><EditableField scene={scene} field="visuals" label="Visuals" isTextarea /></div>
-                               <EditableField scene={scene} field="pacingEmotion" label="Pacing & Emotion" />
-                               <EditableField scene={scene} field="transition" label="Transition" />
+                               <InfoField label="Location" value={scene.location} />
+                               <InfoField label="Time of Day" value={scene.timeOfDay} />
+                               <InfoField label="Atmosphere" value={scene.atmosphere} fullWidth />
+                               <InfoField label="Description" value={scene.description} fullWidth />
+
+                                <div className="md:col-span-2 mt-4 pt-4 border-t border-white/10">
+                                    {scene.videoUrl && (
+                                        <div>
+                                            <h5 className="font-semibold text-gray-400 mb-2">Generated Video</h5>
+                                            <video src={scene.videoUrl} controls className="w-full rounded-lg bg-black aspect-video"></video>
+                                        </div>
+                                    )}
+
+                                    {!scene.videoUrl && (() => {
+                                        const statusInfo = generationStatus[scene.id] || { status: 'idle' };
+                                        const isLoading = statusInfo.status === 'loading';
+                                        
+                                        switch (statusInfo.status) {
+                                            case 'loading':
+                                                return (
+                                                    <div className="flex flex-col items-center justify-center bg-black/20 p-6 rounded-lg aspect-video">
+                                                        <svg className="animate-spin h-8 w-8 text-cyan-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                        <p className="text-white font-semibold">Generating video...</p>
+                                                        <p className="text-gray-400 text-sm mt-1">This can take a few minutes.</p>
+                                                    </div>
+                                                );
+                                            case 'error':
+                                                return (
+                                                    <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-3 rounded-lg flex flex-col items-start gap-2">
+                                                        <div>
+                                                          <p className="font-semibold text-white">Generation Failed</p>
+                                                          <p className="text-sm text-red-300">{statusInfo.error}</p>
+                                                        </div>
+                                                        <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-md">Retry</button>
+                                                    </div>
+                                                );
+                                            default: // 'idle'
+                                                return (
+                                                    <button
+                                                        onClick={() => handleGenerateVideo(scene)}
+                                                        disabled={isLoading}
+                                                        className="w-full flex items-center justify-center gap-2 bg-cyan-600/80 hover:bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
+                                                    >
+                                                        <VideoIcon />
+                                                        Generate Scene Video
+                                                    </button>
+                                                );
+                                        }
+                                    })()}
+                                </div>
+
                             </div>
                         </div>
                     )
@@ -415,8 +516,16 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                 </button>
             </div>
 
+            {editingScene && (
+                <SceneEditModal 
+                    scene={editingScene}
+                    onSave={handleModalSave}
+                    onClose={() => setEditingScene(null)}
+                />
+            )}
+
             {sceneToDelete && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={handleCancelDelete}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={() => setSceneToDelete(null)}>
                     <div className="bg-[#161b22] p-6 rounded-xl border border-red-500/30 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold text-white flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -424,7 +533,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                         </h3>
                         <p className="text-gray-300 mt-3 mb-6">Are you sure you want to permanently delete the scene: <strong className="text-white">"{sceneToDelete.title}"</strong>? This action cannot be undone.</p>
                         <div className="flex justify-end gap-3">
-                            <button onClick={handleCancelDelete} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+                            <button onClick={() => setSceneToDelete(null)} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
                             <button onClick={handleConfirmDelete} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-colors">Delete Scene</button>
                         </div>
                     </div>
@@ -626,7 +735,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             case 'script':
                 return <ScriptPanel script={generatedAssets.script} characters={generatedAssets.characters} onSave={onScriptSave} />;
             case 'outline':
-                return <OutlinePanel outline={generatedAssets.visualOutline} onSave={onOutlineSave} />;
+                return <OutlinePanel outline={generatedAssets.visualOutline} onSave={onOutlineSave} onVideoSave={onVideoSave} visualStyle={visualStyle} />;
             case 'images':
                 return <ImagesPanel images={generatedAssets.referenceImages} />;
             case 'bts':
