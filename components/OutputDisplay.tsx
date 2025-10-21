@@ -677,8 +677,19 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                     
                     <div className="mt-4">
                         {scene.videoUrl && !isLoading && (
-                            <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                                <video src={scene.videoUrl} controls className="w-full h-full"></video>
+                             <div>
+                                <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3">
+                                    <video src={scene.videoUrl} controls className="w-full h-full"></video>
+                                </div>
+                                <button 
+                                    onClick={() => handleGenerateVideo(scene)}
+                                    className="w-full flex items-center justify-center gap-2 bg-cyan-600/50 hover:bg-cyan-600/70 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                    </svg>
+                                    Regenerate Video
+                                </button>
                             </div>
                         )}
                         
