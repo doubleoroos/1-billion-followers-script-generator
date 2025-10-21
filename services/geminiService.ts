@@ -58,7 +58,7 @@ You are an expert screenwriter and concept artist specializing in philosophical,
 
 2.  **Script Generation:** Write a narration and dialogue script guided by the specified **Narrative Tone**. The script should be structured as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. The total spoken length should be appropriate for a 10-minute film, and it must align with the requested **Emotional Arc**.
 
-3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. Every scene description must strictly adhere to the specified **Visual Style**. For each scene, provide a Title, Location, Time of Day, Atmosphere, a detailed Description, Key Visual Elements, Visuals, Transition, and Pacing & Emotion.
+3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline that strictly adheres to the specified **Visual Style**. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
 
 **Output Format:**
 Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
@@ -188,7 +188,10 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
                   location: { type: Type.STRING },
                   timeOfDay: { type: Type.STRING },
                   atmosphere: { type: Type.STRING },
-                  description: { type: Type.STRING },
+                  description: {
+                    type: Type.STRING,
+                    description: "A highly evocative and detailed paragraph that paints a vivid picture of the scene, embodying the selected visual style. It must detail the mood, setting, and key actions or moments."
+                  },
                   keyVisualElements: { type: Type.STRING },
                   visuals: { type: Type.STRING },
                   transition: { type: Type.STRING },
