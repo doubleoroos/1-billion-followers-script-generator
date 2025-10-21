@@ -3,7 +3,7 @@
 export type EmotionalArcIntensity = 'subtle' | 'moderate' | 'intense';
 export type VisualStyle = 'cinematic' | 'solarpunk' | 'minimalist' | 'biomorphic';
 export type NarrativeTone = 'poetic' | 'philosophical' | 'hopeful' | 'intimate';
-export type RewriteTomorrowTheme = 'symbioticCities' | 'renaissanceOfConnection' | 'postScarcityCreators' | 'guardiansOfMemory';
+export type RewriteTomorrowTheme = 'abundance' | 'ascension' | 'harmony' | 'enlightenment';
 
 export interface ReferenceImage {
   title: string;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { GeneratedAssets, ScriptBlock, Scene, Character, ReferenceImage, VisualStyle } from '../types';
 import { generateVideoForScene, regenerateVideoPromptForScene } from '../services/geminiService';
@@ -160,6 +159,7 @@ const SceneCard: React.FC<{ scene: Scene, onFieldChange: (field: keyof Scene, va
     const [generationStatus, setGenerationStatus] = useState<{ status: 'idle' | 'loading' | 'error', error?: string }>({ status: 'idle' });
     const generationController = useRef<AbortController | null>(null);
     const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
+    const [promptError, setPromptError] = useState<string | null>(null);
 
     const handleGenerateVideo = async () => {
         generationController.current = new AbortController();
@@ -181,12 +181,15 @@ const SceneCard: React.FC<{ scene: Scene, onFieldChange: (field: keyof Scene, va
     
     const handleRegeneratePrompt = async () => {
         setIsRegeneratingPrompt(true);
+        setPromptError(null);
         try {
             const newPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
             onFieldChange('videoPrompt', newPrompt);
         } catch (error) {
             console.error("Failed to regenerate prompt:", error);
-            // Optionally, set an error state to show in the UI
+            const errorMessage = error instanceof Error ? error.message : "Failed to regenerate prompt.";
+            setPromptError(errorMessage);
+            setTimeout(() => setPromptError(null), 5000);
         } finally {
             setIsRegeneratingPrompt(false);
         }
@@ -247,6 +250,11 @@ const SceneCard: React.FC<{ scene: Scene, onFieldChange: (field: keyof Scene, va
                             }
                         </button>
                     </div>
+                    {promptError && (
+                        <p className="text-xs text-red-400 mt-1 animate-fade-in">
+                            {promptError}
+                        </p>
+                    )}
                 </div>
             </div>
 

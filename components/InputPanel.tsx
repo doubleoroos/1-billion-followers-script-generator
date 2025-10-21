@@ -74,10 +74,10 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Rewrite Tomorrow Theme</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <OptionButton value="symbioticCities" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A future where cities, technology, and nature are one living organism.">Symbiotic Cities</OptionButton>
-                    <OptionButton value="renaissanceOfConnection" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI fostering deeper human connection and empathy, not isolation.">Renaissance of Connection</OptionButton>
-                    <OptionButton value="postScarcityCreators" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="Automation has freed humanity to pursue passion, art, and purpose.">Post-Scarcity Creators</OptionButton>
-                    <OptionButton value="guardiansOfMemory" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI helps preserve lost cultures, languages, and ancestral wisdom.">Guardians of Memory</OptionButton>
+                    <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
+                    <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
+                    <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
+                    <OptionButton value="enlightenment" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI helps unlock the deepest mysteries of the mind and universe.">Enlightenment</OptionButton>
                 </div>
             </div>
             <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">

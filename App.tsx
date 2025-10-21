@@ -15,7 +15,7 @@ const App: React.FC = () => {
   const [generatedAssets, setGeneratedAssets] = useState<GeneratedAssets | null>(null);
   
   // Creative Controls State
-  const [rewriteTomorrowTheme, setRewriteTomorrowTheme] = useState<RewriteTomorrowTheme>('symbioticCities');
+  const [rewriteTomorrowTheme, setRewriteTomorrowTheme] = useState<RewriteTomorrowTheme>('abundance');
   const [emotionalArc, setEmotionalArc] = useState<EmotionalArcIntensity>('moderate');
   const [visualStyle, setVisualStyle] = useState<VisualStyle>('cinematic');
   const [narrativeTone, setNarrativeTone] = useState<NarrativeTone>('poetic');

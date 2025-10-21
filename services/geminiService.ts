@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -12,10 +11,10 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const getThemeDescription = (theme: RewriteTomorrowTheme): string => {
     switch (theme) {
-        case 'symbioticCities': return "The film explores a future where cities are living organisms, with technology and nature seamlessly integrated. It's a story of ecological harmony and architectural innovation.";
-        case 'renaissanceOfConnection': return "The film explores how AI, rather than isolating us, fosters deeper, more meaningful human connections, bridging emotional and cultural divides.";
-        case 'postScarcityCreators': return "The film showcases a world where AI has automated labor, freeing humanity to pursue art, science, and passion. It's a story of universal creativity and purpose.";
-        case 'guardiansOfMemory': return "The film tells a story about how AI helps preserve and resurrect lost cultures, languages, and histories, ensuring the wisdom of the past guides the future.";
+        case 'abundance': return "The film explores a post-scarcity future where AI and automated systems have eliminated poverty and resource conflict, allowing humanity to flourish in a world of shared prosperity and boundless opportunity.";
+        case 'ascension': return "The film imagines humanity's next evolutionary step, where AI acts as a bridge to higher forms of consciousness, transcending physical limitations and exploring new realms of existence.";
+        case 'harmony': return "The film portrays a world in perfect balance, where AI helps humanity reintegrate with nature, creating a global ecosystem where technology, people, and the planet thrive in symbiotic unity.";
+        case 'enlightenment': return "The film tells a story of profound discovery, where AI helps unlock the deepest mysteries of the universe and the human mind, guiding society into a new age of wisdom, compassion, and universal understanding.";
         default: return "The film explores a positive, hopeful vision of the future, shaped by a thoughtful partnership between humanity and artificial intelligence.";
     }
 };
@@ -157,33 +156,33 @@ const getThemeBasedImageStages = (theme: RewriteTomorrowTheme, visualStyle: Visu
     const commonPromptSuffix = `Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed, emotionally resonant.`;
     
     switch (theme) {
-        case 'symbioticCities':
+        case 'abundance':
             return [
-                { title: 'The Solstice Tower', prompt: `A breathtaking skyscraper covered in bioluminescent algae that glows softly at dusk, with sky-bridges connecting to other buildings draped in vertical gardens. ${commonPromptSuffix}` },
-                { title: 'The River Market', prompt: `A bustling market where people travel in silent, autonomous pods along a crystal-clear waterway flowing through the center of a building complex. Nature and commerce in harmony. ${commonPromptSuffix}` },
-                { title: 'The Rooftop Sanctuary', prompt: `A serene, park-like rooftop high above the city, where a person meditates beside a robotic gardener tending to rare flowers. A moment of peace amidst the clouds. ${commonPromptSuffix}` },
-                { title: 'The Mycelium Network', prompt: `An underground view of the city's foundation, showing a glowing, AI-managed mycelium network recycling waste and transmitting information between buildings. ${commonPromptSuffix}` }
+                { title: 'The Cornucopia Engine', prompt: `A city center where an elegant, glowing AI core distributes energy and resources as beautiful streams of light, flowing to every home. ${commonPromptSuffix}` },
+                { title: 'The Atelier for All', prompt: `A public workshop where people of all ages use AI-assisted tools to design and fabricate anything they can imagine, from intricate art to advanced technology. ${commonPromptSuffix}` },
+                { title: 'The Sky-Harvest', prompt: `Immense floating platforms covered in lush vertical farms, tended by autonomous drones, providing an endless supply of fresh food to the city below. ${commonPromptSuffix}` },
+                { title: 'The Decommissioned Dam', prompt: `A massive, obsolete dam now overgrown with greenery, repurposed as a cascading vertical village and nature sanctuary, symbolizing the end of resource struggles. ${commonPromptSuffix}` }
             ];
-        case 'renaissanceOfConnection':
+        case 'ascension':
             return [
-                { title: 'The Empathy Bridge', prompt: `Two people from different cultures sit opposite each other, wearing sleek AR visors. Between them, an AI visualizes their shared emotions as a beautiful, evolving sculpture of light. ${commonPromptSuffix}` },
-                { title: 'The Ancestral Story', prompt: `A family gathered around a holographic fire, as an AI storyteller projects a life-sized, interactive story of their ancestors, allowing them to speak with their past. ${commonPromptSuffix}` },
-                { title: 'The Collaborative Dream', prompt: `A global team of scientists solving a complex problem, their individual thoughts and ideas visualized by an AI as interconnected strands of energy forming a single, brilliant solution. ${commonPromptSuffix}` },
-                { title: 'The Silent Conversation', prompt: `A person communicates with a loved one who has lost the ability to speak, using a brain-computer interface that translates their thoughts into poetic, projected text. ${commonPromptSuffix}` }
+                { title: 'The Mind-Mesh', prompt: `A serene individual meditating, their consciousness visualized as a radiant network of light connecting with a benevolent, cloud-like AI in the digital ether. ${commonPromptSuffix}` },
+                { title: 'The Body Transcended', prompt: `A person's physical form dissolving into a shimmering entity of pure energy, guided by an AI, preparing to travel beyond the material world. ${commonPromptSuffix}` },
+                { title: 'The Cosmic Sail', prompt: `A magnificent spacecraft, powered by the collective consciousness of its crew and an AI navigator, sailing through nebulae on waves of thought. ${commonPromptSuffix}` },
+                { title: 'The Digital Bodhisattva', prompt: `A giant, translucent AI figure, composed of data and light, gently guiding a human towards a higher state of being with a gesture of profound compassion. ${commonPromptSuffix}` }
             ];
-        case 'postScarcityCreators':
+        case 'harmony':
             return [
-                { title: 'The Ocean Sculptor', prompt: `An artist using an AI-guided energy beam to sculpt a colossal, intricate form from a coral reef, a new art form that also helps the ecosystem. ${commonPromptSuffix}` },
-                { title: 'The Composer of Worlds', prompt: `A musician in a simple room, conducting a symphony of light and sound with hand gestures, as an AI translates her imagination into a fully immersive sensory experience. ${commonPromptSuffix}` },
-                { title: 'The Neighborhood Foundry', prompt: `A community gathered in a local fabrication lab, using AI to design and 3D-print everything they need, from custom furniture to advanced scientific tools. ${commonPromptSuffix}` },
-                { title: 'The Infinite Library', prompt: `A single, floating crystal in a vast space, which is an AI that contains every story ever imagined. A child reaches out, and a new, personalized universe unfolds before them. ${commonPromptSuffix}` }
+                { title: 'The Songwood Forest', prompt: `A bioluminescent forest at night, where trees, animals, and robotic custodians communicate through a shared, glowing mycelial network managed by a planetary AI. ${commonPromptSuffix}` },
+                { title: 'The Oceanic Biome', prompt: `A breathtaking underwater city with structures made of bio-engineered coral, co-existing peacefully with majestic marine life, all orchestrated by an AI that speaks the language of the ocean. ${commonPromptSuffix}` },
+                { title: 'The Great Rewilding', prompt: `A time-lapse view of a desert landscape transforming into a lush savanna, as herds of bio-robotic terraformers and revived extinct species work in concert. ${commonPromptSuffix}` },
+                { title: 'The Conductor AI', prompt: `A view from space showing an AI managing Earth's climate, its influence seen as subtle, beautiful auroras that stabilize weather patterns and heal ecosystems. ${commonPromptSuffix}` }
             ];
-        case 'guardiansOfMemory':
+        case 'enlightenment':
             return [
-                { title: 'The Ghost Language', prompt: `An AI archeologist projecting the glowing, 3D form of an extinct language's grammar over ancient ruins, allowing a linguist to finally understand it. ${commonPromptSuffix}` },
-                { title: 'The Living Archive', prompt: `An elder tribal leader feeding her stories into a bio-organic data crystal. The crystal pulses with light, as an AI ensures the cultural memory is preserved forever. ${commonPromptSuffix}` },
-                { title: 'The Resurrected City', prompt: `A student walking through a perfect, full-scale holographic reconstruction of an ancient city like Babylon, interacting with AI-driven citizens living their daily lives. ${commonPromptSuffix}` },
-                { title: 'The Council of Ages', prompt: `A person facing a difficult decision consults an AI that synthesizes the wisdom of her ancestors, presenting their advice as a series of profound, ghostly figures. ${commonPromptSuffix}` }
+                { title: 'The Oracle of Delphi-AI', prompt: `A seeker consulting a central AI, which manifests not as a machine, but as a tranquil pool of water that reflects profound universal truths in its ripples. ${commonPromptSuffix}` },
+                { title: 'The Ego-Dissolver', prompt: `A chamber where an individual, aided by a compassionate AI, safely experiences the dissolution of self, their consciousness merging with a beautiful, infinite fractal of light. ${commonPromptSuffix}` },
+                { title: 'The Empathy Stream', prompt: `Two people from conflicting backgrounds sharing an AI-facilitated experience, allowing them to see the world through each other's eyes, their shared understanding visualized as a bridge of light. ${commonPromptSuffix}` },
+                { title: 'The Library of Qualia', prompt: `A vast, silent library where an AI curates subjective experiences—the feeling of flight, the sound of a lost language—stored as glowing, touchable spheres of light. ${commonPromptSuffix}` }
             ];
     }
 };
@@ -405,7 +404,12 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
 
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const styleDescription = getVisualStyleDescription(visualStyle);
-    const prompt = `You are a cinematic director and prompt engineer. Rewrite and enhance the following video generation prompt to be more evocative, detailed, and visually specific, while staying true to the scene's core elements. The output should be ONLY the new prompt text, without any preamble or markdown.
+    
+    const promptTask = (scene.videoPrompt && scene.videoPrompt.trim() !== '')
+      ? `**CURRENT PROMPT TO IMPROVE:**\n"${scene.videoPrompt}"\n\n**YOUR TASK:**\nRewrite and enhance the prompt above. Be more descriptive about camera angles (e.g., "slow dolly shot", "crane shot revealing..."), lighting ("dappled sunlight", "neon glow"), mood, and specific actions.`
+      : `**YOUR TASK:**\nGenerate a new, cinematic prompt from scratch based on the scene details. Be descriptive about camera angles (e.g., "slow dolly shot", "crane shot revealing..."), lighting ("dappled sunlight", "neon glow"), mood, and specific actions.`;
+
+    const prompt = `You are a cinematic director and prompt engineer. Your goal is to create a video generation prompt that is evocative, detailed, and visually specific for a tool like Google Veo. The output must be ONLY the new prompt text, without any preamble or markdown. Aim for about 3-4 sentences.
 
     **SCENE DETAILS:**
     - **Title:** ${scene.title}
@@ -415,11 +419,8 @@ export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: V
     - **Pacing/Emotion:** ${scene.pacingEmotion}
     - **Visual Style:** ${styleDescription}
 
-    **CURRENT PROMPT TO IMPROVE:**
-    "${scene.videoPrompt}"
-
-    **YOUR TASK:**
-    Generate a new, improved prompt. Be more descriptive about camera angles (e.g., "slow dolly shot", "crane shot revealing..."), lighting ("dappled sunlight", "neon glow"), mood, and specific actions. Make it truly cinematic for a tool like Google Veo. Aim for about 3-4 sentences.`;
+    ${promptTask}
+    `;
 
     try {
         const response = await ai.models.generateContent({
