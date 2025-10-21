@@ -24,6 +24,7 @@ const BtsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5
 const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>;
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
+const DuplicateIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 012-2v-8a2 2 0 01-2-2h-8a2 2 0 01-2 2v8a2 2 0 012 2z" /></svg>;
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     let content = null;
@@ -390,6 +391,20 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         save(newOutline);
     };
 
+    const handleDuplicateScene = (sceneToDuplicate: Scene, index: number) => {
+        const newScene: Scene = {
+            ...JSON.parse(JSON.stringify(sceneToDuplicate)),
+            id: `scene_${editedOutline.length}_${Math.random().toString(36).substring(2, 9)}`,
+            title: `${sceneToDuplicate.title} (Copy)`,
+        };
+        
+        const newOutline = [...editedOutline];
+        newOutline.splice(index + 1, 0, newScene);
+        
+        setEditedOutline(newOutline);
+        save(newOutline);
+    };
+
     const handleGenerateVideo = async (scene: Scene) => {
         setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'loading' } }));
         try {
@@ -438,6 +453,9 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                             <div className="flex items-start justify-between gap-4 mb-4">
                                 <h4 className="text-xl font-bold text-white flex-grow">{scene.title}</h4>
                                 <div className="flex items-center gap-2 flex-shrink-0">
+                                    <button onClick={() => handleDuplicateScene(scene, index)} title="Duplicate Scene" className="p-2 rounded-full text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-all duration-200">
+                                        <DuplicateIcon />
+                                    </button>
                                     <button onClick={() => setEditingScene(scene)} title="Edit Scene" className="p-2 rounded-full text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
                                     </button>
