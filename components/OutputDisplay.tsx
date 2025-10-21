@@ -25,6 +25,7 @@ const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>;
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
 const DuplicateIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 012-2v-8a2 2 0 01-2-2h-8a2 2 0 01-2 2v8a2 2 0 012 2z" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const CheckmarkIcon = () => (
     <svg className="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
         <path className="animate-draw-checkmark" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" style={{ strokeDasharray: 24, strokeDashoffset: 24 }} />
@@ -751,6 +752,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
   const [apiKeySelected, setApiKeySelected] = useState(false);
   const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
   const [generationStatus, setGenerationStatus] = useState<Record<string, { status: 'idle' | 'loading' | 'error', error?: string }>>({});
+  const [downloadingSceneId, setDownloadingSceneId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkKey = async () => {
@@ -791,6 +793,34 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
         }
     }
   };
+  
+  const handleDownloadVideo = async (scene: Scene) => {
+    if (!scene.videoUrl) return;
+    setDownloadingSceneId(scene.id);
+    try {
+        const response = await fetch(scene.videoUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch video: ${response.statusText}`);
+        }
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        const filename = `${scene.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4`;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    } catch (error) {
+        console.error("Download failed:", error);
+        // Here you could set an error state to show a message to the user
+    } finally {
+        setDownloadingSceneId(null);
+    }
+  };
+
 
   if (isCheckingApiKey) {
     return (
@@ -827,6 +857,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
         {outline.map(scene => {
             const statusInfo = generationStatus[scene.id] || { status: 'idle' };
             const isLoading = statusInfo.status === 'loading';
+            const isDownloading = downloadingSceneId === scene.id;
 
             return (
                 <div key={scene.id} className="bg-gradient-to-br from-gray-900/20 to-gray-800/10 border border-white/10 rounded-xl p-6 transition-all duration-300">
@@ -839,15 +870,34 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                                 <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3">
                                     <video src={scene.videoUrl} controls className="w-full h-full"></video>
                                 </div>
-                                <button 
-                                    onClick={() => handleGenerateVideo(scene)}
-                                    className="w-full flex items-center justify-center gap-2 bg-cyan-600/50 hover:bg-cyan-600/70 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98]"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                                    </svg>
-                                    Regenerate Video
-                                </button>
+                                <div className="mt-3 flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        onClick={() => handleDownloadVideo(scene)}
+                                        disabled={isDownloading}
+                                        className="flex-1 flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed"
+                                    >
+                                        {isDownloading ? (
+                                            <>
+                                                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <span>Downloading...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <DownloadIcon />
+                                                <span>Download</span>
+                                            </>
+                                        )}
+                                    </button>
+                                    <button 
+                                        onClick={() => handleGenerateVideo(scene)}
+                                        className="flex-1 flex items-center justify-center gap-2 bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98]"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                        </svg>
+                                        Regenerate
+                                    </button>
+                                </div>
                             </div>
                         )}
                         
