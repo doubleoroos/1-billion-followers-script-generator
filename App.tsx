@@ -39,6 +39,16 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const handleOutlineSave = useCallback((newOutline: string) => {
+    setGeneratedAssets(prevAssets => {
+      if (!prevAssets) return null;
+      return {
+        ...prevAssets,
+        visualOutline: newOutline,
+      };
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 font-sans">
       <Header />
@@ -77,6 +87,7 @@ const App: React.FC = () => {
               <OutputDisplay 
                 generatedAssets={generatedAssets}
                 onScriptSave={handleScriptSave}
+                onOutlineSave={handleOutlineSave}
               />
             )}
           </div>

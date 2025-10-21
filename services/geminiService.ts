@@ -41,8 +41,10 @@ You are an expert screenwriter and concept artist specializing in philosophical,
 
 2.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. For each scene, describe:
     *   **Scene Number & Title:**
-    *   **Visuals:**
-    *   **Transition:**
+    *   **Scene Description:** An evocative paragraph setting the scene, describing key actions, and establishing the overall mood. This provides narrative context.
+    *   **Key Visual Elements:** A bulleted list of 3-5 specific, crucial visual elements (props, character details, background features) that define the scene's look and feel.
+    *   **Visuals:** Specific details on camera angles, lighting, and composition.
+    *   **Transition:** How this scene transitions to the next.
     *   **Pacing & Emotion:** **Crucially, ensure this section reflects the requested '${intensity}' emotional arc.** Note the intended emotional journey and pacing for the scene to match the overall intensity.
 
 **Output Format:**

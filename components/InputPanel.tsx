@@ -14,11 +14,13 @@ const IntensityButton: React.FC<{
   current: EmotionalArcIntensity;
   onClick: (value: EmotionalArcIntensity) => void;
   children: React.ReactNode;
-}> = ({ value, current, onClick, children }) => {
+  tooltip: string;
+}> = ({ value, current, onClick, children, tooltip }) => {
   const isActive = value === current;
   return (
     <button
       onClick={() => onClick(value)}
+      title={tooltip}
       className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
         isActive
           ? 'bg-cyan-600 text-white shadow-lg'
@@ -61,13 +63,28 @@ export const InputPanel: React.FC<InputPanelProps> = ({ onGenerate, isLoading, e
       <div className="mt-6">
         <h3 className="font-bold text-cyan-400 mb-3">Emotional Arc Intensity:</h3>
         <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
-          <IntensityButton value="subtle" current={emotionalArc} onClick={setEmotionalArc}>
+          <IntensityButton
+            value="subtle"
+            current={emotionalArc}
+            onClick={setEmotionalArc}
+            tooltip="A gentle, contemplative arc with nuanced feelings and gradual mood shifts."
+          >
             Subtle
           </IntensityButton>
-          <IntensityButton value="moderate" current={emotionalArc} onClick={setEmotionalArc}>
+          <IntensityButton
+            value="moderate"
+            current={emotionalArc}
+            onClick={setEmotionalArc}
+            tooltip="A balanced emotional journey with clear peaks and valleys, like a standard film."
+          >
             Moderate
           </IntensityButton>
-          <IntensityButton value="intense" current={emotionalArc} onClick={setEmotionalArc}>
+          <IntensityButton
+            value="intense"
+            current={emotionalArc}
+            onClick={setEmotionalArc}
+            tooltip="A powerful, dramatic arc with stark contrasts and a cathartic, impactful climax."
+          >
             Intense
           </IntensityButton>
         </div>
