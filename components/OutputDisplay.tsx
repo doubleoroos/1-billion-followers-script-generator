@@ -192,10 +192,10 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
             </div>
             <div className="flex gap-6 p-6 min-h-[70vh]">
                 <div className="w-1/3 md:w-1/4 flex flex-col gap-4 border-r border-white/10 pr-6">
-                    <h3 className="text-md font-semibold text-cyan-400">Characters</h3>
+                    <h3 className="text-md font-semibold text-brand-cyan tracking-wider">CHARACTERS</h3>
                     <ul className="space-y-2 flex-grow overflow-y-auto pr-2">
                         {characters.map(char => (
-                            <li key={char.id} className="group flex items-center justify-between p-2 rounded-lg bg-gray-900/50 hover:bg-gray-800/70 transition-colors">
+                            <li key={char.id} className="group flex items-center justify-between p-2 rounded-lg bg-black/20 hover:bg-black/40 transition-colors">
                                 <span className="text-sm font-medium text-gray-200">{char.name}</span>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => renameCharacter(char.id)} title="Rename" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg></button>
@@ -204,45 +204,49 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
                             </li>
                         ))}
                     </ul>
-                    <button onClick={addCharacter} className="w-full text-sm py-2 px-3 bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 rounded-lg transition-colors font-semibold">+ Add Character</button>
+                     <button onClick={addCharacter} className="w-full text-sm py-2 px-3 bg-cyan-600/20 text-cyan-300 hover:bg-cyan-500 hover:text-white rounded-lg transition-all font-semibold">+ Add Character</button>
                 </div>
-                <div className="w-2/3 md:w-3/4 flex-grow overflow-y-auto space-y-6 pr-2">
+                <div className="w-2/3 md:w-3/4 flex-grow overflow-y-auto space-y-8 pr-2 font-mono">
                     {script.map(block => (
-                        <div key={block.id}>
+                        <div key={block.id} className="grid grid-cols-6 gap-4">
                             {block.type === 'dialogue' ? (
                                 <>
-                                    <div className="flex items-center gap-2 mb-1 group">
+                                    <div className="col-start-2 col-span-4 flex flex-col items-center">
+                                      <div className="flex items-center gap-2 mb-1 group">
                                          <select 
                                             value={block.characterId || ''} 
                                             onChange={e => handleCharacterChange(block.id, e.target.value)}
-                                            className="text-sm font-bold bg-transparent border-none rounded-md px-0 py-1.5 focus:outline-none focus:ring-2 focus:ring-cyan-500 appearance-none uppercase text-white tracking-wider">
+                                            className="text-sm font-bold bg-transparent border-none rounded-md px-0 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-500 appearance-none uppercase text-white tracking-wider">
                                             <option value="" disabled className="bg-gray-800">UNASSIGNED</option>
                                             {characters.map(c => <option key={c.id} value={c.id} className="bg-gray-800">{c.name.toUpperCase()}</option>)}
                                          </select>
-                                          <button onClick={() => toggleBlockType(block.id)} title="Change to Narration" className="text-xs text-gray-400 hover:text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity">(Narration)</button>
+                                          <button onClick={() => toggleBlockType(block.id)} title="Change to Narration" className="text-xs text-gray-400 hover:text-white font-sans font-semibold opacity-0 group-hover:opacity-100 transition-opacity">(Narration)</button>
+                                      </div>
                                     </div>
                                      <div
                                         contentEditable
                                         suppressContentEditableWarning
                                         onBlur={(e) => handleContentChange(block.id, e.currentTarget.innerText)}
-                                        className="w-full bg-transparent text-gray-300 focus:outline-none leading-relaxed pl-12"
+                                        className="col-start-2 col-span-4 bg-transparent text-gray-300 focus:outline-none leading-relaxed text-left"
                                     >
                                         {block.content}
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <div className="flex items-center gap-2 mb-1 group">
-                                        <span className="text-sm font-bold text-cyan-400 uppercase">Narration</span>
-                                        <button onClick={() => toggleBlockType(block.id)} title="Change to Dialogue" className="text-xs text-gray-400 hover:text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity">(Dialogue)</button>
-                                    </div>
-                                    <div
-                                        contentEditable
-                                        suppressContentEditableWarning
-                                        onBlur={(e) => handleContentChange(block.id, e.currentTarget.innerText)}
-                                        className="w-full bg-transparent text-gray-300 focus:outline-none leading-relaxed italic"
-                                    >
-                                        {block.content}
+                                    <div className="col-span-6 flex flex-col">
+                                      <div className="flex items-center gap-2 mb-1 group">
+                                          <span className="text-sm font-bold text-cyan-400 uppercase">Narration</span>
+                                          <button onClick={() => toggleBlockType(block.id)} title="Change to Dialogue" className="text-xs text-gray-400 hover:text-white font-sans font-semibold opacity-0 group-hover:opacity-100 transition-opacity">(Dialogue)</button>
+                                      </div>
+                                      <div
+                                          contentEditable
+                                          suppressContentEditableWarning
+                                          onBlur={(e) => handleContentChange(block.id, e.currentTarget.innerText)}
+                                          className="w-full bg-transparent text-gray-300 focus:outline-none leading-relaxed italic"
+                                      >
+                                          {block.content}
+                                      </div>
                                     </div>
                                 </>
                             )}
@@ -279,12 +283,12 @@ const getPlainText = (html: string) => {
 const EditableField: React.FC<{label: string, field: keyof Omit<Scene, 'id'>, value: string, sceneId: string, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void, isTextarea?: boolean}> = 
   ({ label, field, value, sceneId, onChange, isTextarea = false }) => (
       <div>
-        <label className="block text-xs font-semibold text-cyan-400 mb-1.5 tracking-wide uppercase">{label}</label>
+        <label className="block text-xs font-semibold text-brand-cyan mb-1.5 tracking-wide uppercase">{label}</label>
         {isTextarea ? (
           <textarea
             value={value}
             onChange={(e) => onChange(sceneId, field, e.target.value)}
-            className="w-full bg-gray-900/50 p-2 rounded-md border border-white/10 focus:ring-cyan-500 focus:border-cyan-500 text-sm resize-y transition-colors focus:bg-gray-900"
+            className="w-full bg-black/20 p-2 rounded-md border border-white/10 focus:ring-2 focus:ring-brand-cyan focus:border-brand-cyan/50 text-sm resize-y transition-colors focus:bg-black/30"
             rows={4}
           />
         ) : (
@@ -292,7 +296,7 @@ const EditableField: React.FC<{label: string, field: keyof Omit<Scene, 'id'>, va
             type="text"
             value={value}
             onChange={(e) => onChange(sceneId, field, e.target.value)}
-            className="w-full bg-gray-900/50 p-2 rounded-md border border-white/10 focus:ring-cyan-500 focus:border-cyan-500 text-sm transition-colors focus:bg-gray-900"
+            className="w-full bg-black/20 p-2 rounded-md border border-white/10 focus:ring-2 focus:ring-brand-cyan focus:border-brand-cyan/50 text-sm transition-colors focus:bg-black/30"
           />
         )}
       </div>
@@ -324,8 +328,8 @@ const RichTextField: React.FC<{
 
   return (
     <div>
-      <label className="block text-xs font-semibold text-cyan-400 mb-1.5 tracking-wide uppercase">{label}</label>
-      <div className="bg-gray-900/50 border border-white/10 rounded-md focus-within:ring-2 focus-within:ring-cyan-500 transition-all focus-within:border-cyan-500">
+      <label className="block text-xs font-semibold text-brand-cyan mb-1.5 tracking-wide uppercase">{label}</label>
+      <div className="bg-black/20 border border-white/10 rounded-md focus-within:ring-2 focus-within:ring-brand-cyan transition-all focus-within:border-brand-cyan/50">
         <div className="p-1 border-b border-white/10 flex items-center gap-1">
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('bold')} className="p-2 text-gray-400 hover:bg-gray-700/80 hover:text-white rounded transition-colors" title="Bold (Ctrl+B)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5.25 4.5h4.5a3.25 3.25 0 010 6.5H5.25V4.5zm0 2.5v1.5h4.5a.75.75 0 000-1.5H5.25zM5.25 12h5.5a3.25 3.25 0 010 6.5H5.25V12zm0 2.5v1.5h5.5a.75.75 0 000-1.5H5.25z" /></svg></button>
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('italic')} className="p-2 text-gray-400 hover:bg-gray-700/80 hover:text-white rounded transition-colors" title="Italic (Ctrl+I)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M7.75 4.5a.75.75 0 000 1.5h1.259l-2.25 7.5H5.5a.75.75 0 000 1.5h5a.75.75 0 000-1.5H9.241l2.25-7.5H12.5a.75.75 0 000-1.5h-5z" /></svg></button>
@@ -346,15 +350,15 @@ const RichTextField: React.FC<{
 
 const SceneEditorCard: React.FC<{scene: Scene, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void}> = ({ scene, onChange }) => {
     return (
-        <div id={scene.id} className="p-6 bg-gray-900/40 rounded-xl border border-white/10 space-y-4">
+        <div id={scene.id} className="p-6 bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 space-y-4 shadow-lg">
             <input
                 type="text"
                 value={scene.title}
                 onChange={(e) => onChange(scene.id, 'title', e.target.value)}
                 aria-label="Scene Title"
-                className="w-full bg-transparent text-xl font-bold text-amber-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-lg p-1 -m-1"
+                className="w-full bg-transparent text-xl font-bold text-brand-amber focus:outline-none focus:ring-2 focus:ring-brand-cyan rounded-lg p-1 -m-1"
             />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                 <EditableField label="Location" field="location" value={scene.location} sceneId={scene.id} onChange={onChange} />
                 <EditableField label="Time of Day" field="timeOfDay" value={scene.timeOfDay} sceneId={scene.id} onChange={onChange} />
                 <EditableField label="Atmosphere" field="atmosphere" value={scene.atmosphere} sceneId={scene.id} onChange={onChange} />
@@ -577,22 +581,22 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
   const handleBtsFormat = (command: string) => document.execCommand(command, false);
 
   const TabButton = ({ tab, label }: { tab: Tab; label: string }) => (
-    <button onClick={() => setActiveTab(tab)} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors relative ${activeTab === tab ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700/50'}`}>
+    <button onClick={() => setActiveTab(tab)} className={`px-4 py-3 text-sm font-semibold rounded-t-lg transition-colors relative border-b-2 ${activeTab === tab ? 'text-white border-transparent' : 'text-gray-400 hover:text-white border-transparent'}`}>
       {label}
-      {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500 rounded-full"></div>}
+      {activeTab === tab && <div className="absolute bottom-[-2px] left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"></div>}
     </button>
   );
 
   return (
-    <div className="bg-gray-900/50 rounded-2xl border border-white/10 animate-fade-in shadow-2xl shadow-black/20">
-        <div className="flex justify-between items-center p-4 border-b border-white/10 flex-wrap gap-4">
+    <div className="bg-black/20 backdrop-blur-lg rounded-2xl border border-white/10 animate-fade-in shadow-2xl shadow-black/30">
+        <div className="flex justify-between items-center p-4 pl-6 border-b border-white/10 flex-wrap gap-4">
             <div className="flex space-x-2">
                 <TabButton tab="script" label="Script Editor" />
                 <TabButton tab="outline" label="Visual Outline" />
                 <TabButton tab="images" label="Reference Images" />
                 <TabButton tab="bts" label="BTS Document" />
             </div>
-             <button onClick={handleExportPackage} className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-amber-600 text-white hover:bg-amber-500 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400/50 focus:ring-offset-2 focus:ring-offset-gray-900" title="Compile and export all text assets for submission">
+             <button onClick={handleExportPackage} className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white hover:from-amber-400 hover:to-orange-500 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400/50 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-lg" title="Compile and export all text assets for submission">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm.5 3.5a.5.5 0 01.5-.5h4a.5.5 0 010 1h-4a.5.5 0 01-.5-.5zM5 9.5a.5.5 0 01.5-.5h8a.5.5 0 010 1h-8a.5.5 0 01-.5-.5zm.5 2.5a.5.5 0 000 1h8a.5.5 0 000-1h-8z" /></svg>
               Export Package
             </button>
@@ -618,7 +622,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                 </div>
                 <div className="flex gap-6 p-6">
                   <nav className="w-1/3 md:w-1/4 h-[65vh] overflow-y-auto pr-4 border-r border-white/10">
-                    <h3 className="text-md font-semibold mb-3 text-cyan-400 sticky top-0 bg-gray-900/80 backdrop-blur-sm pb-2 z-10">Scenes</h3>
+                    <h3 className="text-md font-semibold mb-3 text-brand-cyan sticky top-0 bg-gray-900/80 backdrop-blur-sm pb-2 z-10 tracking-wider">SCENES</h3>
                     <ul className="space-y-1">
                       {editedOutline.map(scene => (
                         <li 
@@ -629,7 +633,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                           onDrop={(e) => handleDrop(e, scene.id)}
                           onDragEnd={handleDragEnd}
                           className={`group w-full text-left p-2.5 rounded-lg transition-all duration-150 relative cursor-move ${draggedSceneId === scene.id ? 'opacity-30 bg-gray-600' : ''} ${activeSceneId === scene.id ? 'bg-cyan-600/20' : 'text-gray-300 hover:bg-gray-700/50'}`}>
-                          <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg transition-all ${activeSceneId === scene.id ? 'bg-cyan-500' : 'bg-transparent'}`}></div>
+                          <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg transition-all bg-gradient-to-b from-cyan-400 to-blue-500 ${activeSceneId === scene.id ? 'opacity-100' : 'opacity-0'}`}></div>
                           <button onClick={() => handleSceneJump(scene.id)} className="w-full h-full text-left text-sm font-medium pr-6" style={{pointerEvents: draggedSceneId ? 'none' : 'auto', color: activeSceneId === scene.id ? '#fff' : ''}}>
                             {scene.title}
                           </button>
@@ -660,9 +664,9 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
             {activeTab === 'images' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto p-6">
                 {generatedAssets.referenceImages.map((image) => (
-                  <div key={image.title} className="bg-gray-900/50 p-3 rounded-xl border border-white/10 flex flex-col gap-3 group">
-                    <img src={image.imageUrl} alt={image.title} className="rounded-lg w-full aspect-video object-cover transition-transform group-hover:scale-105" />
-                    <h4 className="text-md font-semibold text-cyan-400 text-center">{image.title}</h4>
+                  <div key={image.title} className="bg-black/20 p-3 rounded-xl border border-white/10 flex flex-col gap-3 group shadow-lg">
+                    <img src={image.imageUrl} alt={image.title} className="rounded-lg w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" />
+                    <h4 className="text-md font-semibold text-brand-cyan text-center">{image.title}</h4>
                   </div>
                 ))}
               </div>

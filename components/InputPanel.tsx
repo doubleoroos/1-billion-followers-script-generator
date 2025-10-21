@@ -31,13 +31,14 @@ const OptionButton = <T extends string>({
     <button
       onClick={() => onClick(value)}
       title={tooltip}
-      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 ${
+      className={`relative flex-1 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-400 overflow-hidden ${
         isActive
-          ? 'bg-cyan-600 text-white shadow-md'
+          ? 'text-white shadow-md'
           : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
       }`}
     >
-      {children}
+      {isActive && <span className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600"></span>}
+      <span className="relative z-10">{children}</span>
     </button>
   );
 };
@@ -53,15 +54,16 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   setNarrativeTone
 }) => {
   return (
-    <div className="bg-gray-900/50 p-6 rounded-2xl border border-white/10 h-full flex flex-col space-y-8">
+    <div className="bg-black/20 backdrop-blur-lg p-6 rounded-2xl border border-white/10 h-full flex flex-col space-y-6 shadow-2xl shadow-black/30">
       <div>
         <h2 className="text-2xl font-bold mb-2 text-white">Creative Controls</h2>
-        <p className="text-gray-400">Define the core attributes of your film to guide the AI generation process.</p>
+        <p className="text-gray-400">Define the core attributes of your film to guide the AI generation.</p>
       </div>
       
-      <div className="space-y-6">
-        <div className="p-4 bg-gray-800/40 rounded-xl border border-white/10">
-          <h3 className="font-semibold text-cyan-400 mb-3">Narrative Tone</h3>
+      <div className="space-y-5">
+        <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-brand-cyan to-transparent"></div>
+          <h3 className="font-semibold text-white mb-3 pl-2">Narrative Tone</h3>
           <div className="grid grid-cols-2 gap-2">
               <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Evocative, metaphorical language; focuses on feeling and imagery.">Poetic</OptionButton>
               <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Explores deep questions about existence, humanity, and meaning.">Philosophical</OptionButton>
@@ -69,8 +71,9 @@ export const InputPanel: React.FC<InputPanelProps> = ({
               <OptionButton value="intimate" current={narrativeTone} onClick={setNarrativeTone} tooltip="A close, personal, and reflective perspective.">Intimate</OptionButton>
           </div>
         </div>
-        <div className="p-4 bg-gray-800/40 rounded-xl border border-white/10">
-          <h3 className="font-semibold text-cyan-400 mb-3">Visual Style</h3>
+        <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
+           <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-brand-cyan to-transparent"></div>
+          <h3 className="font-semibold text-white mb-3 pl-2">Visual Style</h3>
           <div className="grid grid-cols-2 gap-2">
               <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Photorealistic, grand, and emotionally resonant visuals with dramatic lighting.">Cinematic</OptionButton>
               <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Utopian and nature-integrated, with organic architecture and lush greenery.">Solarpunk</OptionButton>
@@ -78,8 +81,9 @@ export const InputPanel: React.FC<InputPanelProps> = ({
               <OptionButton value="biomorphic" current={visualStyle} onClick={setVisualStyle} tooltip="Fluid, organic shapes inspired by nature's curves and patterns.">Biomorphic</OptionButton>
           </div>
         </div>
-        <div className="p-4 bg-gray-800/40 rounded-xl border border-white/10">
-          <h3 className="font-semibold text-cyan-400 mb-3">Emotional Arc Intensity</h3>
+        <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
+           <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-brand-cyan to-transparent"></div>
+          <h3 className="font-semibold text-white mb-3 pl-2">Emotional Arc Intensity</h3>
           <div className="flex justify-between items-center gap-2">
             <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle, contemplative arc with nuanced feelings.">Subtle</OptionButton>
             <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="A balanced journey with clear peaks and valleys.">Moderate</OptionButton>
@@ -93,7 +97,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
         <button
           onClick={onGenerate}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 bg-amber-600 text-white font-bold py-4 px-4 rounded-xl hover:bg-amber-500 transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
+          className="w-full flex items-center justify-center gap-3 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-4 px-4 rounded-xl transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400/50 relative shadow-lg animate-glow"
         >
           {isLoading ? (
             <>

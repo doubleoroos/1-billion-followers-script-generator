@@ -7,7 +7,7 @@
     <title>1 Billion Followers Script Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -15,15 +15,25 @@
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
+              mono: ['Courier Prime', 'monospace'],
+            },
+            colors: {
+              'brand-cyan': '#22d3ee',
+              'brand-amber': '#fbbf24',
             },
             keyframes: {
-              'fade-in': {
+              'subtle-fade-in': {
                 '0%': { opacity: '0', transform: 'translateY(10px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'glow': {
+                '0%, 100%': { boxShadow: '0 0 10px rgba(251, 191, 36, 0.2), 0 0 20px rgba(251, 191, 36, 0.1)' },
+                '50%': { boxShadow: '0 0 20px rgba(251, 191, 36, 0.4), 0 0 30px rgba(251, 191, 36, 0.2)' },
               }
             },
             animation: {
-              'fade-in': 'fade-in 0.5s ease-out forwards',
+              'fade-in': 'subtle-fade-in 0.5s ease-out forwards',
+              'glow': 'glow 3s ease-in-out infinite',
             }
           }
         }
@@ -40,7 +50,7 @@
 }
 </script>
 </head>
-  <body class="bg-[#0D1117]">
+  <body class="bg-[#0D1117] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(34,211,238,0.1),rgba(255,255,255,0))]">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
