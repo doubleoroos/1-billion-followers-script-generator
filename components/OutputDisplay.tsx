@@ -237,7 +237,7 @@ const getPlainText = (html: string) => {
     return tempDiv.textContent || tempDiv.innerText || '';
 };
 
-const formatOutlineToString = (outline: Scene[]): string => {
+const formatOutlineToPlainText = (outline: Scene[]): string => {
   if (!outline) return '';
   return outline.map((scene) => {
     const title = scene.title || '';
@@ -246,7 +246,7 @@ const formatOutlineToString = (outline: Scene[]): string => {
       `**Location:** ${scene.location || ''}`,
       `**Time of Day:** ${scene.timeOfDay || ''}`,
       `**Atmosphere:** ${scene.atmosphere || ''}`,
-      `**Scene Description:** ${scene.description || ''}`,
+      `**Scene Description:**\n${getPlainText(scene.description || '')}`,
       `**Key Visual Elements:**\n${scene.keyVisualElements || ''}`,
       `**Visuals:** ${scene.visuals || ''}`,
       `**Transition:** ${scene.transition || ''}`,
@@ -277,6 +277,52 @@ const EditableField: React.FC<{label: string, field: keyof Omit<Scene, 'id'>, va
       </div>
 );
 
+const RichTextField: React.FC<{
+  label: string;
+  value: string;
+  onChange: (newValue: string) => void;
+}> = ({ label, value, onChange }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
+
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    onChange(e.currentTarget.innerHTML);
+  };
+  
+  const handleFormat = (command: string) => {
+    if (editorRef.current) {
+        editorRef.current.focus();
+        document.execCommand(command, false);
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-cyan-400 mb-1">{label}</label>
+      <div className="bg-slate-900/50 border border-slate-600 rounded-md focus-within:ring-2 focus-within:ring-cyan-500 transition-all">
+        <div className="p-1 border-b border-slate-600 flex items-center gap-1">
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('bold')} className="p-1.5 hover:bg-slate-700 rounded transition-colors" title="Bold (Ctrl+B)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5.25 4.5h4.5a3.25 3.25 0 010 6.5H5.25V4.5zm0 2.5v1.5h4.5a.75.75 0 000-1.5H5.25zM5.25 12h5.5a3.25 3.25 0 010 6.5H5.25V12zm0 2.5v1.5h5.5a.75.75 0 000-1.5H5.25z" /></svg></button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('italic')} className="p-1.5 hover:bg-slate-700 rounded transition-colors" title="Italic (Ctrl+I)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M7.75 4.5a.75.75 0 000 1.5h1.259l-2.25 7.5H5.5a.75.75 0 000 1.5h5a.75.75 0 000-1.5H9.241l2.25-7.5H12.5a.75.75 0 000-1.5h-5z" /></svg></button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('insertUnorderedList')} className="p-1.5 hover:bg-slate-700 rounded transition-colors" title="Bulleted List"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M2 5.75A.75.75 0 012.75 5h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 5.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 4.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" /></svg></button>
+        </div>
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleInput}
+          className="w-full bg-transparent p-2 text-sm text-slate-200 focus:outline-none min-h-[80px] prose prose-invert prose-sm max-w-none prose-ul:list-disc prose-ul:my-2 prose-li:my-0"
+        />
+      </div>
+    </div>
+  );
+};
+
+
 const SceneEditorCard: React.FC<{scene: Scene, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void}> = ({ scene, onChange }) => {
     return (
         <div id={scene.id} className="p-4 bg-slate-900/70 rounded-lg border border-slate-700 space-y-3">
@@ -286,7 +332,11 @@ const SceneEditorCard: React.FC<{scene: Scene, onChange: (sceneId: string, field
                 <EditableField label="Time of Day" field="timeOfDay" value={scene.timeOfDay} sceneId={scene.id} onChange={onChange} />
                 <EditableField label="Atmosphere" field="atmosphere" value={scene.atmosphere} sceneId={scene.id} onChange={onChange} />
             </div>
-            <EditableField label="Scene Description" field="description" value={scene.description} sceneId={scene.id} onChange={onChange} isTextarea />
+            <RichTextField 
+                label="Scene Description"
+                value={scene.description}
+                onChange={(newValue) => onChange(scene.id, 'description', newValue)}
+            />
             <EditableField label="Key Visual Elements" field="keyVisualElements" value={scene.keyVisualElements} sceneId={scene.id} onChange={onChange} isTextarea />
             <EditableField label="Visuals" field="visuals" value={scene.visuals} sceneId={scene.id} onChange={onChange} isTextarea />
             <EditableField label="Transition" field="transition" value={scene.transition} sceneId={scene.id} onChange={onChange} />
@@ -392,7 +442,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
         }).join('\n\n');
         break;
       case 'outline':
-        contentToCopy = formatOutlineToString(editedOutline);
+        contentToCopy = formatOutlineToPlainText(editedOutline);
         break;
       case 'bts':
         contentToCopy = getPlainText(editedBts);
@@ -419,12 +469,35 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                 </div>`;
     }).join('');
 
-    const outlineHtml = formatOutlineToString(editedOutline).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^- (.*)$/gm, '<ul><li>$1</li></ul>').replace(/<\/ul>\s*<ul>/g, '').replace(/\n/g, '<br>');
+    const outlineHtml = editedOutline.map(scene => {
+      // Helper to safely render text content as HTML (escape special characters)
+      const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      
+      const formatMultiLine = (text: string) => {
+          if (!text) return '';
+          return '<ul>' + text.split('\n').filter(line => line.trim() !== '').map(line => `<li>${escape(line.replace(/^- /, ''))}</li>`).join('') + '</ul>';
+      }
+
+      return `
+        <div style="margin-top: 2em; padding-top: 1em; border-top: 1px solid #eee;">
+          <h3 style="color: #333;">${escape(scene.title)}</h3>
+          <p><strong>Location:</strong> ${escape(scene.location)}</p>
+          <p><strong>Time of Day:</strong> ${escape(scene.timeOfDay)}</p>
+          <p><strong>Atmosphere:</strong> ${escape(scene.atmosphere)}</p>
+          <div><strong style="display: block; margin-bottom: 0.5em;">Scene Description:</strong><div style="padding-left: 1em; border-left: 2px solid #eee;">${scene.description}</div></div>
+          <div><strong style="display: block; margin-bottom: 0.5em;">Key Visual Elements:</strong>${formatMultiLine(scene.keyVisualElements)}</div>
+          <div><strong style="display: block; margin-bottom: 0.5em;">Visuals:</strong>${formatMultiLine(scene.visuals)}</div>
+          <p><strong>Transition:</strong> ${escape(scene.transition)}</p>
+          <p><strong>Pacing & Emotion:</strong> ${escape(scene.pacingEmotion)}</p>
+        </div>
+      `;
+    }).join('');
+    
     const btsHtml = editedBts;
 
     const content = `
       <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>1 Billion Followers - Submission Package</title>
-      <style>body{font-family:sans-serif;line-height:1.6;color:#333;max-width:800px;margin:40px auto;padding:20px;}h1,h2{color:#111;}h1{border-bottom:2px solid #eee;padding-bottom:10px;}@media print{.no-print{display:none;}}.page-break{page-break-before:always;}</style></head>
+      <style>body{font-family:sans-serif;line-height:1.6;color:#333;max-width:800px;margin:40px auto;padding:20px;}h1,h2{color:#111;}h1{border-bottom:2px solid #eee;padding-bottom:10px;}h3{margin-top: 1.5em;}ul{padding-left:20px;margin-top:5px;}li{margin-bottom:5px;}@media print{.no-print{display:none;}}.page-break{page-break-before:always;}</style></head>
       <body><div class="no-print" style="background-color:#f0f8ff;border:1px solid #b0e0e6;padding:15px;margin-bottom:20px;border-radius:8px;"><p><strong>To save as PDF:</strong> Use Print (Ctrl/Cmd+P) and select "Save as PDF".</p></div>
       <h1>Project: 1 Billion Followers</h1><div class="page-break"></div><h2>Narration Script</h2>${scriptHtml}
       <div class="page-break"></div><h2>Visual Outline</h2>${outlineHtml}
