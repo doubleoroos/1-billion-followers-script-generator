@@ -19,7 +19,7 @@ const OutlineIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5
 const ImagesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const BtsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4" /></svg>;
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>;
-
+const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     let content = null;
@@ -51,7 +51,6 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
 function useAutosave<T>({ onSave, delay = 1500 }: { onSave: (data: T) => void, delay?: number }) {
     const [status, setStatus] = useState<SaveStatus>('clean');
     const timeoutRef = useRef<number | null>(null);
-    // FIX: Provide an initial `undefined` value to `useRef` to satisfy environments that may not support the no-argument overload.
     const dataRef = useRef<T | undefined>(undefined);
     const onSaveRef = useRef(onSave);
     onSaveRef.current = onSave;
@@ -221,7 +220,13 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
 
 const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) => void }> = ({ outline, onSave }) => {
     const [editedOutline, setEditedOutline] = useState<Scene[]>(outline);
+    const [sceneToDelete, setSceneToDelete] = useState<Scene | null>(null);
     const { status, save } = useAutosave({ onSave });
+
+    // Drag and Drop state and refs
+    const dragItem = useRef<number | null>(null);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     useEffect(() => {
         setEditedOutline(outline);
@@ -234,6 +239,76 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         setEditedOutline(newOutline);
         save(newOutline);
     };
+    
+    const handleDeleteClick = (scene: Scene) => {
+        setSceneToDelete(scene);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!sceneToDelete) return;
+
+        const newOutline = editedOutline.filter(s => s.id !== sceneToDelete.id);
+        setEditedOutline(newOutline);
+        save(newOutline);
+        setSceneToDelete(null);
+    };
+
+    const handleCancelDelete = () => {
+        setSceneToDelete(null);
+    };
+
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        dragItem.current = index;
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragEnter = (index: number) => {
+        if (index !== draggedIndex) {
+            setDragOverIndex(index);
+        }
+    };
+
+    const handleDrop = () => {
+        if (dragItem.current === null || dragOverIndex === null || dragItem.current === dragOverIndex) {
+            handleDragEnd();
+            return;
+        }
+
+        const newOutline = [...editedOutline];
+        const [draggedItemContent] = newOutline.splice(dragItem.current, 1);
+        newOutline.splice(dragOverIndex, 0, draggedItemContent);
+        
+        setEditedOutline(newOutline);
+        save(newOutline);
+
+        handleDragEnd();
+    };
+
+    const handleDragEnd = () => {
+        dragItem.current = null;
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const handleAddNewScene = () => {
+        const newScene: Scene = {
+            id: `scene_${editedOutline.length}_${Math.random().toString(36).substring(2, 9)}`,
+            title: `Scene ${editedOutline.length + 1}: [New Scene Title]`,
+            location: '',
+            timeOfDay: '',
+            atmosphere: '',
+            description: '',
+            keyVisualElements: '',
+            visuals: '',
+            transition: '',
+            pacingEmotion: '',
+        };
+        const newOutline = [...editedOutline, newScene];
+        setEditedOutline(newOutline);
+        save(newOutline);
+    };
+
 
     const EditableField: React.FC<{scene: Scene, field: keyof Scene, label: string, isTextarea?: boolean}> = ({ scene, field, label, isTextarea }) => {
         const value = scene[field] as string;
@@ -264,11 +339,38 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
             <div className="flex justify-end items-center mb-4 px-1">
                 <SaveStatusIndicator status={status} />
             </div>
-            <div className="space-y-6">
-                {editedOutline.map(scene => (
-                    <div key={scene.id} className="bg-gradient-to-br from-gray-900/20 to-gray-800/10 border border-white/10 rounded-xl p-6">
-                        <div className="mb-4">
-                            <EditableField scene={scene} field="title" label="Scene Title" />
+            <div className="space-y-6" onDragLeave={handleDragEnd}>
+                {editedOutline.map((scene, index) => (
+                    <div 
+                        key={scene.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragEnter={() => handleDragEnter(index)}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => e.preventDefault()}
+                        className={`bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300
+                            ${draggedIndex === index ? 'opacity-30 scale-95 shadow-2xl' : 'opacity-100 scale-100'}
+                            ${dragOverIndex === index && draggedIndex !== index 
+                                ? 'ring-4 ring-cyan-500' 
+                                : ''
+                            }
+                             border
+                             ${draggedIndex !== null ? 'border-transparent' : 'border-white/10'}
+                            ${draggedIndex !== null ? 'cursor-grabbing' : 'cursor-grab'}
+                        `}
+                    >
+                        <div className="flex items-end gap-4 mb-4">
+                            <div className="flex-grow">
+                                <EditableField scene={scene} field="title" label="Scene Title" />
+                            </div>
+                            <button
+                                onClick={() => handleDeleteClick(scene)}
+                                title="Delete Scene"
+                                className="mb-2 p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
+                            >
+                                <TrashIcon />
+                            </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                            <EditableField scene={scene} field="location" label="Location" />
@@ -283,6 +385,34 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                     </div>
                 ))}
             </div>
+            
+            <div className="mt-8 flex justify-center">
+                <button
+                    onClick={handleAddNewScene}
+                    className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-cyan-300 bg-cyan-900/40 border border-cyan-700/50 rounded-lg hover:bg-cyan-800/60 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#161b22] focus:ring-cyan-400"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add New Scene
+                </button>
+            </div>
+
+            {sceneToDelete && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={handleCancelDelete}>
+                    <div className="bg-[#161b22] p-6 rounded-xl border border-red-500/30 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            Confirm Deletion
+                        </h3>
+                        <p className="text-gray-300 mt-3 mb-6">Are you sure you want to permanently delete the scene: <strong className="text-white">"{sceneToDelete.title}"</strong>? This action cannot be undone.</p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={handleCancelDelete} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+                            <button onClick={handleConfirmDelete} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-colors">Delete Scene</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
