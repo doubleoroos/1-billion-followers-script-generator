@@ -75,6 +75,63 @@ interface ScriptEditorProps {
     isLoading: boolean;
 }
 
+const CharacterEditorModal: React.FC<{
+    character: Omit<Character, 'id'> | Character | 'new';
+    onSave: (data: { name: string, description: string }) => void;
+    onClose: () => void;
+}> = ({ character, onSave, onClose }) => {
+    const isNew = character === 'new';
+    const [name, setName] = useState(isNew ? '' : character.name);
+    const [description, setDescription] = useState(isNew ? '' : character.description || '');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (name.trim()) {
+            onSave({ name: name.trim(), description: description.trim() });
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in" onClick={onClose}>
+            <div className="bg-gray-900 border border-white/10 rounded-2xl shadow-lg p-6 w-full max-w-md m-4" onClick={e => e.stopPropagation()}>
+                <form onSubmit={handleSubmit}>
+                    <h2 className="text-xl font-bold mb-4 text-white">{isNew ? 'Add' : 'Edit'} Character</h2>
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="charName" className="block text-sm font-semibold text-brand-cyan mb-1.5">Name</label>
+                            <input
+                                id="charName"
+                                type="text"
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                className="w-full bg-black/20 p-2 rounded-md border border-white/10 focus:ring-2 focus:ring-brand-cyan focus:border-brand-cyan/50 text-sm transition-colors focus:bg-black/30"
+                                required
+                                autoFocus
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="charDesc" className="block text-sm font-semibold text-brand-cyan mb-1.5">Description</label>
+                            <textarea
+                                id="charDesc"
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                className="w-full bg-black/20 p-2 rounded-md border border-white/10 focus:ring-2 focus:ring-brand-cyan focus:border-brand-cyan/50 text-sm resize-y transition-colors focus:bg-black/30"
+                                rows={3}
+                                placeholder="A brief, one-sentence summary of the character."
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-6">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold bg-gray-700/50 text-gray-300 hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+                        <button type="submit" className="px-4 py-2 text-sm font-semibold bg-cyan-600 text-white hover:bg-cyan-500 rounded-lg transition-colors">Save Character</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+
 const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialCharacters, onSave, isLoading }) => {
     const { state, setState, undo, redo, canUndo, canRedo } = useHistory({
       script: initialScript,
@@ -82,6 +139,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
     });
     const { script, characters } = state;
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('clean');
+    const [editingCharacter, setEditingCharacter] = useState<Character | 'new' | null>(null);
     
     const handleUndo = () => {
         if (canUndo) {
@@ -129,27 +187,38 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
         setSaveStatus('dirty');
     }
 
-    const addCharacter = () => {
-        const name = window.prompt("Enter new character name:");
-        if (name) {
-            const newChar = { id: `char_${Math.random().toString(36).substring(2, 9)}`, name };
-            setState(prev => ({ ...prev, characters: [...prev.characters, newChar] }));
-            setSaveStatus('dirty');
-        }
-    }
+    const handleAddCharacterClick = () => {
+        setEditingCharacter('new');
+    };
+
+    const handleEditCharacterClick = (char: Character) => {
+        setEditingCharacter(char);
+    };
     
-    const renameCharacter = (charId: string) => {
-        const char = characters.find(c => c.id === charId);
-        const newName = window.prompt(`Rename character "${char?.name}":`, char?.name);
-        if (newName) {
+    const handleModalClose = () => {
+        setEditingCharacter(null);
+    };
+    
+    const handleModalSave = (data: { name: string; description: string }) => {
+        if (editingCharacter === 'new') {
+            const newChar: Character = {
+                id: `char_${Math.random().toString(36).substring(2, 9)}`,
+                name: data.name,
+                description: data.description,
+            };
+            setState(prev => ({ ...prev, characters: [...prev.characters, newChar] }));
+        } else if (editingCharacter) {
             setState(prev => ({
                 ...prev,
-                characters: prev.characters.map(c => c.id === charId ? { ...c, name: newName } : c)
+                characters: prev.characters.map(c => 
+                    c.id === editingCharacter.id ? { ...c, ...data } : c
+                )
             }));
-            setSaveStatus('dirty');
         }
-    }
-    
+        setSaveStatus('dirty');
+        handleModalClose();
+    };
+
     const deleteCharacter = (charId: string) => {
         if (window.confirm("Are you sure you want to delete this character? All their dialogue will be unassigned.")) {
             setState(prev => ({
@@ -179,6 +248,13 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
     
     return (
         <div onKeyDown={handleKeyDown}>
+            {editingCharacter && (
+                <CharacterEditorModal
+                    character={editingCharacter}
+                    onSave={handleModalSave}
+                    onClose={handleModalClose}
+                />
+            )}
             <div className="flex justify-between items-center p-4 border-b border-white/10 bg-gray-900/30">
                 <SaveStatusIndicator status={saveStatus} />
                 <div className="flex items-center gap-2">
@@ -195,16 +271,25 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
                     <h3 className="text-md font-semibold text-brand-cyan tracking-wider">CHARACTERS</h3>
                     <ul className="space-y-2 flex-grow overflow-y-auto pr-2">
                         {characters.map(char => (
-                            <li key={char.id} className="group flex items-center justify-between p-2 rounded-lg bg-black/20 hover:bg-black/40 transition-colors">
-                                <span className="text-sm font-medium text-gray-200">{char.name}</span>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => renameCharacter(char.id)} title="Rename" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg></button>
-                                    <button onClick={() => deleteCharacter(char.id)} title="Delete" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg></button>
+                            <li key={char.id} className="group p-2.5 rounded-lg bg-black/20 hover:bg-black/40 transition-colors">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-200 truncate">{char.name}</p>
+                                        {char.description && (
+                                            <p className="text-xs text-gray-400 mt-1 truncate" title={char.description}>
+                                                {char.description}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0">
+                                        <button onClick={() => handleEditCharacterClick(char)} title="Edit Character" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg></button>
+                                        <button onClick={() => deleteCharacter(char.id)} title="Delete Character" className="p-1.5 text-gray-400 hover:text-white hover:bg-red-900/50 hover:text-red-300 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg></button>
+                                    </div>
                                 </div>
                             </li>
                         ))}
                     </ul>
-                     <button onClick={addCharacter} className="w-full text-sm py-2 px-3 bg-cyan-600/20 text-cyan-300 hover:bg-cyan-500 hover:text-white rounded-lg transition-all font-semibold">+ Add Character</button>
+                     <button onClick={handleAddCharacterClick} className="w-full text-sm py-2 px-3 bg-cyan-600/20 text-cyan-300 hover:bg-cyan-500 hover:text-white rounded-lg transition-all font-semibold">+ Add Character</button>
                 </div>
                 <div className="w-2/3 md:w-3/4 flex-grow overflow-y-auto space-y-8 pr-2 font-mono">
                     {script.map(block => (

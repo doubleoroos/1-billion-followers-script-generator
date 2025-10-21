@@ -12,10 +12,11 @@ export interface ReferenceImage {
 export interface Character {
   id: string;
   name: string;
+  description: string;
 }
 
 export interface ScriptBlock {
-  id: string;
+  id:string;
   type: 'narration' | 'dialogue';
   characterId?: string;
   content: string;
