@@ -3,7 +3,7 @@ import { Header } from './components/Header';
 import { InputPanel } from './components/InputPanel';
 import { OutputDisplay } from './components/OutputDisplay';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { generateCreativeAssets } from './services/geminiService';
+import { generateCreativeAssets, reviseScript } from './services/geminiService';
 import type { GeneratedAssets, EmotionalArcIntensity } from './types';
 
 const App: React.FC = () => {
@@ -11,11 +11,13 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [generatedAssets, setGeneratedAssets] = useState<GeneratedAssets | null>(null);
   const [emotionalArc, setEmotionalArc] = useState<EmotionalArcIntensity>('moderate');
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
 
   const handleGenerate = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     setGeneratedAssets(null);
+    setLoadingMessage('Generating script, outline, and reference images...');
 
     try {
       const result = await generateCreativeAssets(emotionalArc);
@@ -26,8 +28,42 @@ const App: React.FC = () => {
       console.error(e);
     } finally {
       setIsLoading(false);
+      setLoadingMessage('');
     }
   }, [emotionalArc]);
+
+  const handleReviseScript = useCallback(async (feedback: string) => {
+    if (!generatedAssets?.script) {
+      setError('Cannot revise script because no script has been generated yet.');
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    setLoadingMessage('Revising script based on your feedback...');
+
+    try {
+      const revisedScriptContent = await reviseScript(
+        generatedAssets.script,
+        generatedAssets.visualOutline,
+        feedback,
+        emotionalArc
+      );
+      setGeneratedAssets(prevAssets => {
+        if (!prevAssets) return null;
+        return {
+          ...prevAssets,
+          script: revisedScriptContent,
+        };
+      });
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      setError(`Failed to revise script: ${errorMessage}`);
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  }, [generatedAssets, emotionalArc]);
   
   const handleScriptSave = useCallback((newScript: string) => {
     setGeneratedAssets(prevAssets => {
@@ -73,7 +109,7 @@ const App: React.FC = () => {
             />
           </div>
           <div className="lg:col-span-2">
-            {isLoading && <LoadingSpinner />}
+            {isLoading && <LoadingSpinner message={loadingMessage} />}
             {error && !isLoading && (
               <div className="bg-red-900/50 border border-red-700 text-red-300 p-6 rounded-xl flex flex-col items-center justify-center text-center animate-fade-in">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,6 +135,8 @@ const App: React.FC = () => {
                 onScriptSave={handleScriptSave}
                 onOutlineSave={handleOutlineSave}
                 onBtsSave={handleBtsSave}
+                onReviseScript={handleReviseScript}
+                isLoading={isLoading}
               />
             )}
           </div>

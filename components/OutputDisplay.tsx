@@ -1,11 +1,14 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { GeneratedAssets } from '../types';
+import { SparklesIcon } from './icons/SparklesIcon';
 
 interface OutputDisplayProps {
   generatedAssets: GeneratedAssets;
   onScriptSave: (newScript: string) => void;
   onOutlineSave: (newOutline: string) => void;
   onBtsSave: (newBtsDoc: string) => void;
+  onReviseScript: (feedback: string) => void;
+  isLoading: boolean;
 }
 
 type Tab = 'script' | 'outline' | 'images' | 'bts';
@@ -72,8 +75,32 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     }
 };
 
+const getPlainText = (html: string) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || '';
+};
 
-export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, onScriptSave, onOutlineSave, onBtsSave }) => {
+const highlightSyntax = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // Highlight keywords like **Scene Number & Title:**
+    .replace(
+      /(\*\*(?:Scene Number & Title|Scene Description|Key Visual Elements|Visuals|Transition|Pacing & Emotion):\*\*)/g,
+      '<span class="text-yellow-400">$1</span>'
+    )
+    // Highlight bullet points
+    .replace(
+      /^\s*-\s(.*)/gm,
+      '<span class="text-slate-500">- </span><span class="text-slate-200">$1</span>'
+    );
+};
+
+
+export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, onScriptSave, onOutlineSave, onBtsSave, onReviseScript, isLoading }) => {
   const [activeTab, setActiveTab] = useState<Tab>('script');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   
@@ -88,10 +115,14 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
 
   const [editedOutline, setEditedOutline] = useState(generatedAssets.visualOutline);
   const [editedBts, setEditedBts] = useState(generatedAssets.btsDocument);
+  const [revisionFeedback, setRevisionFeedback] = useState('');
   
   const [scriptSaveStatus, setScriptSaveStatus] = useState<SaveStatus>('clean');
   const [outlineSaveStatus, setOutlineSaveStatus] = useState<SaveStatus>('clean');
   const [btsSaveStatus, setBtsSaveStatus] = useState<SaveStatus>('clean');
+
+  const outlineTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const outlinePreRef = useRef<HTMLPreElement>(null);
   
   // Restore from localStorage on load or when new assets are generated
   useEffect(() => {
@@ -169,10 +200,25 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     setOutlineSaveStatus('dirty');
   }
 
-  const handleBtsChange = (value: string) => {
-    setEditedBts(value);
+  const handleBtsChange = (html: string) => {
+    setEditedBts(html);
     setBtsSaveStatus('dirty');
   }
+  
+  const highlightedOutline = useMemo(() => highlightSyntax(editedOutline), [editedOutline]);
+  
+  const handleOutlineScroll = () => {
+    if (outlinePreRef.current && outlineTextareaRef.current) {
+      outlinePreRef.current.scrollTop = outlineTextareaRef.current.scrollTop;
+      outlinePreRef.current.scrollLeft = outlineTextareaRef.current.scrollLeft;
+    }
+  };
+
+  const btsWordCount = useMemo(() => {
+    const text = getPlainText(editedBts);
+    if (!text.trim()) return 0;
+    return text.trim().split(/\s+/).length;
+  }, [editedBts]);
 
   // When new assets are generated, reset the editors' states
   useEffect(() => {
@@ -246,7 +292,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
         contentToCopy = editedOutline;
         break;
       case 'bts':
-        contentToCopy = editedBts;
+        contentToCopy = getPlainText(editedBts);
         break;
       default:
         contentToCopy = '';
@@ -295,7 +341,8 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
   
   const handleExportTxt = useCallback(() => {
     if (!editedBts) return;
-    const blob = new Blob([editedBts], { type: 'text/plain' });
+    const plainText = getPlainText(editedBts);
+    const blob = new Blob([plainText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -337,6 +384,10 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     sceneElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const handleBtsFormat = (command: string) => {
+    document.execCommand(command, false);
+  };
+
   const TabButton = ({ tab, label }: { tab: Tab; label: string }) => (
     <button
       onClick={() => setActiveTab(tab)}
@@ -367,7 +418,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                     <div className="flex items-center gap-2">
                       <button
                         onClick={undo}
-                        disabled={!canUndo}
+                        disabled={!canUndo || isLoading}
                         className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Undo"
                         aria-label="Undo script change"
@@ -378,7 +429,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                       </button>
                       <button
                         onClick={redo}
-                        disabled={!canRedo}
+                        disabled={!canRedo || isLoading}
                         className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Redo"
                         aria-label="Redo script change"
@@ -390,7 +441,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                       <div className="w-px h-6 bg-slate-600 mx-1"></div>
                       <button
                         onClick={handleSaveScript}
-                        disabled={scriptSaveStatus === 'clean' || scriptSaveStatus === 'saving' || scriptSaveStatus === 'saved'}
+                        disabled={scriptSaveStatus === 'clean' || scriptSaveStatus === 'saving' || scriptSaveStatus === 'saved' || isLoading}
                         className="px-3 py-2 text-xs font-semibold rounded-md transition-all flex items-center gap-2 bg-cyan-700 text-slate-300 hover:bg-cyan-600 disabled:bg-slate-600 disabled:cursor-not-allowed"
                       >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -487,13 +538,39 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
 
         <div className="p-6">
             {activeTab === 'script' && (
-               <div className="prose prose-invert prose-sm md:prose-base max-w-none">
-                 <textarea
-                   value={editedScript}
-                   onChange={(e) => handleScriptChange(e.target.value)}
-                   className="w-full min-h-[65vh] bg-slate-900/70 p-4 rounded-md font-sans text-slate-200 border border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow"
-                   aria-label="Editable script area"
-                 />
+               <div className="flex flex-col h-[70vh]">
+                 <div className="prose prose-invert prose-sm md:prose-base max-w-none flex-grow">
+                   <textarea
+                     value={editedScript}
+                     onChange={(e) => handleScriptChange(e.target.value)}
+                     className="w-full h-full bg-slate-900/70 p-4 rounded-md font-sans text-slate-200 border border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow"
+                     aria-label="Editable script area"
+                     disabled={isLoading}
+                   />
+                 </div>
+                 <div className="mt-4 p-4 bg-slate-900/50 border border-slate-700 rounded-lg">
+                    <h3 className="text-md font-semibold text-cyan-400 mb-2">Script Revision</h3>
+                    <p className="text-xs text-slate-400 mb-3">Provide specific feedback on what you'd like to change in the script above. The AI will rewrite it based on your instructions.</p>
+                    <textarea
+                      value={revisionFeedback}
+                      onChange={(e) => setRevisionFeedback(e.target.value)}
+                      className="w-full h-24 bg-slate-800 p-2 rounded-md font-sans text-slate-200 border border-slate-600 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow resize-y"
+                      aria-label="Script revision feedback"
+                      placeholder="e.g., 'Make the tone more urgent in the middle section.' or 'Can we rephrase the final line to be more impactful?'"
+                      disabled={isLoading}
+                    />
+                    <button
+                      onClick={() => {
+                        onReviseScript(revisionFeedback);
+                        setRevisionFeedback('');
+                      }}
+                      disabled={isLoading || !revisionFeedback.trim()}
+                      className="mt-3 w-full flex items-center justify-center gap-2 bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-500 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed transform hover:scale-105"
+                    >
+                      <SparklesIcon />
+                      Revise Script
+                    </button>
+                 </div>
                </div>
             )}
             {activeTab === 'outline' && (
@@ -518,12 +595,24 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                   </ul>
                 </nav>
                 <div ref={outlineContainerRef} className="w-2/3 md:w-3/4 h-[65vh] overflow-y-auto prose prose-invert prose-sm max-w-none prose-pre:bg-transparent prose-pre:p-0">
-                    <textarea
-                      value={editedOutline}
-                      onChange={(e) => handleOutlineChange(e.target.value)}
-                      className="w-full min-h-[65vh] bg-slate-900/70 p-4 rounded-md font-sans text-slate-200 border border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow whitespace-pre-wrap"
-                      aria-label="Editable visual outline"
-                    />
+                  <div className="w-full h-full relative">
+                      <pre
+                        ref={outlinePreRef}
+                        aria-hidden="true"
+                        className="absolute inset-0 m-0 p-4 rounded-md font-mono text-slate-200 whitespace-pre-wrap break-words overflow-auto pointer-events-none"
+                      >
+                        <code dangerouslySetInnerHTML={{ __html: highlightedOutline }} />
+                      </pre>
+                      <textarea
+                        ref={outlineTextareaRef}
+                        value={editedOutline}
+                        onChange={(e) => handleOutlineChange(e.target.value)}
+                        onScroll={handleOutlineScroll}
+                        className="absolute inset-0 w-full h-full bg-transparent p-4 rounded-md font-mono text-transparent caret-cyan-400 border border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow whitespace-pre-wrap break-words resize-none"
+                        spellCheck="false"
+                        aria-label="Editable visual outline"
+                      />
+                  </div>
                 </div>
               </div>
             )}
@@ -542,13 +631,34 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
               </div>
             )}
             {activeTab === 'bts' && (
-               <div className="prose prose-invert prose-sm md:prose-base max-w-none">
-                 <textarea
-                   value={editedBts}
-                   onChange={(e) => handleBtsChange(e.target.value)}
-                   className="w-full min-h-[65vh] bg-slate-900/70 p-4 rounded-md font-sans text-slate-200 border border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow"
+               <div className="flex flex-col h-[70vh]">
+                 <div className="bg-slate-900/70 border border-slate-700 rounded-t-md p-2 flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        <button onClick={() => handleBtsFormat('bold')} className="p-2 hover:bg-slate-700 rounded transition-colors" title="Bold (Ctrl+B)">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M5.25 4.5h4.5a3.25 3.25 0 010 6.5H5.25V4.5zm0 2.5v1.5h4.5a.75.75 0 000-1.5H5.25zM5.25 12h5.5a3.25 3.25 0 010 6.5H5.25V12zm0 2.5v1.5h5.5a.75.75 0 000-1.5H5.25z" />
+                            </svg>
+                        </button>
+                         <button onClick={() => handleBtsFormat('italic')} className="p-2 hover:bg-slate-700 rounded transition-colors" title="Italic (Ctrl+I)">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M7.75 4.5a.75.75 0 000 1.5h1.259l-2.25 7.5H5.5a.75.75 0 000 1.5h5a.75.75 0 000-1.5H9.241l2.25-7.5H12.5a.75.75 0 000-1.5h-5z" />
+                            </svg>
+                        </button>
+                        <button onClick={() => handleBtsFormat('insertUnorderedList')} className="p-2 hover:bg-slate-700 rounded transition-colors" title="Bulleted List">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M2 5.75A.75.75 0 012.75 5h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 5.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 4.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="w-px h-5 bg-slate-600 mx-2"></div>
+                    <div className="text-xs text-slate-400">{btsWordCount} words</div>
+                 </div>
+                 <div
+                   contentEditable
+                   onInput={(e: React.FormEvent<HTMLDivElement>) => handleBtsChange(e.currentTarget.innerHTML)}
+                   dangerouslySetInnerHTML={{ __html: editedBts }}
+                   className="w-full flex-grow bg-slate-900/70 p-4 rounded-b-md font-sans text-slate-200 border-x border-b border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow prose prose-invert prose-sm md:prose-base max-w-none prose-ul:list-disc prose-ul:ml-6"
                    aria-label="Editable Behind-the-Scenes document"
-                   placeholder="Your Behind-the-Scenes document will appear here..."
                  />
                </div>
             )}

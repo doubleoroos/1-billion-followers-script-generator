@@ -92,6 +92,39 @@ ${visualOutline}
 `;
 }
 
+const createRevisionPrompt = (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity): string => {
+  return `
+  You are an expert script doctor. Your task is to revise a narration script for a 10-minute philosophical short film titled "1 Billion Followers".
+
+  **Context:**
+  - **Theme:** A future where one billion people follow a single, positive idea.
+  - **Emotional Arc:** The film's emotional journey is intended to be **${intensity.toUpperCase()}**.
+  - **Visuals:** The script must remain perfectly synchronized with the existing visual outline.
+
+  **Your Task:**
+  Revise the **Original Narration Script** based on the provided **Revision Feedback**. The revised script must:
+  1.  Incorporate the user's feedback directly and thoughtfully.
+  2.  Maintain the original's poetic, meditative, and hopeful tone.
+  3.  Align seamlessly with the provided **Visual Outline**.
+  4.  Adhere to the specified **'${intensity}'** emotional arc.
+
+  **Do not change the visual outline.** Only provide the full, revised narration script as a single block of text.
+
+  ---
+  **ORIGINAL NARRATION SCRIPT:**
+  ${originalScript}
+  ---
+  **VISUAL OUTLINE (for context):**
+  ${visualOutline}
+  ---
+  **REVISION FEEDBACK:**
+  "${feedback}"
+  ---
+
+  Return only the complete, revised script text.
+  `;
+}
+
 
 const IMAGE_STAGES = [
   {
@@ -189,3 +222,20 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): 
     throw new Error("Failed to communicate with the AI model. Please check your API key and network connection.");
   }
 };
+
+export const reviseScript = async (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity): Promise<string> => {
+    if (!feedback.trim()) {
+        throw new Error("Revision feedback cannot be empty.");
+    }
+    try {
+        const prompt = createRevisionPrompt(originalScript, visualOutline, feedback, intensity);
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-pro",
+            contents: prompt,
+        });
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error calling Gemini API for revision:", error);
+        throw new Error("Failed to revise the script. Please try again.");
+    }
+}
