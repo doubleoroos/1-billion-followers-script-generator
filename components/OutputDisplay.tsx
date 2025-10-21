@@ -143,13 +143,20 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
         save({ script: newScript, characters: editedCharacters });
     };
 
+    const handleCharacterAssignmentChange = (index: number, characterId: string) => {
+        const newScript = [...editedScript];
+        newScript[index] = {...newScript[index], characterId};
+        setEditedScript(newScript);
+        save({ script: newScript, characters: editedCharacters });
+    };
+
     const openCharacterModal = (char: Character | null) => {
         setEditingCharacter(char ? {...char} : {id: '', name: '', description: ''});
         setIsCharacterModalOpen(true);
     };
 
     const handleCharacterSave = () => {
-        if (!editingCharacter) return;
+        if (!editingCharacter || !editingCharacter.name.trim()) return;
         let newChars;
         if (editingCharacter.id) {
             newChars = editedCharacters.map(c => c.id === editingCharacter.id ? editingCharacter : c);
@@ -188,10 +195,23 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
             </div>
             <div>
                 <h4 className="font-bold text-cyan-400 mb-2 mt-4">Script</h4>
-                <div className="space-y-4 prose prose-invert prose-p:text-gray-300 max-w-none font-mono">
+                <div className="space-y-6 max-w-none font-mono">
                     {editedScript.map((block, index) => (
-                        <div key={block.id}>
-                            <p className="font-bold text-white">{getCharacterName(block.characterId).toUpperCase()}</p>
+                        <div key={block.id} className="flex flex-col gap-2">
+                            {block.type === 'dialogue' ? (
+                                <select 
+                                    value={block.characterId || ''}
+                                    onChange={(e) => handleCharacterAssignmentChange(index, e.target.value)}
+                                    className="w-full max-w-xs bg-gray-900/50 border border-gray-700 rounded p-2 text-white font-bold uppercase focus:ring-cyan-400 focus:border-cyan-400 transition"
+                                >
+                                    <option value="" disabled>-- Assign Character --</option>
+                                    {editedCharacters.map(char => (
+                                        <option key={char.id} value={char.id}>{char.name.toUpperCase()}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <p className="font-bold text-white uppercase">{getCharacterName(block.characterId)}</p>
+                            )}
                             <textarea value={block.content} onChange={(e) => handleContentChange(index, e.target.value)}
                               className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-mono focus:ring-cyan-400 focus:border-cyan-400" />
                         </div>
