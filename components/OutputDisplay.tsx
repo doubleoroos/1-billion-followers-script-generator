@@ -243,7 +243,6 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
     const [sceneToDelete, setSceneToDelete] = useState<Scene | null>(null);
     const { status, save } = useAutosave({ onSave });
 
-    // Drag and Drop state and refs
     const dragItem = useRef<number | null>(null);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -259,14 +258,13 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         setEditedOutline(newOutline);
         save(newOutline);
     };
-    
+
     const handleDeleteClick = (scene: Scene) => {
         setSceneToDelete(scene);
     };
 
     const handleConfirmDelete = () => {
         if (!sceneToDelete) return;
-
         const newOutline = editedOutline.filter(s => s.id !== sceneToDelete.id);
         setEditedOutline(newOutline);
         save(newOutline);
@@ -278,41 +276,31 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
     };
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-        // Store the index of the item being dragged
         dragItem.current = index;
         setDraggedIndex(index);
         e.dataTransfer.effectAllowed = 'move';
     };
 
     const handleDragEnter = (index: number) => {
-        // Store the index of the item we are dragging over
         if (index !== draggedIndex) {
             setDragOverIndex(index);
         }
     };
 
     const handleDrop = () => {
-        // If the drop is not on a valid target, reset
         if (dragItem.current === null || dragOverIndex === null || dragItem.current === dragOverIndex) {
             handleDragEnd();
             return;
         }
-
-        // Reorder the outline array
         const newOutline = [...editedOutline];
         const [draggedItemContent] = newOutline.splice(dragItem.current, 1);
         newOutline.splice(dragOverIndex, 0, draggedItemContent);
-        
-        // Update local state and trigger the autosave
         setEditedOutline(newOutline);
         save(newOutline);
-
-        // Reset drag state
         handleDragEnd();
     };
 
     const handleDragEnd = () => {
-        // Clear all drag-related state
         dragItem.current = null;
         setDraggedIndex(null);
         setDragOverIndex(null);
@@ -335,7 +323,6 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         setEditedOutline(newOutline);
         save(newOutline);
     };
-
 
     const EditableField: React.FC<{scene: Scene, field: keyof Scene, label: string, isTextarea?: boolean}> = ({ scene, field, label, isTextarea }) => {
         const value = scene[field] as string;
