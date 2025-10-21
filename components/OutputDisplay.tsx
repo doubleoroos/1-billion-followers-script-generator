@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { GeneratedAssets, ScriptBlock, Scene, Character, ReferenceImage } from '../types';
+import type { GeneratedAssets, ScriptBlock, Scene, Character, ReferenceImage, VisualStyle } from '../types';
+import { generateVideoForScene } from '../services/geminiService';
 
 interface OutputDisplayProps {
   generatedAssets: GeneratedAssets;
   onScriptSave: (newScript: ScriptBlock[], newCharacters: Character[]) => void;
   onOutlineSave: (newOutline: Scene[]) => void;
   onBtsSave: (newBtsDoc: string) => void;
+  onVideoSave: (updatedScene: Scene) => void;
   isLoading: boolean;
+  visualStyle: VisualStyle;
 }
 
-type Tab = 'script' | 'outline' | 'images' | 'bts';
+type Tab = 'script' | 'outline' | 'images' | 'bts' | 'video';
 type SaveStatus = 'clean' | 'dirty' | 'saving' | 'saved';
 
 
@@ -18,6 +21,7 @@ const ScriptIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const OutlineIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
 const ImagesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const BtsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4" /></svg>;
+const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>;
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
 
@@ -476,12 +480,139 @@ const BtsPanel: React.FC<{ document: string, onSave: (newDoc: string) => void }>
     );
 };
 
+const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave: (updatedScene: Scene) => void }> = ({ outline, visualStyle, onSave }) => {
+  const [apiKeySelected, setApiKeySelected] = useState(false);
+  const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
+  const [generationStatus, setGenerationStatus] = useState<Record<string, { status: 'idle' | 'loading' | 'error', error?: string }>>({});
+
+  useEffect(() => {
+    const checkKey = async () => {
+        setIsCheckingApiKey(true);
+        if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
+            const hasKey = await window.aistudio.hasSelectedApiKey();
+            setApiKeySelected(hasKey);
+        } else {
+            console.warn("aistudio API not available.");
+            setApiKeySelected(false); 
+        }
+        setIsCheckingApiKey(false);
+    };
+    checkKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
+        await window.aistudio.openSelectKey();
+        setApiKeySelected(true);
+    }
+  };
+
+  const handleGenerateVideo = async (scene: Scene) => {
+    setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'loading' } }));
+    try {
+        const downloadLink = await generateVideoForScene(scene, visualStyle);
+        const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
+        
+        onSave({ ...scene, videoUrl: finalUrl });
+        setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'idle' } }));
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'error', error: errorMessage } }));
+
+        if (errorMessage.includes("Requested entity was not found")) {
+            setApiKeySelected(false);
+        }
+    }
+  };
+
+  if (isCheckingApiKey) {
+    return (
+        <div className="flex items-center justify-center h-64">
+            <svg className="animate-spin h-8 w-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    );
+  }
+
+  if (!apiKeySelected) {
+    return (
+        <div className="bg-gradient-to-br from-gray-900/20 to-gray-800/10 border border-amber-500/30 text-amber-200 p-6 rounded-2xl flex flex-col items-center text-center animate-fade-in shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-amber-400/80 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <h3 className="text-xl font-semibold mb-2 text-white">API Key Required for Video Generation</h3>
+            <p className="mb-4 text-gray-300 max-w-lg">
+                The Veo video generation model requires you to use your own Google AI Studio API key.
+                Please select a key to proceed. For more information on billing, visit the{' '}
+                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline hover:text-cyan-300">
+                    official documentation
+                </a>.
+            </p>
+            <button onClick={handleSelectKey} className="flex items-center justify-center gap-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-2 px-5 rounded-lg hover:from-amber-400 hover:to-orange-500 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400/50">
+                Select API Key
+            </button>
+        </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+        {outline.map(scene => {
+            const statusInfo = generationStatus[scene.id] || { status: 'idle' };
+            const isLoading = statusInfo.status === 'loading';
+
+            return (
+                <div key={scene.id} className="bg-gradient-to-br from-gray-900/20 to-gray-800/10 border border-white/10 rounded-xl p-6 transition-all duration-300">
+                    <h4 className="text-lg font-bold text-white mb-1">{scene.title}</h4>
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">{scene.description}</p>
+                    
+                    <div className="mt-4">
+                        {scene.videoUrl && !isLoading && (
+                            <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                                <video src={scene.videoUrl} controls className="w-full h-full"></video>
+                            </div>
+                        )}
+                        
+                        {isLoading && (
+                            <div className="flex flex-col items-center justify-center bg-black/20 p-6 rounded-lg aspect-video">
+                                <svg className="animate-spin h-8 w-8 text-cyan-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <p className="text-white font-semibold">Assembling your cinematic vision...</p>
+                                <p className="text-gray-400 text-sm mt-1 text-center">This can take a few minutes. Please be patient.</p>
+                            </div>
+                        )}
+                        
+                        {statusInfo.status === 'error' && (
+                            <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <p className="font-semibold text-white">Generation Failed</p>
+                                    <p className="text-sm text-red-300">{statusInfo.error}</p>
+                                </div>
+                                <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-colors flex-shrink-0">Retry</button>
+                            </div>
+                        )}
+
+                        {!scene.videoUrl && statusInfo.status === 'idle' && (
+                            <button onClick={() => handleGenerateVideo(scene)} disabled={isLoading} className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                                <VideoIcon/>
+                                Generate Video
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        })}
+    </div>
+);
+};
+
 
 export const OutputDisplay: React.FC<OutputDisplayProps> = ({
   generatedAssets,
   onScriptSave,
   onOutlineSave,
   onBtsSave,
+  onVideoSave,
+  visualStyle,
 }) => {
     const [activeTab, setActiveTab] = useState<Tab>('script');
 
@@ -500,6 +631,8 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
                 return <ImagesPanel images={generatedAssets.referenceImages} />;
             case 'bts':
                 return <BtsPanel document={generatedAssets.btsDocument} onSave={onBtsSave} />;
+            case 'video':
+                return <VideoPanel outline={generatedAssets.visualOutline} visualStyle={visualStyle} onSave={onVideoSave} />;
             default:
                 return null;
         }
@@ -512,6 +645,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
                 <TabButton isActive={activeTab === 'outline'} onClick={() => setActiveTab('outline')} icon={<OutlineIcon />}>Visual Outline</TabButton>
                 <TabButton isActive={activeTab === 'images'} onClick={() => setActiveTab('images')} icon={<ImagesIcon />}>Reference Images</TabButton>
                 <TabButton isActive={activeTab === 'bts'} onClick={() => setActiveTab('bts')} icon={<BtsIcon />}>BTS Document</TabButton>
+                <TabButton isActive={activeTab === 'video'} onClick={() => setActiveTab('video')} icon={<VideoIcon />}>Video Generation</TabButton>
             </div>
             <div>
                 {renderContent()}

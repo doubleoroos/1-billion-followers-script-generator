@@ -291,6 +291,55 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
   }
 };
 
+export const generateVideoForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    try {
+      // Re-initialize to ensure the latest API key is used, as per guidelines for Veo models.
+      const aiForVideo = new GoogleGenAI({ apiKey: API_KEY as string });
+  
+      const styleDescription = getVisualStyleDescription(visualStyle);
+      const prompt = `Create a short, 5-second video clip for a film scene.
+      **Visual Style:** ${styleDescription}.
+      **Scene Title:** ${scene.title}.
+      **Atmosphere:** ${scene.atmosphere}.
+      **Description:** ${scene.description}.
+      **Key Visuals:** ${scene.keyVisualElements}.
+      The video should be cinematic, high-quality, and evoke the emotion of: ${scene.pacingEmotion}.`;
+  
+      let operation = await aiForVideo.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
+        prompt: prompt,
+        config: {
+          numberOfVideos: 1,
+          resolution: '720p',
+          aspectRatio: '16:9'
+        }
+      });
+  
+      while (!operation.done) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        operation = await aiForVideo.operations.getVideosOperation({ operation: operation });
+      }
+  
+      if (operation.error) {
+          throw new Error(`Video generation failed: ${operation.error.message}`);
+      }
+  
+      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+      if (!downloadLink) {
+        throw new Error("Video generation completed, but no download link was provided.");
+      }
+  
+      return downloadLink;
+  
+    } catch (error) {
+      console.error("Error generating video:", error);
+      if (error instanceof Error) {
+          throw new Error(`Failed to generate video. Reason: ${error.message}`);
+      }
+      throw new Error("An unknown error occurred during video generation.");
+    }
+  };
+
 // Revision logic would need significant rework for the new data structure and is out of scope for this change.
 export const reviseScript = async (): Promise<string> => {
     throw new Error("Script revision is not supported in this version.");

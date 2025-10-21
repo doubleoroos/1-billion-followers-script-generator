@@ -68,6 +68,19 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const handleVideoSave = useCallback((updatedScene: Scene) => {
+    setGeneratedAssets(prevAssets => {
+      if (!prevAssets) return null;
+      const newOutline = prevAssets.visualOutline.map(scene => 
+        scene.id === updatedScene.id ? updatedScene : scene
+      );
+      return {
+        ...prevAssets,
+        visualOutline: newOutline,
+      };
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-transparent text-gray-200 font-sans">
       <Header />
@@ -114,7 +127,9 @@ const App: React.FC = () => {
                 onScriptSave={handleScriptSave}
                 onOutlineSave={handleOutlineSave}
                 onBtsSave={handleBtsSave}
+                onVideoSave={handleVideoSave}
                 isLoading={isLoading}
+                visualStyle={visualStyle}
               />
             )}
              {!isLoading && !error && !generatedAssets && (

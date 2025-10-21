@@ -33,6 +33,7 @@ export interface Scene {
   visuals: string;
   transition: string;
   pacingEmotion: string;
+  videoUrl?: string;
 }
 
 export interface GeneratedAssets {
