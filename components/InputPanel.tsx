@@ -55,7 +55,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({ onGenerate, isLoading, e
          <div>
           <h3 className="font-bold text-cyan-400">Generation Task:</h3>
           <p>
-            Use Gemini to generate the final script (poetic narration), a detailed visual outline, and key visual reference images.
+            Use Gemini to generate assets for <strong>Phase 1: Script & Visual Outline</strong> of the "1 Billion Followers" AI Film Award, including a draft for your BTS document.
           </p>
         </div>
       </div>

@@ -9,4 +9,5 @@ export interface GeneratedAssets {
   script: string;
   visualOutline: string;
   referenceImages: ReferenceImage[];
+  btsDocument: string;
 }

@@ -54,6 +54,44 @@ Return the output as a JSON object with two keys: "script" and "visualOutline".
 `;
 }
 
+const createBTSPrompt = (intensity: EmotionalArcIntensity, script: string, visualOutline: string): string => {
+  return `
+You are a filmmaker creating a submission for the "1 Billion Followers" AI film competition. Your task is to write a "Behind the Scenes" (BTS) document of approximately 400-500 words. This document will detail the creative process for generating the film's script and visual concept using AI.
+
+**Context:**
+- **Competition Theme:** Envision a future where 1 billion people follow a single, positive idea.
+- **AI Tools Used:**
+    - Script & Visual Outline: Google Gemini 2.5 Pro
+    - Concept Art/Reference Images: Google Imagen 4.0
+- **Creative Choices:** The emotional arc was set to **'${intensity}'**.
+- **Generated Assets:** You have been provided with the final narration script and the detailed visual outline.
+
+**Your Task:**
+Write a compelling BTS document that covers the following points:
+1.  **Introduction:** Briefly introduce the project "1 Billion Followers" and its core optimistic message.
+2.  **Creative Vision & AI Partnership:** Describe how you approached the project, framing AI not just as a tool, but as a creative partner. Explain the decision to set a specific emotional arc ('${intensity}') and how that guided the AI's generation process.
+3.  **The Scripting Process:** Briefly analyze the generated script. Mention its poetic and philosophical tone, and how it aligns with the chosen emotional arc and the film's core theme.
+4.  **Visual Development:** Discuss the generated visual outline. Explain how it translates the script's abstract ideas into concrete, evocative scenes. Touch upon how the visual language supports the '${intensity}' emotional journey.
+5.  **Conclusion:** Summarize the process and reiterate the film's hopeful vision for the future.
+
+**Formatting and Tone:**
+- The tone should be professional, insightful, and reflective of a creative process.
+- The document should be well-structured with clear paragraphs.
+- Do not use markdown. Output a single block of text.
+- The total length should be around 400-500 words.
+
+**Here are the generated assets to base your document on:**
+
+---
+**NARRATION SCRIPT:**
+${script}
+---
+**VISUAL OUTLINE:**
+${visualOutline}
+---
+`;
+}
+
 
 const IMAGE_STAGES = [
   {
@@ -115,6 +153,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): 
       }))
     );
     
+    // Step 1: Generate Script, Outline, and Images
     const [scriptResponse, referenceImages] = await Promise.all([
       scriptPromise,
       Promise.all(imagePromises)
@@ -123,15 +162,27 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): 
     const jsonText = scriptResponse.text.trim();
     const parsedScriptData = JSON.parse(jsonText);
     
-    if (typeof parsedScriptData.script === 'string' && typeof parsedScriptData.visualOutline === 'string') {
-      return {
-        script: parsedScriptData.script,
-        visualOutline: parsedScriptData.visualOutline,
-        referenceImages: referenceImages as ReferenceImage[],
-      };
-    } else {
+    if (typeof parsedScriptData.script !== 'string' || typeof parsedScriptData.visualOutline !== 'string') {
       throw new Error("Invalid JSON structure received from API for script.");
     }
+    
+    const { script, visualOutline } = parsedScriptData;
+
+    // Step 2: Generate BTS Document based on the results of Step 1
+    const btsPrompt = createBTSPrompt(intensity, script, visualOutline);
+    const btsResponse = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: btsPrompt,
+    });
+    
+    const btsDocument = btsResponse.text.trim();
+
+    return {
+      script,
+      visualOutline,
+      referenceImages: referenceImages as ReferenceImage[],
+      btsDocument,
+    };
 
   } catch (error) {
     console.error("Error calling Gemini API:", error);

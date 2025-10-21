@@ -49,6 +49,16 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const handleBtsSave = useCallback((newBtsDoc: string) => {
+    setGeneratedAssets(prevAssets => {
+      if (!prevAssets) return null;
+      return {
+        ...prevAssets,
+        btsDocument: newBtsDoc,
+      };
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 font-sans">
       <Header />
@@ -88,6 +98,7 @@ const App: React.FC = () => {
                 generatedAssets={generatedAssets}
                 onScriptSave={handleScriptSave}
                 onOutlineSave={handleOutlineSave}
+                onBtsSave={handleBtsSave}
               />
             )}
           </div>
