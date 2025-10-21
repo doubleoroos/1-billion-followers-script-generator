@@ -6,7 +6,7 @@ export const Header: React.FC = () => {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold text-white">
-            <span className="bg-gradient-to-r from-brand-cyan to-blue-500 text-transparent bg-clip-text">1BF</span> Script Generator
+            <span className="bg-gradient-to-r from-violet-glow to-cyan-lum text-transparent bg-clip-text">1BF</span> Script Generator
           </h1>
           <p className="text-gray-400 text-sm mt-1">AI-powered creativity for the 1 Billion Followers film competition</p>
         </div>

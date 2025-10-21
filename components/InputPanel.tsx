@@ -32,13 +32,13 @@ const OptionButton = <T extends string>({
       onClick={() => onClick(value)}
       title={tooltip}
       aria-pressed={isActive}
-      className={`relative flex-1 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-400 overflow-hidden border border-transparent ${
+      className={`relative flex-1 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-violet-glow overflow-hidden border border-transparent ${
         isActive
           ? 'text-white shadow-md'
-          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:border-cyan-500/50'
+          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:border-violet-glow/50'
       }`}
     >
-      {isActive && <span className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600"></span>}
+      {isActive && <span className="absolute inset-0 bg-gradient-to-br from-violet-500 to-blue-600"></span>}
       <span className="relative z-10">{children}</span>
     </button>
   );
@@ -63,7 +63,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
       
       <div className="space-y-5">
         <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-brand-cyan to-transparent"></div>
+          <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
           <h3 className="font-semibold text-white mb-3 pl-2">Narrative Tone</h3>
           <div className="grid grid-cols-2 gap-2">
               <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
@@ -73,7 +73,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
           </div>
         </div>
         <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
-           <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-brand-cyan to-transparent"></div>
+           <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
           <h3 className="font-semibold text-white mb-3 pl-2">Visual Style</h3>
           <div className="grid grid-cols-2 gap-2">
               <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
@@ -83,7 +83,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
           </div>
         </div>
         <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
-           <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-brand-cyan to-transparent"></div>
+           <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
           <h3 className="font-semibold text-white mb-3 pl-2">Emotional Arc Intensity</h3>
           <div className="flex justify-between items-center gap-2">
             <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>

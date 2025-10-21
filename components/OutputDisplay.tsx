@@ -41,7 +41,7 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
             break;
         case 'saving':
             content = (
-                <span className="text-cyan-400 flex items-center gap-2">
+                <span className="text-cyan-lum flex items-center gap-2">
                     <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -54,7 +54,7 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
             content = (
                 <span className="text-green-400 flex items-center gap-2">
                     <CheckmarkIcon />
-                    All changes saved
+                    Continuity preserved.
                 </span>
             );
             break;
@@ -126,7 +126,7 @@ const TabButton = ({ isActive, onClick, children, icon, id, panelId, style }: { 
         aria-selected={isActive}
         aria-controls={panelId}
         onClick={onClick}
-        className={`flex items-center gap-3 px-4 py-3 font-semibold text-sm rounded-t-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-400 animate-fade-in ${
+        className={`relative flex items-center gap-3 px-4 py-3 font-semibold text-sm rounded-t-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-darker focus:ring-violet-glow animate-fade-in ${
             isActive
                 ? 'bg-[#161b22]/80 text-white'
                 : 'bg-transparent text-gray-400 hover:bg-gray-800/30 hover:text-white'
@@ -135,6 +135,7 @@ const TabButton = ({ isActive, onClick, children, icon, id, panelId, style }: { 
     >
         {icon}
         {children}
+        {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-glow"></div>}
     </button>
 );
 
@@ -214,8 +215,8 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
         <div className="space-y-6">
             <div>
                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-bold text-cyan-400">Characters</h4>
-                    <button onClick={() => openCharacterModal(null)} className="text-sm bg-cyan-900/40 border border-cyan-700/50 text-cyan-300 font-semibold py-1 px-3 rounded-md transition-all duration-200 hover:bg-cyan-800/60 active:scale-[0.98]">+ Add</button>
+                    <h4 className="font-bold text-violet-glow">Characters</h4>
+                    <button onClick={() => openCharacterModal(null)} className="text-sm bg-violet-500/20 border border-violet-glow/30 text-violet-glow font-semibold py-1 px-3 rounded-md transition-all duration-200 hover:bg-violet-500/40 active:scale-[0.98]">+ Add</button>
                  </div>
                 <div className="space-y-4">
                     {editedCharacters.map((char) => (
@@ -230,7 +231,7 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
                 </div>
             </div>
             <div>
-                <h4 className="font-bold text-cyan-400 mb-2 mt-4">Script</h4>
+                <h4 className="font-bold text-violet-glow mb-2 mt-4">Script</h4>
                 <div className="space-y-6 max-w-none font-mono">
                     {editedScript.map((block, index) => (
                         <div key={block.id} className="flex flex-col gap-2">
@@ -238,7 +239,7 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
                                 <select 
                                     value={block.characterId || ''}
                                     onChange={(e) => handleCharacterAssignmentChange(index, e.target.value)}
-                                    className="w-full max-w-xs bg-gray-900/50 border border-gray-700 rounded p-2 text-white font-bold uppercase focus:ring-cyan-400 focus:border-cyan-400 transition"
+                                    className="w-full max-w-xs bg-gray-900/50 border border-gray-700 rounded p-2 text-white font-bold uppercase focus:ring-violet-glow focus:border-violet-glow transition"
                                 >
                                     <option value="" disabled>-- Assign Character --</option>
                                     {editedCharacters.map(char => (
@@ -249,7 +250,7 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
                                 <p className="font-bold text-white uppercase">{getCharacterName(block.characterId)}</p>
                             )}
                             <textarea value={block.content} onChange={(e) => handleContentChange(index, e.target.value)}
-                              className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-mono focus:ring-cyan-400 focus:border-cyan-400" />
+                              className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-mono focus:ring-violet-glow focus:border-violet-glow" />
                         </div>
                     ))}
                 </div>
@@ -265,7 +266,7 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
                     </div>
                     <div className="flex justify-end gap-2 mt-6">
                         <button onClick={closeCharacterModal} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-transform active:scale-[0.98]">Cancel</button>
-                        <button onClick={handleCharacterSave} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md transition-transform active:scale-[0.98]">Save</button>
+                        <button onClick={handleCharacterSave} className="text-sm bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded-md transition-transform active:scale-[0.98]">Save</button>
                     </div>
                 </div>
             </div>
@@ -294,7 +295,7 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
 
     const ModalField: React.FC<{ field: keyof Scene, label: string, isTextarea?: boolean, placeholder?: string, inputRef?: React.Ref<HTMLInputElement> }> = ({ field, label, isTextarea, placeholder, inputRef }) => {
         const value = localScene[field] as string;
-        const commonClasses = "w-full bg-gray-900/50 border border-gray-700 rounded p-2 text-white focus:ring-cyan-400 focus:border-cyan-400";
+        const commonClasses = "w-full bg-gray-900/50 border border-gray-700 rounded p-2 text-white focus:ring-violet-glow focus:border-violet-glow";
         return (
             <div>
                 <label className="block text-gray-400 font-semibold mb-1">{label}</label>
@@ -346,7 +347,7 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
                 </div>
                 <div className="flex justify-end gap-3 mt-8">
                     <button onClick={onClose} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Cancel</button>
-                    <button onClick={handleSave} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Save Changes</button>
+                    <button onClick={handleSave} className="text-sm bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -528,7 +529,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                 type="text"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-cyan-500 focus:bg-gray-900/80 transition"
+                className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition"
             />
         </div>
     );
@@ -555,29 +556,29 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                             onKeyDown={(e) => handleKeyDown(e, scene, index)}
                             tabIndex={0}
                             aria-roledescription="Draggable scene. Press Space or Enter to lift, arrow keys to move, and Space or Enter again to drop."
-                            className={`relative bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300 border focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-[#0D1117]
+                            className={`relative bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300 border focus:outline-none focus:ring-2 focus:ring-violet-glow focus:ring-offset-2 focus:ring-offset-blue-darker
                                 ${draggedIndex === index ? 'opacity-30 scale-95' : 'opacity-100 scale-100'}
-                                ${isLifted ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0D1117] shadow-2xl' : ''}
+                                ${isLifted ? 'ring-2 ring-violet-glow ring-offset-2 ring-offset-blue-darker shadow-2xl' : ''}
                                 ${draggedIndex !== null ? 'border-transparent' : 'border-white/10'}
                                 ${draggedIndex !== null ? 'cursor-grabbing' : 'cursor-grab'}
                                 ${liftedSceneId ? 'cursor-move' : ''}
                                 ${isLifted ? '-translate-y-1 shadow-2xl' : ''}
                             `}
                         >
-                            { isDraggedOver && <div className="absolute top-0 left-6 right-6 h-1 bg-cyan-400 rounded-full animate-pulse"></div> }
+                            { isDraggedOver && <div className="absolute top-0 left-6 right-6 h-1 bg-violet-glow rounded-full animate-pulse"></div> }
                             <div className="flex items-start justify-between gap-4 mb-4">
                                 <input
                                     type="text"
                                     value={scene.title}
                                     onChange={(e) => handleSceneFieldChange(index, 'title', e.target.value)}
                                     aria-label="Scene Title"
-                                    className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-cyan-500 rounded-md p-1 -m-1 w-full flex-grow"
+                                    className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-violet-glow rounded-md p-1 -m-1 w-full flex-grow"
                                 />
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     <button onClick={() => handleDuplicateScene(scene, index)} title="Duplicate Scene" className="p-2 rounded-full text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-all duration-200 active:scale-[0.9]">
                                         <DuplicateIcon />
                                     </button>
-                                    <button onClick={() => handleEditClick(scene)} title="Edit Scene (Advanced)" className="p-2 rounded-full text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200 active:scale-[0.9]">
+                                    <button onClick={() => handleEditClick(scene)} title="Edit Scene (Advanced)" className="p-2 rounded-full text-gray-400 hover:text-cyan-lum hover:bg-cyan-500/10 transition-all duration-200 active:scale-[0.9]">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
                                     </button>
                                     <button onClick={() => handleDeleteClick(scene)} title="Delete Scene" className="p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200 active:scale-[0.9]">
@@ -596,7 +597,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                                         value={scene.description}
                                         onChange={(e) => handleSceneFieldChange(index, 'description', e.target.value)}
                                         placeholder="Enter scene description..."
-                                        className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-sans focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
+                                        className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-sans focus:ring-violet-glow focus:border-violet-glow transition-colors"
                                     />
                                 </div>
                             </div>
@@ -608,7 +609,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
             <div className="mt-8 flex justify-center">
                 <button
                     onClick={handleAddNewScene}
-                    className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-cyan-300 bg-cyan-900/40 border border-cyan-700/50 rounded-lg hover:bg-cyan-800/60 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#161b22] focus:ring-cyan-400 active:scale-[0.98]"
+                    className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-violet-glow bg-violet-500/20 border border-violet-glow/30 rounded-lg hover:bg-violet-500/40 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#161b22] focus:ring-violet-glow active:scale-[0.98]"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -686,7 +687,7 @@ const BtsPanel: React.FC<{ document: string, onSave: (newDoc: string) => void }>
             <textarea
                 value={editedDoc}
                 onChange={handleChange}
-                className="w-full bg-gray-900/50 border border-gray-700 rounded-md p-2 text-gray-300 focus:ring-cyan-400 focus:border-cyan-400"
+                className="w-full bg-gray-900/50 border border-gray-700 rounded-md p-2 text-gray-300 focus:ring-violet-glow focus:border-violet-glow"
                 rows={20}
             />
         </div>
@@ -790,7 +791,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
   if (isCheckingApiKey) {
     return (
         <div className="flex items-center justify-center h-64">
-            <svg className="animate-spin h-8 w-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-8 w-8 text-violet-glow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -806,7 +807,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
             <p className="mb-4 text-gray-300 max-w-lg">
                 The Veo video generation model requires you to use your own Google AI Studio API key.
                 Please select a key to proceed. For more information on billing, visit the{' '}
-                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline hover:text-cyan-300">
+                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-cyan-lum underline hover:text-cyan-200">
                     official documentation
                 </a>.
             </p>
@@ -839,7 +840,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                                     <button
                                         onClick={() => handleDownloadVideo(scene)}
                                         disabled={isDownloading}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed"
+                                        className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed"
                                     >
                                         {isDownloading ? (
                                             <>
@@ -870,7 +871,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                             <div className="bg-black/20 p-6 rounded-lg aspect-video flex flex-col justify-center animate-fade-in">
                                 <p className="text-white font-semibold text-center mb-4">Assembling your cinematic vision...</p>
                                 <div className="w-full bg-gray-700/50 rounded-full h-2 mb-2 overflow-hidden relative">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div>
                                 </div>
                                 <p className="text-gray-400 text-sm text-center mb-6">This can take a few minutes. Please be patient.</p>
                                 <div className="flex justify-center">
@@ -890,7 +891,8 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     <div className="flex-grow">
                                         <h5 className="font-semibold text-white">An Unexpected Plot Twist</h5>
-                                        <p className="text-sm text-red-200 mt-1">{statusInfo.error}</p>
+                                        <p className="text-sm text-red-200 mt-1">Let's rewrite this scene. The generation failed for the following reason:</p>
+                                        <p className="text-xs font-mono p-2 bg-black/20 rounded mt-2 text-red-200/80">{statusInfo.error}</p>
                                         { (statusInfo.error?.toLowerCase().includes("prompt") || statusInfo.error?.toLowerCase().includes("invalid")) &&
                                             <p className="text-xs text-red-300/80 mt-2 p-2 bg-red-500/10 rounded">
                                                 <strong>Suggestion:</strong> The prompt might be too complex or contain restricted terms. Try simplifying the video prompt in the Visual Outline tab.
@@ -907,7 +909,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                         )}
 
                         {!scene.videoUrl && statusInfo.status === 'idle' && (
-                            <button onClick={() => handleGenerateVideo(scene)} disabled={isLoading} className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed">
+                            <button onClick={() => handleGenerateVideo(scene)} disabled={isLoading} className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed">
                                 <VideoIcon/>
                                 Generate Video
                             </button>
@@ -987,7 +989,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
                         isActive={activeTab === tab.id} 
                         onClick={() => setActiveTab(tab.id)} 
                         icon={tab.icon}
-                        style={{ animationDelay: `${index * 50}ms` }}
+                        style={{ animationDelay: `${index * 80}ms` }}
                     >
                         {tab.label}
                     </TabButton>

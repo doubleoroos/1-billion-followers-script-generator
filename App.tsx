@@ -107,13 +107,14 @@ const App: React.FC = () => {
                 </svg>
                 <div>
                     <h3 className="text-xl font-semibold mb-2 text-white">An Unexpected Plot Twist</h3>
-                    <p className="mb-4 text-gray-300">{error}</p>
+                    <p className="text-gray-300">The AI muse hit a block, but every story has its rewrites. Let's rewrite the scene.</p>
+                    <p className="text-sm text-gray-400 mt-2 mb-4">({error})</p>
                     <button
                       onClick={handleGenerate}
                       disabled={isLoading}
                       className="flex items-center justify-center gap-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-2 px-5 rounded-lg shadow-lg transition-all duration-200 ease-in-out hover:from-amber-400 hover:to-orange-500 focus:outline-none focus:ring-4 focus:ring-amber-400/50 focus:ring-offset-2 focus:ring-offset-[#0D1117] transform hover:scale-[1.02] active:scale-[0.98] disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                     >
-                      <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                       </svg>
                       Retry Generation
@@ -134,9 +135,11 @@ const App: React.FC = () => {
             )}
              {!isLoading && !error && !generatedAssets && (
                 <div className="flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm border-2 border-dashed border-white/10 p-12 rounded-2xl h-full min-h-[500px] text-center shadow-inner overflow-hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white/20 mb-6 animate-ken-burns" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4" /></svg>
-                    <h3 className="text-2xl font-bold text-white animate-fade-in [animation-delay:200ms]">Your Cinematic Universe Awaits</h3>
-                    <p className="text-gray-400 mt-2 max-w-md animate-fade-in [animation-delay:400ms]">Set your creative compass. Choose the tone, style, and heart of your story, then bring your universe to life.</p>
+                    <div className="h-24 w-24 rounded-full bg-violet-glow/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(182,161,255,0.2),_0_0_50px_rgba(182,161,255,0.1)] animate-pulse">
+                        <div className="h-12 w-12 rounded-full bg-violet-glow/20"></div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white animate-fade-in [animation-delay:200ms]">Our Cinematic Universe Awaits</h3>
+                    <p className="text-gray-400 mt-2 max-w-lg animate-fade-in [animation-delay:400ms]">Let's set our creative compass, choose the tone, style, and heart of our story, and bring our universe to life together.</p>
                 </div>
             )}
           </div>
