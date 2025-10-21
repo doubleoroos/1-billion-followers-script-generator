@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock } from '../types';
+import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -58,7 +58,7 @@ You are an expert screenwriter and concept artist specializing in philosophical,
 
 2.  **Script Generation:** Write a narration and dialogue script guided by the specified **Narrative Tone**. The script should be structured as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. The total spoken length should be appropriate for a 10-minute film, and it must align with the requested **Emotional Arc**.
 
-3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. Every scene description must strictly adhere to the specified **Visual Style**.
+3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. Every scene description must strictly adhere to the specified **Visual Style**. For each scene, provide a Title, Location, Time of Day, Atmosphere, a detailed Description, Key Visual Elements, Visuals, Transition, and Pacing & Emotion.
 
 **Output Format:**
 Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
@@ -67,9 +67,25 @@ Return the output as a JSON object with three keys: "characters", "script", and 
     - a "type" key ('narration' or 'dialogue').
     - a "content" key with the text for that block.
     - if the type is 'dialogue', it must also have a "characterName" key matching a name from the characters list.
-- "visualOutline" should be a single string formatted with Markdown.
+- "visualOutline" should be an array of scene objects. Each object must have string keys: "title", "location", "timeOfDay", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion".
 `;
 }
+
+const formatOutlineForPrompt = (outline: Scene[]): string => {
+  return outline.map((scene, index) => {
+    return `
+**Scene Number & Title:** Scene ${index + 1}: ${scene.title}
+**Location:** ${scene.location}
+**Time of Day:** ${scene.timeOfDay}
+**Atmosphere:** ${scene.atmosphere}
+**Scene Description:** ${scene.description}
+**Key Visual Elements:** ${scene.keyVisualElements}
+**Visuals:** ${scene.visuals}
+**Transition:** ${scene.transition}
+**Pacing & Emotion:** ${scene.pacingEmotion}
+    `.trim();
+  }).join('\n\n');
+};
 
 
 const createBTSPrompt = (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: string, visualOutline: string): string => {
@@ -163,7 +179,24 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
                 required: ["type", "content"],
               },
             },
-            visualOutline: { type: Type.STRING },
+            visualOutline: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  location: { type: Type.STRING },
+                  timeOfDay: { type: Type.STRING },
+                  atmosphere: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  keyVisualElements: { type: Type.STRING },
+                  visuals: { type: Type.STRING },
+                  transition: { type: Type.STRING },
+                  pacingEmotion: { type: Type.STRING },
+                },
+                required: ["title", "location", "timeOfDay", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion"]
+              }
+            },
           },
           required: ["characters", "script", "visualOutline"],
         },
@@ -212,7 +245,12 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
         characterId: block.type === 'dialogue' && block.characterName ? characterNameToIdMap.get(block.characterName) : undefined,
     }));
     
-    const { visualOutline } = parsedData;
+    const rawVisualOutline: Omit<Scene, 'id'>[] = parsedData.visualOutline || [];
+    const visualOutline: Scene[] = rawVisualOutline.map((sceneData, index) => ({
+        ...sceneData,
+        id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`,
+        title: `Scene ${index + 1}: ${sceneData.title}`
+    }));
 
     // Create a plain text version of the script for the BTS prompt
     const scriptTextForBTS = script.map(block => {
@@ -223,7 +261,8 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
       return `${charName.toUpperCase()}\n${block.content}`;
     }).join('\n\n');
 
-    const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, scriptTextForBTS, visualOutline);
+    const outlineTextForBTS = formatOutlineForPrompt(visualOutline);
+    const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
     const btsResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: btsPrompt,

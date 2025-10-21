@@ -4,7 +4,7 @@ import { InputPanel } from './components/InputPanel';
 import { OutputDisplay } from './components/OutputDisplay';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { generateCreativeAssets } from './services/geminiService';
-import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone, ScriptBlock, Character } from './types';
+import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone, ScriptBlock, Character, Scene } from './types';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -48,7 +48,7 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const handleOutlineSave = useCallback((newOutline: string) => {
+  const handleOutlineSave = useCallback((newOutline: Scene[]) => {
     setGeneratedAssets(prevAssets => {
       if (!prevAssets) return null;
       return {

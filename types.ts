@@ -21,10 +21,23 @@ export interface ScriptBlock {
   content: string;
 }
 
+export interface Scene {
+  id: string;
+  title: string;
+  location: string;
+  timeOfDay: string;
+  atmosphere: string;
+  description: string;
+  keyVisualElements: string;
+  visuals: string;
+  transition: string;
+  pacingEmotion: string;
+}
+
 export interface GeneratedAssets {
   script: ScriptBlock[];
   characters: Character[];
-  visualOutline: string;
+  visualOutline: Scene[];
   referenceImages: ReferenceImage[];
   btsDocument: string;
 }

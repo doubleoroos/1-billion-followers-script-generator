@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { GeneratedAssets, ScriptBlock, Character } from '../types';
+import type { GeneratedAssets, ScriptBlock, Character, Scene } from '../types';
 
 interface OutputDisplayProps {
   generatedAssets: GeneratedAssets;
   onScriptSave: (newScript: ScriptBlock[], newCharacters: Character[]) => void;
-  onOutlineSave: (newOutline: string) => void;
+  onOutlineSave: (newOutline: Scene[]) => void;
   onBtsSave: (newBtsDoc: string) => void;
   isLoading: boolean;
 }
@@ -217,7 +217,6 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
 };
 // --- END: ScriptEditor Component ---
 
-
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     switch (status) {
         case 'dirty':
@@ -238,38 +237,85 @@ const getPlainText = (html: string) => {
     return tempDiv.textContent || tempDiv.innerText || '';
 };
 
-const highlightSyntax = (text: string): string => {
-  if (!text) return '';
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(
-      /(\*\*(?:Scene Number & Title|Scene Description|Key Visual Elements|Visuals|Transition|Pacing & Emotion):\*\*)/g,
-      '<span class="text-yellow-400">$1</span>'
-    )
-    .replace(
-      /^\s*-\s(.*)/gm,
-      '<span class="text-slate-500">- </span><span class="text-slate-200">$1</span>'
-    );
+const formatOutlineToString = (outline: Scene[]): string => {
+  if (!outline) return '';
+  return outline.map((scene) => {
+    const title = scene.title || '';
+    return [
+      `**Scene Number & Title:** ${title}`,
+      `**Location:** ${scene.location || ''}`,
+      `**Time of Day:** ${scene.timeOfDay || ''}`,
+      `**Atmosphere:** ${scene.atmosphere || ''}`,
+      `**Scene Description:** ${scene.description || ''}`,
+      `**Key Visual Elements:**\n${scene.keyVisualElements || ''}`,
+      `**Visuals:** ${scene.visuals || ''}`,
+      `**Transition:** ${scene.transition || ''}`,
+      `**Pacing & Emotion:** ${scene.pacingEmotion || ''}`
+    ].join('\n\n');
+  }).join('\n\n\n');
 };
 
+const EditableField: React.FC<{label: string, field: keyof Omit<Scene, 'id'>, value: string, sceneId: string, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void, isTextarea?: boolean}> = 
+  ({ label, field, value, sceneId, onChange, isTextarea = false }) => (
+      <div>
+        <label className="block text-xs font-medium text-cyan-400 mb-1">{label}</label>
+        {isTextarea ? (
+          <textarea
+            value={value}
+            onChange={(e) => onChange(sceneId, field, e.target.value)}
+            className="w-full bg-slate-900/50 p-2 rounded-md border border-slate-600 focus:ring-cyan-500 focus:border-cyan-500 text-sm resize-y"
+            rows={3}
+          />
+        ) : (
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(sceneId, field, e.target.value)}
+            className="w-full bg-slate-900/50 p-2 rounded-md border border-slate-600 focus:ring-cyan-500 focus:border-cyan-500 text-sm"
+          />
+        )}
+      </div>
+);
+
+const SceneEditorCard: React.FC<{scene: Scene, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void}> = ({ scene, onChange }) => {
+    return (
+        <div id={scene.id} className="p-4 bg-slate-900/70 rounded-lg border border-slate-700 space-y-3">
+            <h4 className="text-lg font-bold text-yellow-400">{scene.title}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <EditableField label="Location" field="location" value={scene.location} sceneId={scene.id} onChange={onChange} />
+                <EditableField label="Time of Day" field="timeOfDay" value={scene.timeOfDay} sceneId={scene.id} onChange={onChange} />
+                <EditableField label="Atmosphere" field="atmosphere" value={scene.atmosphere} sceneId={scene.id} onChange={onChange} />
+            </div>
+            <EditableField label="Scene Description" field="description" value={scene.description} sceneId={scene.id} onChange={onChange} isTextarea />
+            <EditableField label="Key Visual Elements" field="keyVisualElements" value={scene.keyVisualElements} sceneId={scene.id} onChange={onChange} isTextarea />
+            <EditableField label="Visuals" field="visuals" value={scene.visuals} sceneId={scene.id} onChange={onChange} isTextarea />
+            <EditableField label="Transition" field="transition" value={scene.transition} sceneId={scene.id} onChange={onChange} />
+            <EditableField label="Pacing & Emotion" field="pacingEmotion" value={scene.pacingEmotion} sceneId={scene.id} onChange={onChange} />
+        </div>
+    )
+};
 
 export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, onScriptSave, onOutlineSave, onBtsSave, isLoading }) => {
   const [activeTab, setActiveTab] = useState<Tab>('script');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   
-  const [editedOutline, setEditedOutline] = useState(generatedAssets.visualOutline);
+  const [editedOutline, setEditedOutline] = useState<Scene[]>(generatedAssets.visualOutline);
   const [editedBts, setEditedBts] = useState(generatedAssets.btsDocument);
   
   const [outlineSaveStatus, setOutlineSaveStatus] = useState<SaveStatus>('clean');
   const [btsSaveStatus, setBtsSaveStatus] = useState<SaveStatus>('clean');
 
-  const outlineTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const outlinePreRef = useRef<HTMLPreElement>(null);
+  const handleOutlineChange = useCallback((newOutline: Scene[]) => {
+    setEditedOutline(newOutline);
+    setOutlineSaveStatus('dirty');
+  }, []);
 
-  const handleOutlineChange = useCallback((value: string) => {
-    setEditedOutline(value);
+  const handleSceneFieldChange = useCallback((sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => {
+    setEditedOutline(prevOutline => 
+        prevOutline.map(scene => 
+            scene.id === sceneId ? { ...scene, [field]: value } : scene
+        )
+    );
     setOutlineSaveStatus('dirty');
   }, []);
 
@@ -300,15 +346,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     return () => clearTimeout(handler);
   }, [editedBts, btsSaveStatus, onBtsSave]);
 
-  const highlightedOutline = useMemo(() => highlightSyntax(editedOutline), [editedOutline]);
-  
-  const handleOutlineScroll = () => {
-    if (outlinePreRef.current && outlineTextareaRef.current) {
-      outlinePreRef.current.scrollTop = outlineTextareaRef.current.scrollTop;
-      outlinePreRef.current.scrollLeft = outlineTextareaRef.current.scrollLeft;
-    }
-  };
-
   const btsWordCount = useMemo(() => {
     const text = getPlainText(editedBts);
     if (!text.trim()) return 0;
@@ -322,25 +359,11 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     setBtsSaveStatus('clean');
   }, [generatedAssets.visualOutline, generatedAssets.btsDocument]);
 
-
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const outlineContainerRef = useRef<HTMLDivElement>(null);
 
-  const parsedScenes = useMemo(() => {
-    if (!editedOutline) return [];
-    const sceneRegex = /(\*\*(?:Scene Number & Title):\*\*(?:.|\n)*?)(?=\*\*Scene Number & Title:\*\*|$)/g;
-    const matches = [...editedOutline.matchAll(sceneRegex)];
-    return matches.map((match, index) => {
-        const content = match[1].trim();
-        const titleLine = content.split('\n')[0];
-        const title = titleLine.replace('**Scene Number & Title:**', '').trim();
-        const id = `scene-${index}-${title.replace(/\s+/g, '-')}`; // More robust ID
-        return { id, title, content };
-    });
-  }, [editedOutline]);
-
   useEffect(() => {
-    if (activeTab !== 'outline' || parsedScenes.length === 0 || !outlineContainerRef.current) return;
+    if (activeTab !== 'outline' || !editedOutline || editedOutline.length === 0 || !outlineContainerRef.current) return;
     const observer = new IntersectionObserver(
         (entries) => {
             const intersectingEntries = entries.filter(e => e.isIntersecting);
@@ -350,11 +373,11 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
             }
         }, { root: outlineContainerRef.current, rootMargin: '0px 0px -80% 0px', threshold: 0 }
     );
-    const sceneElements = parsedScenes.map(scene => document.getElementById(scene.id)).filter((el): el is HTMLElement => el !== null);
+    const sceneElements = editedOutline.map(scene => document.getElementById(scene.id)).filter((el): el is HTMLElement => el !== null);
     sceneElements.forEach(el => observer.observe(el));
     if (!activeSceneId && sceneElements.length > 0) setActiveSceneId(sceneElements[0].id);
     return () => sceneElements.forEach(el => observer.unobserve(el));
-  }, [activeTab, parsedScenes, activeSceneId]);
+  }, [activeTab, editedOutline, activeSceneId]);
 
   const handleCopy = useCallback(() => {
     if (activeTab === 'images') return;
@@ -369,7 +392,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
         }).join('\n\n');
         break;
       case 'outline':
-        contentToCopy = editedOutline;
+        contentToCopy = formatOutlineToString(editedOutline);
         break;
       case 'bts':
         contentToCopy = getPlainText(editedBts);
@@ -396,7 +419,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                 </div>`;
     }).join('');
 
-    const outlineHtml = editedOutline.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^- (.*)$/gm, '<ul><li>$1</li></ul>').replace(/<\/ul>\s*<ul>/g, '').replace(/\n/g, '<br>');
+    const outlineHtml = formatOutlineToString(editedOutline).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^- (.*)$/gm, '<ul><li>$1</li></ul>').replace(/<\/ul>\s*<ul>/g, '').replace(/\n/g, '<br>');
     const btsHtml = editedBts;
 
     const content = `
@@ -415,11 +438,23 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
   const handleAddNewScene = useCallback(() => {
     const title = window.prompt("Enter the title for the new scene:");
     if (title && title.trim() !== '') {
-      const sceneCount = parsedScenes.length + 1;
-      const newSceneTemplate = `\n\n**Scene Number & Title:** Scene ${sceneCount}: ${title.trim()}\n\n**Scene Description:** \n\n**Key Visual Elements:**\n- \n\n**Visuals:** \n\n**Transition:** \n\n**Pacing & Emotion:** `;
-      handleOutlineChange(editedOutline + newSceneTemplate);
+      const sceneCount = editedOutline.length + 1;
+      const newScene: Scene = {
+        id: `scene_${Math.random().toString(36).substring(2, 9)}`,
+        title: `Scene ${sceneCount}: ${title.trim()}`,
+        location: '',
+        timeOfDay: '',
+        atmosphere: '',
+        description: '',
+        keyVisualElements: '- ',
+        visuals: '',
+        transition: '',
+        pacingEmotion: '',
+      };
+      setEditedOutline(prev => [...prev, newScene]);
+      setOutlineSaveStatus('dirty');
     }
-  }, [parsedScenes.length, editedOutline, handleOutlineChange]);
+  }, [editedOutline]);
 
   const handleSceneJump = (sceneId: string) => {
     const sceneElement = document.getElementById(sceneId);
@@ -450,7 +485,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
       return;
     }
     
-    const scenes = parsedScenes;
+    const scenes = editedOutline;
     const sourceIndex = scenes.findIndex(s => s.id === sourceSceneId);
     const targetIndex = scenes.findIndex(s => s.id === targetSceneId);
 
@@ -460,18 +495,16 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     const [draggedItem] = newScenes.splice(sourceIndex, 1);
     newScenes.splice(targetIndex, 0, draggedItem);
     
-    const newOutline = newScenes.map(s => s.content).join('\n\n');
-    handleOutlineChange(newOutline);
+    handleOutlineChange(newScenes);
     setDraggedSceneId(null);
-  }, [parsedScenes, handleOutlineChange]);
+  }, [editedOutline, handleOutlineChange]);
 
   const handleDeleteScene = useCallback((sceneId: string) => {
     if (window.confirm('Are you sure you want to delete this scene? This action cannot be undone.')) {
-      const newScenes = parsedScenes.filter(s => s.id !== sceneId);
-      const newOutline = newScenes.map(s => s.content).join('\n\n');
-      handleOutlineChange(newOutline);
+      const newScenes = editedOutline.filter(s => s.id !== sceneId);
+      handleOutlineChange(newScenes);
     }
-  }, [parsedScenes, handleOutlineChange]);
+  }, [editedOutline, handleOutlineChange]);
 
   const handleBtsFormat = (command: string) => document.execCommand(command, false);
 
@@ -525,7 +558,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                 <nav className="w-1/3 md:w-1/4 h-[65vh] overflow-y-auto pr-4 border-r border-slate-600">
                   <h3 className="text-base font-semibold mb-3 text-cyan-400 sticky top-0 bg-slate-800/80 backdrop-blur-sm pb-2 z-10">Scenes</h3>
                   <ul className="space-y-1">
-                    {parsedScenes.map(scene => (
+                    {editedOutline.map(scene => (
                       <li 
                         key={scene.id}
                         draggable="true"
@@ -549,13 +582,14 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                     ))}
                   </ul>
                 </nav>
-                <div ref={outlineContainerRef} className="w-2/3 md:w-3/4 h-[65vh] overflow-y-auto prose prose-invert prose-sm max-w-none prose-pre:bg-transparent prose-pre:p-0">
-                  <div className="w-full h-full relative">
-                      <pre ref={outlinePreRef} aria-hidden="true" className="absolute inset-0 m-0 p-4 rounded-md font-mono text-slate-200 whitespace-pre-wrap break-words overflow-auto pointer-events-none">
-                        <code dangerouslySetInnerHTML={{ __html: highlightedOutline }} />
-                      </pre>
-                      <textarea ref={outlineTextareaRef} value={editedOutline} onChange={(e) => handleOutlineChange(e.target.value)} onScroll={handleOutlineScroll} className="absolute inset-0 w-full h-full bg-transparent p-4 rounded-md font-mono text-transparent caret-cyan-400 border border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow whitespace-pre-wrap break-words resize-none" spellCheck="false" aria-label="Editable visual outline"/>
-                  </div>
+                <div ref={outlineContainerRef} className="w-2/3 md:w-3/4 h-[65vh] overflow-y-auto space-y-4 pr-2">
+                  {editedOutline.map(scene => (
+                      <SceneEditorCard 
+                        key={scene.id} 
+                        scene={scene} 
+                        onChange={handleSceneFieldChange} 
+                      />
+                  ))}
                 </div>
               </div>
             )}
