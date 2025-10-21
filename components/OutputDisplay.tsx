@@ -258,34 +258,41 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
     };
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        // Store the index of the item being dragged
         dragItem.current = index;
         setDraggedIndex(index);
         e.dataTransfer.effectAllowed = 'move';
     };
 
     const handleDragEnter = (index: number) => {
+        // Store the index of the item we are dragging over
         if (index !== draggedIndex) {
             setDragOverIndex(index);
         }
     };
 
     const handleDrop = () => {
+        // If the drop is not on a valid target, reset
         if (dragItem.current === null || dragOverIndex === null || dragItem.current === dragOverIndex) {
             handleDragEnd();
             return;
         }
 
+        // Reorder the outline array
         const newOutline = [...editedOutline];
         const [draggedItemContent] = newOutline.splice(dragItem.current, 1);
         newOutline.splice(dragOverIndex, 0, draggedItemContent);
         
+        // Update local state and trigger the autosave
         setEditedOutline(newOutline);
         save(newOutline);
 
+        // Reset drag state
         handleDragEnd();
     };
 
     const handleDragEnd = () => {
+        // Clear all drag-related state
         dragItem.current = null;
         setDraggedIndex(null);
         setDragOverIndex(null);
@@ -340,50 +347,49 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                 <SaveStatusIndicator status={status} />
             </div>
             <div className="space-y-6" onDragLeave={handleDragEnd}>
-                {editedOutline.map((scene, index) => (
-                    <div 
-                        key={scene.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, index)}
-                        onDragEnter={() => handleDragEnter(index)}
-                        onDrop={handleDrop}
-                        onDragEnd={handleDragEnd}
-                        onDragOver={(e) => e.preventDefault()}
-                        className={`bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300
-                            ${draggedIndex === index ? 'opacity-30 scale-95 shadow-2xl' : 'opacity-100 scale-100'}
-                            ${dragOverIndex === index && draggedIndex !== index 
-                                ? 'ring-4 ring-cyan-500' 
-                                : ''
-                            }
-                             border
-                             ${draggedIndex !== null ? 'border-transparent' : 'border-white/10'}
-                            ${draggedIndex !== null ? 'cursor-grabbing' : 'cursor-grab'}
-                        `}
-                    >
-                        <div className="flex items-end gap-4 mb-4">
-                            <div className="flex-grow">
-                                <EditableField scene={scene} field="title" label="Scene Title" />
+                {editedOutline.map((scene, index) => {
+                    const isDraggedOver = dragOverIndex === index && draggedIndex !== index;
+                    return (
+                        <div 
+                            key={scene.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, index)}
+                            onDragEnter={() => handleDragEnter(index)}
+                            onDrop={handleDrop}
+                            onDragEnd={handleDragEnd}
+                            onDragOver={(e) => e.preventDefault()}
+                            className={`relative bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300 border
+                                ${draggedIndex === index ? 'opacity-30 scale-95 shadow-2xl' : 'opacity-100 scale-100'}
+                                ${draggedIndex !== null ? 'border-transparent' : 'border-white/10'}
+                                ${draggedIndex !== null ? 'cursor-grabbing' : 'cursor-grab'}
+                            `}
+                        >
+                            { isDraggedOver && <div className="absolute top-0 left-6 right-6 h-1 bg-cyan-400 rounded-full animate-pulse"></div> }
+                            <div className="flex items-end gap-4 mb-4">
+                                <div className="flex-grow">
+                                    <EditableField scene={scene} field="title" label="Scene Title" />
+                                </div>
+                                <button
+                                    onClick={() => handleDeleteClick(scene)}
+                                    title="Delete Scene"
+                                    className="mb-2 p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
+                                >
+                                    <TrashIcon />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleDeleteClick(scene)}
-                                title="Delete Scene"
-                                className="mb-2 p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
-                            >
-                                <TrashIcon />
-                            </button>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                               <EditableField scene={scene} field="location" label="Location" />
+                               <EditableField scene={scene} field="timeOfDay" label="Time of Day" />
+                               <div className="md:col-span-2"><EditableField scene={scene} field="atmosphere" label="Atmosphere" /></div>
+                               <div className="md:col-span-2"><EditableField scene={scene} field="description" label="Description" isTextarea /></div>
+                               <div className="md:col-span-2"><EditableField scene={scene} field="keyVisualElements" label="Key Visual Elements" isTextarea /></div>
+                               <div className="md:col-span-2"><EditableField scene={scene} field="visuals" label="Visuals" isTextarea /></div>
+                               <EditableField scene={scene} field="pacingEmotion" label="Pacing & Emotion" />
+                               <EditableField scene={scene} field="transition" label="Transition" />
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                           <EditableField scene={scene} field="location" label="Location" />
-                           <EditableField scene={scene} field="timeOfDay" label="Time of Day" />
-                           <div className="md:col-span-2"><EditableField scene={scene} field="atmosphere" label="Atmosphere" /></div>
-                           <div className="md:col-span-2"><EditableField scene={scene} field="description" label="Description" isTextarea /></div>
-                           <div className="md:col-span-2"><EditableField scene={scene} field="keyVisualElements" label="Key Visual Elements" isTextarea /></div>
-                           <div className="md:col-span-2"><EditableField scene={scene} field="visuals" label="Visuals" isTextarea /></div>
-                           <EditableField scene={scene} field="pacingEmotion" label="Pacing & Emotion" />
-                           <EditableField scene={scene} field="transition" label="Transition" />
-                        </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
             
             <div className="mt-8 flex justify-center">
