@@ -219,10 +219,16 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
           outputMimeType: 'image/jpeg',
           aspectRatio: '16:9',
         },
-      }).then(response => ({
-        title: stage.title,
-        imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`
-      }))
+      }).then(response => {
+        if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
+            console.error("Image generation failed for stage:", stage.title, "Response:", response);
+            throw new Error(`Image generation failed for "${stage.title}". The model did not return an image, which may be due to safety filters or a temporary model issue.`);
+        }
+        return {
+          title: stage.title,
+          imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`
+        };
+      })
     );
     
     const [scriptResponse, referenceImages] = await Promise.all([
