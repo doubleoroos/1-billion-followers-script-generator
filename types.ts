@@ -34,6 +34,7 @@ export interface Scene {
   transition: string;
   pacingEmotion: string;
   videoUrl?: string;
+  videoPrompt?: string;
 }
 
 export interface GeneratedAssets {

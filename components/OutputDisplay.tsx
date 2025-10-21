@@ -254,7 +254,7 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
         onSave(localScene);
     };
 
-    const ModalField: React.FC<{ field: keyof Scene, label: string, isTextarea?: boolean }> = ({ field, label, isTextarea }) => {
+    const ModalField: React.FC<{ field: keyof Scene, label: string, isTextarea?: boolean, placeholder?: string }> = ({ field, label, isTextarea, placeholder }) => {
         const value = localScene[field] as string;
         const commonClasses = "w-full bg-gray-900/50 border border-gray-700 rounded p-2 text-white focus:ring-cyan-400 focus:border-cyan-400";
         return (
@@ -265,6 +265,7 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
                         value={value}
                         onChange={(e) => handleInputChange(field, e.target.value)}
                         className={`${commonClasses} h-28 min-h-[40px]`}
+                        placeholder={placeholder}
                     />
                 ) : (
                     <input
@@ -272,6 +273,7 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
                         value={value}
                         onChange={(e) => handleInputChange(field, e.target.value)}
                         className={commonClasses}
+                        placeholder={placeholder}
                     />
                 )}
             </div>
@@ -290,6 +292,12 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
                     </div>
                     <ModalField field="atmosphere" label="Atmosphere" />
                     <ModalField field="description" label="Description" isTextarea />
+                     <ModalField 
+                        field="videoPrompt" 
+                        label="Video Generation Prompt" 
+                        isTextarea 
+                        placeholder="Describe the video you want to generate. If empty, a prompt is created from scene details."
+                    />
                     <ModalField field="keyVisualElements" label="Key Visual Elements" isTextarea />
                     <ModalField field="visuals" label="Visuals" isTextarea />
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -385,6 +393,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
             visuals: '',
             transition: '',
             pacingEmotion: '',
+            videoPrompt: '',
         };
         const newOutline = [...editedOutline, newScene];
         setEditedOutline(newOutline);
@@ -401,6 +410,13 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         const newOutline = [...editedOutline];
         newOutline.splice(index + 1, 0, newScene);
         
+        setEditedOutline(newOutline);
+        save(newOutline);
+    };
+
+    const handlePromptChange = (index: number, prompt: string) => {
+        const newOutline = [...editedOutline];
+        newOutline[index] = { ...newOutline[index], videoPrompt: prompt };
         setEditedOutline(newOutline);
         save(newOutline);
     };
@@ -471,6 +487,17 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                                <InfoField label="Description" value={scene.description} fullWidth />
 
                                 <div className="md:col-span-2 mt-4 pt-4 border-t border-white/10">
+                                     <div className="mb-4">
+                                        <label htmlFor={`prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-2">Video Generation Prompt</label>
+                                        <textarea
+                                            id={`prompt-${scene.id}`}
+                                            value={scene.videoPrompt || ''}
+                                            onChange={(e) => handlePromptChange(index, e.target.value)}
+                                            placeholder="Describe the video you want to generate for this scene. If empty, a prompt is generated from scene details."
+                                            className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-sans focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
+                                        />
+                                    </div>
+                                    
                                     {scene.videoUrl && (
                                         <div>
                                             <h5 className="font-semibold text-gray-400 mb-2">Generated Video</h5>

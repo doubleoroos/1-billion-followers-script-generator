@@ -252,11 +252,12 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
         characterId: block.type === 'dialogue' && block.characterName ? characterNameToIdMap.get(block.characterName) : undefined,
     }));
     
-    const rawVisualOutline: Omit<Scene, 'id'>[] = parsedData.visualOutline || [];
+    const rawVisualOutline: Omit<Scene, 'id' | 'videoPrompt'>[] = parsedData.visualOutline || [];
     const visualOutline: Scene[] = rawVisualOutline.map((sceneData, index) => ({
         ...sceneData,
         id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`,
-        title: `Scene ${index + 1}: ${sceneData.title}`
+        title: `Scene ${index + 1}: ${sceneData.title}`,
+        videoPrompt: '',
     }));
 
     // Create a plain text version of the script for the BTS prompt
@@ -297,13 +298,16 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
       const aiForVideo = new GoogleGenAI({ apiKey: API_KEY as string });
   
       const styleDescription = getVisualStyleDescription(visualStyle);
-      const prompt = `Create a short, 5-second video clip for a film scene.
-      **Visual Style:** ${styleDescription}.
-      **Scene Title:** ${scene.title}.
-      **Atmosphere:** ${scene.atmosphere}.
-      **Description:** ${scene.description}.
-      **Key Visuals:** ${scene.keyVisualElements}.
-      The video should be cinematic, high-quality, and evoke the emotion of: ${scene.pacingEmotion}.`;
+      
+      const prompt = scene.videoPrompt && scene.videoPrompt.trim() !== ''
+        ? scene.videoPrompt
+        : `Create a short, 5-second video clip for a film scene.
+        **Visual Style:** ${styleDescription}.
+        **Scene Title:** ${scene.title}.
+        **Atmosphere:** ${scene.atmosphere}.
+        **Description:** ${scene.description}.
+        **Key Visuals:** ${scene.keyVisualElements}.
+        The video should be cinematic, high-quality, and evoke the emotion of: ${scene.pacingEmotion}.`;
   
       let operation = await aiForVideo.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
