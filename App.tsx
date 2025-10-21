@@ -5,7 +5,7 @@ import { InputPanel } from './components/InputPanel';
 import { OutputDisplay } from './components/OutputDisplay';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { generateCreativeAssets } from './services/geminiService';
-import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone, ScriptBlock, Character, Scene } from './types';
+import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone, ScriptBlock, Character, Scene, RewriteTomorrowTheme } from './types';
 
 type AppState = 'vision' | 'generating' | 'reveal';
 
@@ -15,6 +15,7 @@ const App: React.FC = () => {
   const [generatedAssets, setGeneratedAssets] = useState<GeneratedAssets | null>(null);
   
   // Creative Controls State
+  const [rewriteTomorrowTheme, setRewriteTomorrowTheme] = useState<RewriteTomorrowTheme>('symbioticCities');
   const [emotionalArc, setEmotionalArc] = useState<EmotionalArcIntensity>('moderate');
   const [visualStyle, setVisualStyle] = useState<VisualStyle>('cinematic');
   const [narrativeTone, setNarrativeTone] = useState<NarrativeTone>('poetic');
@@ -25,7 +26,7 @@ const App: React.FC = () => {
     setGeneratedAssets(null);
 
     try {
-      const result = await generateCreativeAssets(emotionalArc, visualStyle, narrativeTone);
+      const result = await generateCreativeAssets(rewriteTomorrowTheme, emotionalArc, visualStyle, narrativeTone);
       setGeneratedAssets(result);
       setAppState('reveal');
     } catch (e) {
@@ -34,7 +35,7 @@ const App: React.FC = () => {
       setAppState('vision'); // Go back to vision screen on error
       console.error(e);
     }
-  }, [emotionalArc, visualStyle, narrativeTone]);
+  }, [rewriteTomorrowTheme, emotionalArc, visualStyle, narrativeTone]);
   
   const handleStartOver = () => {
     setGeneratedAssets(null);
@@ -88,9 +89,9 @@ const App: React.FC = () => {
         return (
           <InputPanel
             onGenerate={handleGenerate}
-            // When appState is 'vision', the app is not in a generating state.
-            // The original `appState === 'generating'` is always false here, causing a type error.
             isLoading={false}
+            rewriteTomorrowTheme={rewriteTomorrowTheme}
+            setRewriteTomorrowTheme={setRewriteTomorrowTheme}
             emotionalArc={emotionalArc}
             setEmotionalArc={setEmotionalArc}
             visualStyle={visualStyle}

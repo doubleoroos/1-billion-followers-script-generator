@@ -1,10 +1,12 @@
 import React from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
-import type { EmotionalArcIntensity, VisualStyle, NarrativeTone } from '../types';
+import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
 
 interface InputPanelProps {
   onGenerate: () => void;
   isLoading: boolean;
+  rewriteTomorrowTheme: RewriteTomorrowTheme;
+  setRewriteTomorrowTheme: (theme: RewriteTomorrowTheme) => void;
   emotionalArc: EmotionalArcIntensity;
   setEmotionalArc: (intensity: EmotionalArcIntensity) => void;
   visualStyle: VisualStyle;
@@ -48,6 +50,8 @@ const OptionButton = <T extends string>({
 export const InputPanel: React.FC<InputPanelProps> = ({ 
   onGenerate, 
   isLoading, 
+  rewriteTomorrowTheme,
+  setRewriteTomorrowTheme,
   emotionalArc, 
   setEmotionalArc,
   visualStyle,
@@ -59,13 +63,23 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
         <div className="text-center mb-10">
-            <h2 className="text-4xl font-extrabold text-white mb-3 bg-gradient-to-r from-white to-gray-400 text-transparent bg-clip-text">Set Your Vision</h2>
-            <p className="text-gray-400 text-lg">Set the compass for your cinematic universe. Your choices here will guide the AI in crafting every creative asset.</p>
+            <h2 className="text-4xl font-extrabold text-white mb-3 bg-gradient-to-r from-white to-gray-400 text-transparent bg-clip-text">Envision a New Future</h2>
+            <p className="text-gray-400 text-lg">Select a core theme and creative direction. Your choices will guide the AI in generating a complete concept for your 7-10 minute film.</p>
         </div>
       
         <div className="bg-black/20 backdrop-blur-lg p-6 md:p-8 rounded-2xl border border-white/10 flex flex-col space-y-8 shadow-2xl shadow-black/30">
         
         <div className="space-y-6">
+            <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
+                <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
+                <h3 className="font-semibold text-white mb-3 text-lg pl-2">Rewrite Tomorrow Theme</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <OptionButton value="symbioticCities" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A future where cities, technology, and nature are one living organism.">Symbiotic Cities</OptionButton>
+                    <OptionButton value="renaissanceOfConnection" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI fostering deeper human connection and empathy, not isolation.">Renaissance of Connection</OptionButton>
+                    <OptionButton value="postScarcityCreators" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="Automation has freed humanity to pursue passion, art, and purpose.">Post-Scarcity Creators</OptionButton>
+                    <OptionButton value="guardiansOfMemory" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI helps preserve lost cultures, languages, and ancestral wisdom.">Guardians of Memory</OptionButton>
+                </div>
+            </div>
             <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Narrative Tone</h3>
@@ -122,7 +136,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="flex flex-col items-center">
                     <div className="flex items-center gap-2 text-lg">
                     <SparklesIcon />
-                    <span>Generate Assets</span>
+                    <span>Generate Film Blueprint</span>
                     </div>
                     <span className="text-xs font-semibold text-teal-900/80 italic opacity-80 mt-1">Ignite the Vision</span>
                 </div>

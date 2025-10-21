@@ -2,8 +2,8 @@ import React from 'react';
 
 export const LogoIcon: React.FC<{large?: boolean}> = ({ large = false }) => {
     const size = large ? "100" : "48";
-    const textY = large ? "57" : "30";
-    const textSize = large ? "30" : "16";
+    const textY = large ? "60" : "32"; // Adjusted for 'AI'
+    const textSize = large ? "35" : "18"; // Adjusted for 'AI'
 
     return (
         <svg 
@@ -36,7 +36,7 @@ export const LogoIcon: React.FC<{large?: boolean}> = ({ large = false }) => {
                 textAnchor="middle" 
                 fontWeight="bold"
             >
-                1B
+                AI
             </text>
         </svg>
     )

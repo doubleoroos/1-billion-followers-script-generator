@@ -14,9 +14,9 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver }) =>
           <LogoIcon />
           <div>
             <h1 className="text-xl font-bold text-white">
-              <span className="bg-gradient-to-r from-violet-glow to-cyan-lum text-transparent bg-clip-text">1BF</span> Script Generator
+              <span className="bg-gradient-to-r from-violet-glow to-cyan-lum text-transparent bg-clip-text">Rewrite Tomorrow</span> Film Generator
             </h1>
-            <p className="text-gray-400 text-sm mt-1 hidden sm:block">AI-powered creativity for the 1 Billion Followers film competition</p>
+            <p className="text-gray-400 text-sm mt-1 hidden sm:block">Crafting positive futures for the 7-10 minute film challenge</p>
           </div>
         </div>
         {showStartOver && (

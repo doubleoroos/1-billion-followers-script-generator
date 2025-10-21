@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene } from '../types';
+import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -8,6 +8,16 @@ if (!API_KEY) {
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+const getThemeDescription = (theme: RewriteTomorrowTheme): string => {
+    switch (theme) {
+        case 'symbioticCities': return "The film explores a future where cities are living organisms, with technology and nature seamlessly integrated. It's a story of ecological harmony and architectural innovation.";
+        case 'renaissanceOfConnection': return "The film explores how AI, rather than isolating us, fosters deeper, more meaningful human connections, bridging emotional and cultural divides.";
+        case 'postScarcityCreators': return "The film showcases a world where AI has automated labor, freeing humanity to pursue art, science, and passion. It's a story of universal creativity and purpose.";
+        case 'guardiansOfMemory': return "The film tells a story about how AI helps preserve and resurrect lost cultures, languages, and histories, ensuring the wisdom of the past guides the future.";
+        default: return "The film explores a positive, hopeful vision of the future, shaped by a thoughtful partnership between humanity and artificial intelligence.";
+    }
+};
 
 const getIntensityDescription = (intensity: EmotionalArcIntensity): string => {
     switch (intensity) {
@@ -35,17 +45,21 @@ const getNarrativeToneDescription = (tone: NarrativeTone): string => {
     }
 }
 
-const createPrompt = (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
+const createPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
+    const themeDescription = getThemeDescription(theme);
     const intensityDescription = getIntensityDescription(intensity);
     const styleDescription = getVisualStyleDescription(visualStyle);
     const toneDescription = getNarrativeToneDescription(narrativeTone);
 
     return `
-You are an expert screenwriter and concept artist specializing in philosophical, visually-driven short films. Your task is to generate a complete set of creative assets for a 10-minute film.
+You are an expert screenwriter and concept artist creating assets for a film submission to the "REWRITE TOMORROW" film award.
 
-**Project Title:** 1 Billion Followers
-**Theme:** A short film that envisions a future where 1 billion people follow a single, positive idea.
-**Core Concept:** A poetic AI-generated film exploring the journey of a powerful, positive idea—from its inception to its adoption by a billion people, transforming the world with collective hope and unity.
+**Competition Theme:** "Stories imagining the future with a positive twist."
+**Film Length:** 7 to 10 minutes.
+**Storytelling Mandate:** The film must tell a cohesive and emotionally resonant story with a clear narrative structure (beginning, middle, end), character development, and a sense of conflict, tension, or resolution.
+
+**Your Assigned Focus:**
+- **Core Concept:** ${themeDescription}
 
 **Creative Direction:**
 - **Narrative Tone:** ${toneDescription}
@@ -54,15 +68,15 @@ You are an expert screenwriter and concept artist specializing in philosophical,
 
 **Your Task:**
 
-1.  **Character Generation:** Based on the theme, create 2-3 compelling, archetypal characters who could narrate or speak. For each character, provide a name and a brief, one-sentence description of their role or essence.
+1.  **Character Generation:** Based on the theme, create 2-3 compelling characters who will drive the story. For each character, provide a name and a brief, one-sentence description of their role or essence.
 
-2.  **Script Generation:** Write a narration and dialogue script guided by the specified **Narrative Tone**. The script should be structured as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. The total spoken length should be appropriate for a 10-minute film, and it must align with the requested **Emotional Arc**.
+2.  **Script Generation:** Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. Structure it as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. It must follow a complete narrative arc with clear character development, aligning with the requested **Emotional Arc**.
 
-3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline that strictly adheres to the specified **Visual Style**. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
+3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (8-12 scenes) that strictly adheres to the specified **Visual Style**. This outline must map to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
 
 **Output Format:**
 Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
-- "characters" should be an array of objects, where each object has a "name" key and a "description" key (e.g., [{ "name": "The Seeker", "description": "A curious wanderer representing humanity's search for meaning." }]).
+- "characters" should be an array of objects, where each object has a "name" key and a "description" key (e.g., [{ "name": "The Architect", "description": "An AI ethicist designing a system for global good." }]).
 - "script" should be an array of objects. Each object must have:
     - a "type" key ('narration' or 'dialogue').
     - a "content" key with the text for that block.
@@ -88,36 +102,47 @@ const formatOutlineForPrompt = (outline: Scene[]): string => {
 };
 
 
-const createBTSPrompt = (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: string, visualOutline: string): string => {
+const createBTSPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: string, visualOutline: string): string => {
+  const themeDescription = getThemeDescription(theme).split('.')[0];
   const intensityDescription = getIntensityDescription(intensity).split('.')[0];
   const styleDescription = getVisualStyleDescription(visualStyle).split('.')[0];
   const toneDescription = getNarrativeToneDescription(narrativeTone).split('.')[0];
   
   return `
-You are a filmmaker writing a "Behind the Scenes" (BTS) document (400-500 words) for the "1 Billion Followers" AI film competition.
+You are a filmmaker writing a "Behind the Scenes" (BTS) document (500-600 words) for the "REWRITE TOMORROW" film award.
+
+**Competition Rules to Address:**
+- **Film Length:** 7-10 minutes.
+- **AI Integration:** Must be at least 70% AI-generated.
+- **Mandatory Tools:** Google Gemini models (including Veo for video, Imagen for images, and Flow for workflow).
 
 **Creative Choices Made:**
+- **Theme:** ${theme.charAt(0).toUpperCase() + theme.slice(1)} (${themeDescription}).
 - **Narrative Tone:** ${narrativeTone.charAt(0).toUpperCase() + narrativeTone.slice(1)} (${toneDescription}).
 - **Visual Style:** ${visualStyle.charAt(0).toUpperCase() + visualStyle.slice(1)} (${styleDescription}).
 - **Emotional Arc:** ${intensity.charAt(0).toUpperCase() + intensity.slice(1)} (${intensityDescription}).
 
 **Your Task:**
-Write a compelling BTS document that explains your creative process using AI as a partner.
-1.  **Introduction:** Introduce the project's optimistic message.
-2.  **Creative Vision & AI Partnership:** Explain your deliberate choice of tone, style, and emotional arc. Describe how these specific parameters guided the AI (Gemini and Imagen) to generate a cohesive and unique vision. This is the most important section.
-3.  **The Scripting Process:** Analyze how the generated script reflects the chosen **Narrative Tone** and **Emotional Arc**.
-4.  **Visual Development:** Discuss how the visual outline and reference images translate the script's ideas into the chosen **Visual Style**.
-5.  **Conclusion:** Summarize the process and reiterate the film's hopeful vision.
+Write a compelling BTS document that details your creative process using AI as a core partner, ensuring you address the competition's specific requirements.
+1.  **Introduction:** Introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and its ambitious scope as a 7-10 minute, heavily AI-driven narrative.
+2.  **AI as Creative Partner:** This is the most crucial section. Explain your specific choices for theme, tone, style, and arc. Describe how these parameters were used to direct a suite of Google AI tools. Detail the workflow:
+    - **Google Gemini:** For generating the foundational script, characters, and scene-by-scene visual outline.
+    - **Google Imagen:** For creating the initial concept art and moodboard to establish the film's aesthetic.
+    - **Google Veo:** As the primary tool for generating the final video clips, translating the visual outline into cinematic motion.
+    - **Google Flow:** Mentioned as the underlying orchestrator for managing these complex generation pipelines.
+3.  **Narrative Construction:** Analyze how the generated script and outline successfully build a complete story for a 7-10 minute runtime, focusing on character development and emotional resonance.
+4.  **Achieving 70% AI-Generation:** Briefly explain the plan to meet this requirement, emphasizing that the core visual and narrative elements originate from the AI tools, with human effort focused on editing, sound design, and final assembly.
+5.  **Ethical & Innovative Use:** Conclude by summarizing the innovative aspects of using AI for long-form storytelling and affirm a commitment to ethical AI use, including transparency about the tools employed.
 
 **Formatting:**
 - Professional, insightful tone.
 - Well-structured paragraphs.
 - Output a single block of text (no markdown).
-- Total length: 400-500 words.
+- Total length: 500-600 words.
 
 **Generated Assets for Reference:**
 ---
-**NARRATION SCRIPT (formatted for context):**
+**SCRIPT:**
 ${script}
 ---
 **VISUAL OUTLINE:**
@@ -126,31 +151,45 @@ ${visualOutline}
 `;
 }
 
-const getImageStages = (visualStyle: VisualStyle): { title: string, prompt: string }[] => {
+const getThemeBasedImageStages = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle): { title: string, prompt: string }[] => {
     const styleDescription = getVisualStyleDescription(visualStyle);
-    return [
-      {
-        title: 'The Spark',
-        prompt: `An intimate, powerful, hopeful portrait of a single person, their face softly illuminated by an internal, warm light. Their eyes are closed in deep thought. The background is dark and abstract. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
-      },
-      {
-        title: 'The Ripple',
-        prompt: `A stunning visual metaphor of an idea spreading. A luminous, golden thread of light travels from one person to another across a diverse tapestry of faces from all over the world, forming a beautiful web of light. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
-      },
-      {
-        title: 'The Chorus',
-        prompt: `An awe-inspiring, high-angle shot of a vast, diverse crowd of a billion people. They are a beautiful mosaic of individuals, standing together in a vast landscape at twilight, all looking up at a subtle aurora of light representing their shared idea. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
-      },
-      {
-        title: 'The New Dawn',
-        prompt: `A breathtaking, utopian landscape representing the future transformed. A futuristic, yet harmonious city integrated with nature. People walk together, their faces filled with peace and purpose, bathed in the warm, golden light of a sunrise. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
-      }
-    ];
+    const commonPromptSuffix = `Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed, emotionally resonant.`;
+    
+    switch (theme) {
+        case 'symbioticCities':
+            return [
+                { title: 'The Solstice Tower', prompt: `A breathtaking skyscraper covered in bioluminescent algae that glows softly at dusk, with sky-bridges connecting to other buildings draped in vertical gardens. ${commonPromptSuffix}` },
+                { title: 'The River Market', prompt: `A bustling market where people travel in silent, autonomous pods along a crystal-clear waterway flowing through the center of a building complex. Nature and commerce in harmony. ${commonPromptSuffix}` },
+                { title: 'The Rooftop Sanctuary', prompt: `A serene, park-like rooftop high above the city, where a person meditates beside a robotic gardener tending to rare flowers. A moment of peace amidst the clouds. ${commonPromptSuffix}` },
+                { title: 'The Mycelium Network', prompt: `An underground view of the city's foundation, showing a glowing, AI-managed mycelium network recycling waste and transmitting information between buildings. ${commonPromptSuffix}` }
+            ];
+        case 'renaissanceOfConnection':
+            return [
+                { title: 'The Empathy Bridge', prompt: `Two people from different cultures sit opposite each other, wearing sleek AR visors. Between them, an AI visualizes their shared emotions as a beautiful, evolving sculpture of light. ${commonPromptSuffix}` },
+                { title: 'The Ancestral Story', prompt: `A family gathered around a holographic fire, as an AI storyteller projects a life-sized, interactive story of their ancestors, allowing them to speak with their past. ${commonPromptSuffix}` },
+                { title: 'The Collaborative Dream', prompt: `A global team of scientists solving a complex problem, their individual thoughts and ideas visualized by an AI as interconnected strands of energy forming a single, brilliant solution. ${commonPromptSuffix}` },
+                { title: 'The Silent Conversation', prompt: `A person communicates with a loved one who has lost the ability to speak, using a brain-computer interface that translates their thoughts into poetic, projected text. ${commonPromptSuffix}` }
+            ];
+        case 'postScarcityCreators':
+            return [
+                { title: 'The Ocean Sculptor', prompt: `An artist using an AI-guided energy beam to sculpt a colossal, intricate form from a coral reef, a new art form that also helps the ecosystem. ${commonPromptSuffix}` },
+                { title: 'The Composer of Worlds', prompt: `A musician in a simple room, conducting a symphony of light and sound with hand gestures, as an AI translates her imagination into a fully immersive sensory experience. ${commonPromptSuffix}` },
+                { title: 'The Neighborhood Foundry', prompt: `A community gathered in a local fabrication lab, using AI to design and 3D-print everything they need, from custom furniture to advanced scientific tools. ${commonPromptSuffix}` },
+                { title: 'The Infinite Library', prompt: `A single, floating crystal in a vast space, which is an AI that contains every story ever imagined. A child reaches out, and a new, personalized universe unfolds before them. ${commonPromptSuffix}` }
+            ];
+        case 'guardiansOfMemory':
+            return [
+                { title: 'The Ghost Language', prompt: `An AI archeologist projecting the glowing, 3D form of an extinct language's grammar over ancient ruins, allowing a linguist to finally understand it. ${commonPromptSuffix}` },
+                { title: 'The Living Archive', prompt: `An elder tribal leader feeding her stories into a bio-organic data crystal. The crystal pulses with light, as an AI ensures the cultural memory is preserved forever. ${commonPromptSuffix}` },
+                { title: 'The Resurrected City', prompt: `A student walking through a perfect, full-scale holographic reconstruction of an ancient city like Babylon, interacting with AI-driven citizens living their daily lives. ${commonPromptSuffix}` },
+                { title: 'The Council of Ages', prompt: `A person facing a difficult decision consults an AI that synthesizes the wisdom of her ancestors, presenting their advice as a series of profound, ghostly figures. ${commonPromptSuffix}` }
+            ];
+    }
 };
 
-export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
+export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
-    const prompt = createPrompt(intensity, visualStyle, narrativeTone);
+    const prompt = createPrompt(theme, intensity, visualStyle, narrativeTone);
     const scriptPromise = ai.models.generateContent({
       model: "gemini-2.5-pro",
       contents: prompt,
@@ -209,7 +248,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
       },
     });
 
-    const imageStages = getImageStages(visualStyle);
+    const imageStages = getThemeBasedImageStages(theme, visualStyle);
     const imagePromises = imageStages.map(stage => 
       ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
@@ -276,7 +315,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
     }).join('\n\n');
 
     const outlineTextForBTS = formatOutlineForPrompt(visualOutline);
-    const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
+    const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
     const btsResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: btsPrompt,
