@@ -267,6 +267,16 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
 
   const outlineTextareaRef = useRef<HTMLTextAreaElement>(null);
   const outlinePreRef = useRef<HTMLPreElement>(null);
+
+  const handleOutlineChange = useCallback((value: string) => {
+    setEditedOutline(value);
+    setOutlineSaveStatus('dirty');
+  }, []);
+
+  const handleBtsChange = useCallback((html: string) => {
+    setEditedBts(html);
+    setBtsSaveStatus('dirty');
+  }, []);
   
   // Auto-save outline
   useEffect(() => {
@@ -290,16 +300,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     return () => clearTimeout(handler);
   }, [editedBts, btsSaveStatus, onBtsSave]);
 
-  const handleOutlineChange = (value: string) => {
-    setEditedOutline(value);
-    setOutlineSaveStatus('dirty');
-  }
-
-  const handleBtsChange = (html: string) => {
-    setEditedBts(html);
-    setBtsSaveStatus('dirty');
-  }
-  
   const highlightedOutline = useMemo(() => highlightSyntax(editedOutline), [editedOutline]);
   
   const handleOutlineScroll = () => {
@@ -328,13 +328,13 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
 
   const parsedScenes = useMemo(() => {
     if (!editedOutline) return [];
-    const sceneRegex = /(\*\*Scene Number & Title:\*\*(?:.|\n)*?)(?=\*\*Scene Number & Title:\*\*|$)/g;
+    const sceneRegex = /(\*\*(?:Scene Number & Title):\*\*(?:.|\n)*?)(?=\*\*Scene Number & Title:\*\*|$)/g;
     const matches = [...editedOutline.matchAll(sceneRegex)];
     return matches.map((match, index) => {
         const content = match[1].trim();
         const titleLine = content.split('\n')[0];
         const title = titleLine.replace('**Scene Number & Title:**', '').trim();
-        const id = `scene-${index}`;
+        const id = `scene-${index}-${title.replace(/\s+/g, '-')}`; // More robust ID
         return { id, title, content };
     });
   }, [editedOutline]);
@@ -419,12 +419,59 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
       const newSceneTemplate = `\n\n**Scene Number & Title:** Scene ${sceneCount}: ${title.trim()}\n\n**Scene Description:** \n\n**Key Visual Elements:**\n- \n\n**Visuals:** \n\n**Transition:** \n\n**Pacing & Emotion:** `;
       handleOutlineChange(editedOutline + newSceneTemplate);
     }
-  }, [parsedScenes.length, editedOutline]);
+  }, [parsedScenes.length, editedOutline, handleOutlineChange]);
 
   const handleSceneJump = (sceneId: string) => {
     const sceneElement = document.getElementById(sceneId);
     sceneElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  
+  const [draggedSceneId, setDraggedSceneId] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent<HTMLLIElement>, sceneId: string) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sceneId);
+    setDraggedSceneId(sceneId);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLIElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnd = () => {
+    setDraggedSceneId(null);
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLLIElement>, targetSceneId: string) => {
+    e.preventDefault();
+    const sourceSceneId = e.dataTransfer.getData('text/plain');
+    if (!sourceSceneId || sourceSceneId === targetSceneId) {
+      setDraggedSceneId(null);
+      return;
+    }
+    
+    const scenes = parsedScenes;
+    const sourceIndex = scenes.findIndex(s => s.id === sourceSceneId);
+    const targetIndex = scenes.findIndex(s => s.id === targetSceneId);
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const newScenes = [...scenes];
+    const [draggedItem] = newScenes.splice(sourceIndex, 1);
+    newScenes.splice(targetIndex, 0, draggedItem);
+    
+    const newOutline = newScenes.map(s => s.content).join('\n\n');
+    handleOutlineChange(newOutline);
+    setDraggedSceneId(null);
+  }, [parsedScenes, handleOutlineChange]);
+
+  const handleDeleteScene = useCallback((sceneId: string) => {
+    if (window.confirm('Are you sure you want to delete this scene? This action cannot be undone.')) {
+      const newScenes = parsedScenes.filter(s => s.id !== sceneId);
+      const newOutline = newScenes.map(s => s.content).join('\n\n');
+      handleOutlineChange(newOutline);
+    }
+  }, [parsedScenes, handleOutlineChange]);
 
   const handleBtsFormat = (command: string) => document.execCommand(command, false);
 
@@ -479,9 +526,24 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                   <h3 className="text-base font-semibold mb-3 text-cyan-400 sticky top-0 bg-slate-800/80 backdrop-blur-sm pb-2 z-10">Scenes</h3>
                   <ul className="space-y-1">
                     {parsedScenes.map(scene => (
-                      <li key={scene.id}>
-                        <button onClick={() => handleSceneJump(scene.id)} className={`w-full text-left text-xs p-2 rounded-md transition-colors ${activeSceneId === scene.id ? 'bg-cyan-600 text-white font-semibold' : 'text-slate-300 hover:bg-slate-700'}`}>
+                      <li 
+                        key={scene.id}
+                        draggable="true"
+                        onDragStart={(e) => handleDragStart(e, scene.id)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, scene.id)}
+                        onDragEnd={handleDragEnd}
+                        className={`group w-full text-left p-2 rounded-md transition-all duration-150 relative cursor-move ${activeSceneId === scene.id ? 'bg-cyan-600 text-white font-semibold' : 'text-slate-300 hover:bg-slate-700'} ${draggedSceneId === scene.id ? 'opacity-50' : ''}`}>
+                        <button onClick={() => handleSceneJump(scene.id)} className="w-full h-full text-left text-xs pr-6" style={{pointerEvents: draggedSceneId ? 'none' : 'auto'}}>
                           {scene.title}
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteScene(scene.id)} 
+                          className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:bg-red-900/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete Scene"
+                          aria-label={`Delete scene: ${scene.title}`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
                         </button>
                       </li>
                     ))}
