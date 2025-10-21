@@ -1,4 +1,4 @@
-import type {  } from "@google/genai";
+
 
 export type EmotionalArcIntensity = 'subtle' | 'moderate' | 'intense';
 export type VisualStyle = 'cinematic' | 'solarpunk' | 'minimalist' | 'biomorphic';
