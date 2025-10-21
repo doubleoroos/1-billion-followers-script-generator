@@ -50,8 +50,12 @@ const useHistory = <T extends unknown>(initialState: T) => {
   };
 
   useEffect(() => {
-    setHistory([JSON.stringify(initialState)]);
-    setPointer(0);
+    // This effect resets the history when the initial state prop changes.
+    const newInitialState = JSON.stringify(initialState);
+    if (newInitialState !== history[0]) {
+      setHistory([newInitialState]);
+      setPointer(0);
+    }
   }, [initialState]);
 
   const canUndo = pointer > 0;
@@ -71,33 +75,55 @@ interface ScriptEditorProps {
 }
 
 const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialCharacters, onSave, isLoading }) => {
-    const { state: script, setState: setScript, undo, redo, canUndo, canRedo } = useHistory(initialScript);
-    const [characters, setCharacters] = useState<Character[]>(initialCharacters);
+    const { state, setState, undo, redo, canUndo, canRedo } = useHistory({
+      script: initialScript,
+      characters: initialCharacters,
+    });
+    const { script, characters } = state;
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('clean');
-
-    useEffect(() => {
-        setCharacters(initialCharacters);
-    }, [initialCharacters]);
+    
+    const handleUndo = () => {
+        if (canUndo) {
+            undo();
+            setSaveStatus('dirty');
+        }
+    };
+    
+    const handleRedo = () => {
+        if (canRedo) {
+            redo();
+            setSaveStatus('dirty');
+        }
+    };
 
     const handleContentChange = (blockId: string, newContent: string) => {
-        setScript(prev => prev.map(block => block.id === blockId ? { ...block, content: newContent } : block));
+        setState(prev => ({
+            ...prev,
+            script: prev.script.map(block => block.id === blockId ? { ...block, content: newContent } : block)
+        }));
         setSaveStatus('dirty');
     };
     
     const handleCharacterChange = (blockId: string, newCharId: string) => {
-        setScript(prev => prev.map(block => block.id === blockId ? { ...block, characterId: newCharId } : block));
+        setState(prev => ({
+            ...prev,
+            script: prev.script.map(block => block.id === blockId ? { ...block, characterId: newCharId } : block)
+        }));
         setSaveStatus('dirty');
     }
     
     const toggleBlockType = (blockId: string) => {
-        setScript(prev => prev.map(block => {
-            if (block.id !== blockId) return block;
-            const isDialogue = block.type === 'dialogue';
-            return { 
-                ...block, 
-                type: isDialogue ? 'narration' : 'dialogue',
-                characterId: isDialogue ? undefined : (characters[0]?.id || undefined)
-            };
+        setState(prev => ({
+            ...prev,
+            script: prev.script.map(block => {
+                if (block.id !== blockId) return block;
+                const isDialogue = block.type === 'dialogue';
+                return { 
+                    ...block, 
+                    type: isDialogue ? 'narration' : 'dialogue',
+                    characterId: isDialogue ? undefined : (prev.characters[0]?.id || undefined)
+                };
+            })
         }));
         setSaveStatus('dirty');
     }
@@ -106,7 +132,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
         const name = window.prompt("Enter new character name:");
         if (name) {
             const newChar = { id: `char_${Math.random().toString(36).substring(2, 9)}`, name };
-            setCharacters(prev => [...prev, newChar]);
+            setState(prev => ({ ...prev, characters: [...prev.characters, newChar] }));
             setSaveStatus('dirty');
         }
     }
@@ -115,15 +141,20 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
         const char = characters.find(c => c.id === charId);
         const newName = window.prompt(`Rename character "${char?.name}":`, char?.name);
         if (newName) {
-            setCharacters(prev => prev.map(c => c.id === charId ? { ...c, name: newName } : c));
+            setState(prev => ({
+                ...prev,
+                characters: prev.characters.map(c => c.id === charId ? { ...c, name: newName } : c)
+            }));
             setSaveStatus('dirty');
         }
     }
     
     const deleteCharacter = (charId: string) => {
         if (window.confirm("Are you sure you want to delete this character? All their dialogue will be unassigned.")) {
-            setCharacters(prev => prev.filter(c => c.id !== charId));
-            setScript(prev => prev.map(block => block.characterId === charId ? { ...block, characterId: undefined } : block));
+            setState(prev => ({
+                script: prev.script.map(block => block.characterId === charId ? { ...block, characterId: undefined } : block),
+                characters: prev.characters.filter(c => c.id !== charId)
+            }));
             setSaveStatus('dirty');
         }
     }
@@ -132,17 +163,17 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
         if (saveStatus !== 'dirty') return;
         const handler = setTimeout(() => {
             setSaveStatus('saving');
-            onSave(script, characters);
+            onSave(state.script, state.characters);
             setTimeout(() => setSaveStatus('saved'), 500);
         }, 2500);
         return () => clearTimeout(handler);
-    }, [script, characters, saveStatus, onSave]);
+    }, [state, saveStatus, onSave]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         const isUndo = (e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey;
         const isRedo = (e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey));
-        if (isUndo) { e.preventDefault(); undo(); }
-        if (isRedo) { e.preventDefault(); redo(); }
+        if (isUndo) { e.preventDefault(); handleUndo(); }
+        if (isRedo) { e.preventDefault(); handleRedo(); }
     };
     
     return (
@@ -150,10 +181,10 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
             <div className="flex justify-between items-center p-4 border-b border-slate-700">
                 <SaveStatusIndicator status={saveStatus} />
                 <div className="flex items-center gap-2">
-                      <button onClick={undo} disabled={!canUndo || isLoading} className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)" aria-label="Undo script change">
+                      <button onClick={handleUndo} disabled={!canUndo || isLoading} className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)" aria-label="Undo script change">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 016 6v3" /></svg>
                       </button>
-                      <button onClick={redo} disabled={!canRedo || isLoading} className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Redo (Ctrl+Y)" aria-label="Redo script change">
+                      <button onClick={handleRedo} disabled={!canRedo || isLoading} className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Redo (Ctrl+Y)" aria-label="Redo script change">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 00-6 6v3" /></svg>
                       </button>
                 </div>
