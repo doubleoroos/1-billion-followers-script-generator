@@ -477,6 +477,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, scene: Scene, index: number) => {
         if (e.key === ' ' || e.key === 'Enter') {
+            if (e.target instanceof HTMLTextAreaElement) return;
             e.preventDefault();
             if (liftedSceneId === scene.id) {
                 setLiftedSceneId(null);
@@ -513,6 +514,12 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         }
     };
 
+    const handleDescriptionChange = (index: number, description: string) => {
+        const newOutline = [...editedOutline];
+        newOutline[index] = { ...newOutline[index], description };
+        setEditedOutline(newOutline);
+        save(newOutline);
+    };
 
     const handlePromptChange = (index: number, prompt: string) => {
         const newOutline = [...editedOutline];
@@ -592,7 +599,16 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                                <InfoField label="Location" value={scene.location} />
                                <InfoField label="Time of Day" value={scene.timeOfDay} />
                                <InfoField label="Atmosphere" value={scene.atmosphere} fullWidth />
-                               <InfoField label="Description" value={scene.description} fullWidth />
+                               <div className="md:col-span-2">
+                                    <label htmlFor={`description-${scene.id}`} className="block text-gray-400 font-semibold mb-1">Description</label>
+                                    <textarea
+                                        id={`description-${scene.id}`}
+                                        value={scene.description}
+                                        onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                                        placeholder="Enter scene description..."
+                                        className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-sans focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
+                                    />
+                                </div>
 
                                 <div className="md:col-span-2 mt-4 pt-4 border-t border-white/10">
                                      <div className="mb-4">
