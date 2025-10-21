@@ -3,8 +3,8 @@ import { Header } from './components/Header';
 import { InputPanel } from './components/InputPanel';
 import { OutputDisplay } from './components/OutputDisplay';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { generateCreativeAssets, reviseScript } from './services/geminiService';
-import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone } from './types';
+import { generateCreativeAssets } from './services/geminiService';
+import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone, ScriptBlock, Character } from './types';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -36,48 +36,14 @@ const App: React.FC = () => {
       setLoadingMessage('');
     }
   }, [emotionalArc, visualStyle, narrativeTone]);
-
-  const handleReviseScript = useCallback(async (feedback: string) => {
-    if (!generatedAssets?.script) {
-      setError('Cannot revise script because no script has been generated yet.');
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    setLoadingMessage('Revising script based on your feedback...');
-
-    try {
-      const revisedScriptContent = await reviseScript(
-        generatedAssets.script,
-        generatedAssets.visualOutline,
-        feedback,
-        emotionalArc,
-        visualStyle,
-        narrativeTone
-      );
-      setGeneratedAssets(prevAssets => {
-        if (!prevAssets) return null;
-        return {
-          ...prevAssets,
-          script: revisedScriptContent,
-        };
-      });
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-      setError(`Failed to revise script: ${errorMessage}`);
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  }, [generatedAssets, emotionalArc, visualStyle, narrativeTone]);
   
-  const handleScriptSave = useCallback((newScript: string) => {
+  const handleScriptSave = useCallback((newScript: ScriptBlock[], newCharacters: Character[]) => {
     setGeneratedAssets(prevAssets => {
       if (!prevAssets) return null;
       return {
         ...prevAssets,
         script: newScript,
+        characters: newCharacters,
       };
     });
   }, []);
@@ -146,7 +112,6 @@ const App: React.FC = () => {
                 onScriptSave={handleScriptSave}
                 onOutlineSave={handleOutlineSave}
                 onBtsSave={handleBtsSave}
-                onReviseScript={handleReviseScript}
                 isLoading={isLoading}
               />
             )}

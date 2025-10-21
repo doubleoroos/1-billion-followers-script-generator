@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone } from '../types';
+import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -41,7 +41,7 @@ const createPrompt = (intensity: EmotionalArcIntensity, visualStyle: VisualStyle
     const toneDescription = getNarrativeToneDescription(narrativeTone);
 
     return `
-You are an expert screenwriter and concept artist specializing in philosophical, visually-driven short films. Your task is to generate a complete script and visual outline for a 10-minute film.
+You are an expert screenwriter and concept artist specializing in philosophical, visually-driven short films. Your task is to generate a complete set of creative assets for a 10-minute film.
 
 **Project Title:** 1 Billion Followers
 **Theme:** A short film that envisions a future where 1 billion people follow a single, positive idea.
@@ -54,22 +54,23 @@ You are an expert screenwriter and concept artist specializing in philosophical,
 
 **Your Task:**
 
-1.  **Script Generation:** Write a narration script guided by the specified **Narrative Tone**. The script must guide the viewer through the emotional and temporal journey of the idea. The total spoken length should be appropriate for a 10-minute film, and it must align with the requested **Emotional Arc**.
+1.  **Character Generation:** Based on the theme, create 2-3 compelling, archetypal characters who could narrate or speak. Provide a simple list of their names.
 
-2.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. Every scene description, element, and composition choice must strictly adhere to the specified **Visual Style**.
-    *   **Scene Number & Title:**
-    *   **Scene Description:** An evocative paragraph setting the scene, establishing the mood in line with the **Visual Style**.
-    *   **Key Visual Elements:** A bulleted list of 3-5 specific visual elements that define the scene's **Visual Style**.
-    *   **Visuals:** Specific details on camera angles, lighting, and composition that reflect the **Visual Style**.
-    *   **Transition:** How this scene transitions to the next.
-    *   **Pacing & Emotion:** **Crucially, ensure this section reflects the requested Emotional Arc and Intensity.**
+2.  **Script Generation:** Write a narration and dialogue script guided by the specified **Narrative Tone**. The script should be structured as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. The total spoken length should be appropriate for a 10-minute film, and it must align with the requested **Emotional Arc**.
+
+3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. Every scene description must strictly adhere to the specified **Visual Style**.
 
 **Output Format:**
-Return the output as a JSON object with two keys: "script" and "visualOutline".
-- "script" should be a single string.
+Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
+- "characters" should be an array of objects, where each object has a "name" key (e.g., [{ "name": "The Seeker" }, { "name": "The Chorus" }]).
+- "script" should be an array of objects. Each object must have:
+    - a "type" key ('narration' or 'dialogue').
+    - a "content" key with the text for that block.
+    - if the type is 'dialogue', it must also have a "characterName" key matching a name from the characters list.
 - "visualOutline" should be a single string formatted with Markdown.
 `;
 }
+
 
 const createBTSPrompt = (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: string, visualOutline: string): string => {
   const intensityDescription = getIntensityDescription(intensity).split('.')[0];
@@ -100,46 +101,13 @@ Write a compelling BTS document that explains your creative process using AI as 
 
 **Generated Assets for Reference:**
 ---
-**NARRATION SCRIPT:**
+**NARRATION SCRIPT (formatted for context):**
 ${script}
 ---
 **VISUAL OUTLINE:**
 ${visualOutline}
 ---
 `;
-}
-
-const createRevisionPrompt = (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
-  return `
-  You are an expert script doctor revising a narration script for a 10-minute philosophical short film.
-
-  **Creative Direction:**
-  - **Theme:** A future where one billion people follow a single, positive idea.
-  - **Narrative Tone:** Must be **${narrativeTone}**.
-  - **Visual Style:** Must align with a **${visualStyle}** aesthetic.
-  - **Emotional Arc:** Must follow a **${intensity}** intensity.
-
-  **Your Task:**
-  Revise the **Original Narration Script** based on the **Revision Feedback**. The revised script must:
-  1.  Incorporate the user's feedback thoughtfully.
-  2.  Maintain the established Creative Direction (tone, style, arc).
-  3.  Align seamlessly with the provided **Visual Outline**.
-
-  **Do not change the visual outline.** Return only the complete, revised script as a single block of text.
-
-  ---
-  **ORIGINAL NARRATION SCRIPT:**
-  ${originalScript}
-  ---
-  **VISUAL OUTLINE (for context):**
-  ${visualOutline}
-  ---
-  **REVISION FEEDBACK:**
-  "${feedback}"
-  ---
-
-  Return only the complete, revised script text.
-  `;
 }
 
 const getImageStages = (visualStyle: VisualStyle): { title: string, prompt: string }[] => {
@@ -175,10 +143,29 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            script: { type: Type.STRING },
+            characters: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: { name: { type: Type.STRING } },
+                required: ["name"],
+              },
+            },
+            script: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  type: { type: Type.STRING },
+                  characterName: { type: Type.STRING },
+                  content: { type: Type.STRING },
+                },
+                required: ["type", "content"],
+              },
+            },
             visualOutline: { type: Type.STRING },
           },
-          required: ["script", "visualOutline"],
+          required: ["characters", "script", "visualOutline"],
         },
       },
     });
@@ -205,15 +192,38 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
     ]);
     
     const jsonText = scriptResponse.text.trim();
-    const parsedScriptData = JSON.parse(jsonText);
+    const parsedData = JSON.parse(jsonText);
     
-    if (typeof parsedScriptData.script !== 'string' || typeof parsedScriptData.visualOutline !== 'string') {
-      throw new Error("Invalid JSON structure received from API for script.");
-    }
-    
-    const { script, visualOutline } = parsedScriptData;
+    // Process characters and script
+    const rawCharacters: { name: string }[] = parsedData.characters || [];
+    const rawScript: { type: 'narration' | 'dialogue', characterName?: string, content: string }[] = parsedData.script || [];
 
-    const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, script, visualOutline);
+    const characters: Character[] = rawCharacters.map(c => ({ 
+        id: `char_${Math.random().toString(36).substring(2, 9)}`, 
+        name: c.name 
+    }));
+    
+    const characterNameToIdMap = new Map(characters.map(c => [c.name, c.id]));
+
+    const script: ScriptBlock[] = rawScript.map(block => ({
+        id: `block_${Math.random().toString(36).substring(2, 9)}`,
+        type: block.type,
+        content: block.content,
+        characterId: block.type === 'dialogue' && block.characterName ? characterNameToIdMap.get(block.characterName) : undefined,
+    }));
+    
+    const { visualOutline } = parsedData;
+
+    // Create a plain text version of the script for the BTS prompt
+    const scriptTextForBTS = script.map(block => {
+      if (block.type === 'narration') {
+        return `(NARRATION)\n${block.content}`;
+      }
+      const charName = characters.find(c => c.id === block.characterId)?.name || 'Unknown Character';
+      return `${charName.toUpperCase()}\n${block.content}`;
+    }).join('\n\n');
+
+    const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, scriptTextForBTS, visualOutline);
     const btsResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: btsPrompt,
@@ -223,6 +233,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
 
     return {
       script,
+      characters,
       visualOutline,
       referenceImages: referenceImages as ReferenceImage[],
       btsDocument,
@@ -234,19 +245,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
   }
 };
 
-export const reviseScript = async (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<string> => {
-    if (!feedback.trim()) {
-        throw new Error("Revision feedback cannot be empty.");
-    }
-    try {
-        const prompt = createRevisionPrompt(originalScript, visualOutline, feedback, intensity, visualStyle, narrativeTone);
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-pro",
-            contents: prompt,
-        });
-        return response.text.trim();
-    } catch (error) {
-        console.error("Error calling Gemini API for revision:", error);
-        throw new Error("Failed to revise the script. Please try again.");
-    }
+// Revision logic would need significant rework for the new data structure and is out of scope for this change.
+export const reviseScript = async (): Promise<string> => {
+    throw new Error("Script revision is not supported in this version.");
 }
