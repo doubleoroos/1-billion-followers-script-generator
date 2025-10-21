@@ -269,6 +269,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
       return `${charName.toUpperCase()}\n${block.content}`;
     }).join('\n\n');
 
+    // Fix: Use the `visualOutline` parameter passed to the function instead of an undefined variable.
     const outlineTextForBTS = formatOutlineForPrompt(visualOutline);
     const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
     const btsResponse = await ai.models.generateContent({
@@ -292,7 +293,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
   }
 };
 
-export const generateVideoForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+export const generateVideoForScene = async (scene: Scene, visualStyle: VisualStyle, signal?: AbortSignal): Promise<string> => {
     try {
       // Re-initialize to ensure the latest API key is used, as per guidelines for Veo models.
       const aiForVideo = new GoogleGenAI({ apiKey: API_KEY as string });
@@ -320,7 +321,9 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
       });
   
       while (!operation.done) {
+        signal?.throwIfAborted();
         await new Promise(resolve => setTimeout(resolve, 10000));
+        signal?.throwIfAborted();
         operation = await aiForVideo.operations.getVideosOperation({ operation: operation });
       }
   
@@ -336,11 +339,14 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
       return downloadLink;
   
     } catch (error) {
-      console.error("Error generating video:", error);
-      if (error instanceof Error) {
+        console.error("Error generating video:", error);
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            throw error; // Re-throw cancellation error to be handled by caller
+        }
+        if (error instanceof Error) {
           throw new Error(`Failed to generate video. Reason: ${error.message}`);
-      }
-      throw new Error("An unknown error occurred during video generation.");
+        }
+        throw new Error("An unknown error occurred during video generation.");
     }
   };
 

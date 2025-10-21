@@ -753,6 +753,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
   const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
   const [generationStatus, setGenerationStatus] = useState<Record<string, { status: 'idle' | 'loading' | 'error', error?: string }>>({});
   const [downloadingSceneId, setDownloadingSceneId] = useState<string | null>(null);
+  const generationControllers = useRef(new Map<string, AbortController>());
 
   useEffect(() => {
     const checkKey = async () => {
@@ -775,22 +776,41 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
         setApiKeySelected(true);
     }
   };
+  
+  const handleCancelGeneration = (sceneId: string) => {
+    const controller = generationControllers.current.get(sceneId);
+    if (controller) {
+        controller.abort();
+    }
+  };
+
 
   const handleGenerateVideo = async (scene: Scene) => {
+    const controller = new AbortController();
+    generationControllers.current.set(scene.id, controller);
+
     setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'loading' } }));
     try {
-        const downloadLink = await generateVideoForScene(scene, visualStyle);
+        const downloadLink = await generateVideoForScene(scene, visualStyle, controller.signal);
         const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
         
         onSave({ ...scene, videoUrl: finalUrl });
         setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'idle' } }));
     } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            console.log(`Generation for scene ${scene.id} was cancelled.`);
+            setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'idle' } }));
+            return;
+        }
+
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
         setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'error', error: errorMessage } }));
 
         if (errorMessage.includes("Requested entity was not found")) {
             setApiKeySelected(false);
         }
+    } finally {
+        generationControllers.current.delete(scene.id);
     }
   };
   
@@ -902,23 +922,42 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                         )}
                         
                         {isLoading && (
-                            <div className="flex flex-col items-center justify-center bg-black/20 p-6 rounded-lg aspect-video">
-                                <svg className="animate-spin h-8 w-8 text-cyan-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                <p className="text-white font-semibold">Assembling your cinematic vision...</p>
-                                <p className="text-gray-400 text-sm mt-1 text-center">This can take a few minutes. Please be patient.</p>
+                            <div className="bg-black/20 p-6 rounded-lg aspect-video flex flex-col justify-center animate-fade-in">
+                                <p className="text-white font-semibold text-center mb-4">Assembling your cinematic vision...</p>
+                                <div className="w-full bg-gray-700/50 rounded-full h-2 mb-2 overflow-hidden relative">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div>
+                                </div>
+                                <p className="text-gray-400 text-sm text-center mb-6">This can take a few minutes. Please be patient.</p>
+                                <div className="flex justify-center">
+                                    <button
+                                        onClick={() => handleCancelGeneration(scene.id)}
+                                        className="bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 active:scale-[0.98]"
+                                    >
+                                        Cancel Generation
+                                    </button>
+                                </div>
                             </div>
                         )}
                         
                         {statusInfo.status === 'error' && (
-                            <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                <div className="flex-grow">
-                                    <p className="font-semibold text-white flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        Generation Failed
-                                    </p>
-                                    <p className="text-sm text-red-300 mt-1 pl-7">{statusInfo.error}</p>
+                           <div className="bg-red-900/30 border border-red-600/50 p-4 rounded-lg animate-fade-in">
+                                <div className="flex items-start gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div className="flex-grow">
+                                        <h5 className="font-semibold text-white">An Unexpected Plot Twist</h5>
+                                        <p className="text-sm text-red-200 mt-1">{statusInfo.error}</p>
+                                        { (statusInfo.error?.toLowerCase().includes("prompt") || statusInfo.error?.toLowerCase().includes("invalid")) &&
+                                            <p className="text-xs text-red-300/80 mt-2 p-2 bg-red-500/10 rounded">
+                                                <strong>Suggestion:</strong> The prompt might be too complex or contain restricted terms. Try simplifying the video prompt in the Visual Outline tab.
+                                            </p>
+                                        }
+                                    </div>
                                 </div>
-                                <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all flex-shrink-0 self-end sm:self-center active:scale-[0.98]">Retry Generation</button>
+                                <div className="flex justify-end mt-4">
+                                    <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">
+                                        Retry Generation
+                                    </button>
+                                </div>
                             </div>
                         )}
 

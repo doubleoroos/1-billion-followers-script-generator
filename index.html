@@ -37,6 +37,11 @@
               'draw-checkmark': {
                 '0%': { strokeDashoffset: 24 },
                 '100%': { strokeDashoffset: 0 },
+              },
+              'progress-indeterminate': {
+                '0%': { transform: 'translateX(-100%) scaleX(0.5)' },
+                '50%': { transform: 'translateX(0) scaleX(1)' },
+                '100%': { transform: 'translateX(100%) scaleX(0.5)' },
               }
             },
             animation: {
@@ -44,6 +49,7 @@
               'glow': 'glow 3s ease-in-out infinite',
               'ken-burns': 'ken-burns 15s ease-in-out infinite alternate forwards',
               'draw-checkmark': 'draw-checkmark 0.3s ease-out forwards',
+              'progress-indeterminate': 'progress-indeterminate 2.5s ease-in-out infinite',
             }
           }
         }
