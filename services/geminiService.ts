@@ -187,6 +187,17 @@ const getThemeBasedImageStages = (theme: RewriteTomorrowTheme, visualStyle: Visu
     }
 };
 
+const createVideoPrompt = (scene: Scene | Omit<Scene, 'id' | 'videoUrl' | 'videoPrompt'>, visualStyle: VisualStyle): string => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    return `Create a short, 5-second video clip for a film scene.
+**Visual Style:** ${styleDescription}.
+**Scene Title:** ${scene.title}.
+**Atmosphere:** ${scene.atmosphere}.
+**Description:** ${scene.description}.
+**Key Visuals:** ${scene.keyVisualElements}.
+The video should be cinematic, high-quality, and evoke the emotion of: ${scene.pacingEmotion}.`;
+};
+
 export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
     const prompt = createPrompt(theme, intensity, visualStyle, narrativeTone);
@@ -298,12 +309,15 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     }));
     
     const rawVisualOutline: Omit<Scene, 'id' | 'videoPrompt'>[] = parsedData.visualOutline || [];
-    const visualOutline: Scene[] = rawVisualOutline.map((sceneData, index) => ({
-        ...sceneData,
-        id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`,
-        title: `Scene ${index + 1}: ${sceneData.title}`,
-        videoPrompt: '',
-    }));
+    const visualOutline: Scene[] = rawVisualOutline.map((sceneData, index) => {
+        const title = `Scene ${index + 1}: ${sceneData.title}`;
+        const sceneWithTitle = { ...sceneData, title };
+        return {
+            ...sceneWithTitle,
+            id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`,
+            videoPrompt: createVideoPrompt(sceneWithTitle as Scene, visualStyle),
+        };
+    });
 
     // Create a plain text version of the script for the BTS prompt
     const scriptTextForBTS = script.map(block => {
@@ -342,17 +356,11 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
       // Re-initialize to ensure the latest API key is used, as per guidelines for Veo models.
       const aiForVideo = new GoogleGenAI({ apiKey: API_KEY as string });
   
-      const styleDescription = getVisualStyleDescription(visualStyle);
+      if (!scene.videoPrompt || scene.videoPrompt.trim() === '') {
+        throw new Error("Video prompt is empty. Please provide a prompt before generating the video.");
+      }
       
-      const prompt = scene.videoPrompt && scene.videoPrompt.trim() !== ''
-        ? scene.videoPrompt
-        : `Create a short, 5-second video clip for a film scene.
-        **Visual Style:** ${styleDescription}.
-        **Scene Title:** ${scene.title}.
-        **Atmosphere:** ${scene.atmosphere}.
-        **Description:** ${scene.description}.
-        **Key Visuals:** ${scene.keyVisualElements}.
-        The video should be cinematic, high-quality, and evoke the emotion of: ${scene.pacingEmotion}.`;
+      const prompt = scene.videoPrompt;
   
       let operation = await aiForVideo.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
@@ -393,6 +401,36 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
         throw new Error("An unknown error occurred during video generation.");
     }
   };
+
+export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    const prompt = `You are a cinematic director and prompt engineer. Rewrite and enhance the following video generation prompt to be more evocative, detailed, and visually specific, while staying true to the scene's core elements. The output should be ONLY the new prompt text, without any preamble or markdown.
+
+    **SCENE DETAILS:**
+    - **Title:** ${scene.title}
+    - **Atmosphere:** ${scene.atmosphere}
+    - **Description:** ${scene.description}
+    - **Key Visuals:** ${scene.keyVisualElements}
+    - **Pacing/Emotion:** ${scene.pacingEmotion}
+    - **Visual Style:** ${styleDescription}
+
+    **CURRENT PROMPT TO IMPROVE:**
+    "${scene.videoPrompt}"
+
+    **YOUR TASK:**
+    Generate a new, improved prompt. Be more descriptive about camera angles (e.g., "slow dolly shot", "crane shot revealing..."), lighting ("dappled sunlight", "neon glow"), mood, and specific actions. Make it truly cinematic for a tool like Google Veo. Aim for about 3-4 sentences.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error regenerating video prompt:", error);
+        throw new Error("The AI director is busy on another set. Failed to regenerate prompt.");
+    }
+};
 
 // Revision logic would need significant rework for the new data structure and is out of scope for this change.
 export const reviseScript = async (): Promise<string> => {
