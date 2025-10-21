@@ -31,10 +31,10 @@ const OptionButton = <T extends string>({
     <button
       onClick={() => onClick(value)}
       title={tooltip}
-      className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-cyan-500 ${
         isActive
           ? 'bg-cyan-600 text-white shadow-lg'
-          : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600'
+          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
       }`}
     >
       {children}
@@ -53,30 +53,16 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   setNarrativeTone
 }) => {
   return (
-    <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 h-full flex flex-col">
-      <h2 className="text-xl font-semibold mb-4 text-white">Concept & Creative Controls</h2>
-      
-      <div className="space-y-3 text-slate-300 flex-grow">
-        <div>
-          <h3 className="font-bold text-cyan-400">Project Title:</h3>
-          <p className="text-sm">1 Billion Followers</p>
-        </div>
-        <div>
-          <h3 className="font-bold text-cyan-400">Theme:</h3>
-          <p className="text-sm">Envisioning a future where 1 billion people follow a single, positive idea.</p>
-        </div>
-         <div>
-          <h3 className="font-bold text-cyan-400">Generation Task:</h3>
-          <p className="text-sm">
-            Use Gemini to generate assets for <strong>Phase 1: Script & Visual Outline</strong> of the "1 Billion Followers" AI Film Award, including a draft for your BTS document.
-          </p>
-        </div>
+    <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 h-full flex flex-col space-y-8">
+      <div>
+        <h2 className="text-xl font-bold mb-2 text-white">Creative Controls</h2>
+        <p className="text-sm text-gray-400">Define the core attributes of your film to guide the AI generation process.</p>
       </div>
       
-      <div className="mt-6 space-y-4">
+      <div className="space-y-6">
         <div>
-          <h3 className="font-bold text-cyan-400 mb-2">Narrative Tone:</h3>
-          <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+          <h3 className="font-semibold text-cyan-400 mb-2">Narrative Tone</h3>
+          <div className="flex justify-between items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700">
               <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Evocative, metaphorical language; focuses on feeling and imagery.">Poetic</OptionButton>
               <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Explores deep questions about existence, humanity, and meaning.">Philosophical</OptionButton>
               <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Inspiring and optimistic, focusing on positive outcomes.">Hopeful</OptionButton>
@@ -84,8 +70,8 @@ export const InputPanel: React.FC<InputPanelProps> = ({
           </div>
         </div>
         <div>
-          <h3 className="font-bold text-cyan-400 mb-2">Visual Style:</h3>
-          <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+          <h3 className="font-semibold text-cyan-400 mb-2">Visual Style</h3>
+          <div className="flex justify-between items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700">
               <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Photorealistic, grand, and emotionally resonant visuals with dramatic lighting.">Cinematic</OptionButton>
               <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Utopian and nature-integrated, with organic architecture and lush greenery.">Solarpunk</OptionButton>
               <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Clean, abstract, and symbolic, using simple forms and negative space.">Minimalist</OptionButton>
@@ -93,9 +79,8 @@ export const InputPanel: React.FC<InputPanelProps> = ({
           </div>
         </div>
         <div>
-          <h3 className="font-bold text-cyan-400 mb-2">Emotional Arc Intensity:</h3>
-          <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
-            {/* FIX: Added children to the OptionButton components to provide their text labels and resolve the missing 'children' prop error. */}
+          <h3 className="font-semibold text-cyan-400 mb-2">Emotional Arc Intensity</h3>
+          <div className="flex justify-between items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700">
             <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle, contemplative arc with nuanced feelings.">Subtle</OptionButton>
             <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="A balanced journey with clear peaks and valleys.">Moderate</OptionButton>
             <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A powerful, dramatic arc with stark contrasts.">Intense</OptionButton>
@@ -104,19 +89,19 @@ export const InputPanel: React.FC<InputPanelProps> = ({
       </div>
 
 
-      <div className="mt-8">
+      <div className="pt-4">
         <button
           onClick={onGenerate}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-500 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed transform hover:scale-105"
+          className="w-full flex items-center justify-center gap-3 bg-cyan-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-cyan-500 transition-all duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-500/50"
         >
           {isLoading ? (
             <>
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Generating...
+              <span>Generating Assets...</span>
             </>
           ) : (
             <>

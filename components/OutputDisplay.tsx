@@ -178,64 +178,61 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
     
     return (
         <div onKeyDown={handleKeyDown}>
-            <div className="flex justify-between items-center p-4 border-b border-slate-700">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700/80 bg-gray-800/30">
                 <SaveStatusIndicator status={saveStatus} />
                 <div className="flex items-center gap-2">
-                      <button onClick={handleUndo} disabled={!canUndo || isLoading} className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)" aria-label="Undo script change">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 016 6v3" /></svg>
+                      <button onClick={handleUndo} disabled={!canUndo || isLoading} className="p-2 text-gray-300 bg-gray-700/50 hover:bg-gray-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)" aria-label="Undo script change">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l4-4m-4 4l4 4" /></svg>
                       </button>
-                      <button onClick={handleRedo} disabled={!canRedo || isLoading} className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Redo (Ctrl+Y)" aria-label="Redo script change">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 00-6 6v3" /></svg>
+                      <button onClick={handleRedo} disabled={!canRedo || isLoading} className="p-2 text-gray-300 bg-gray-700/50 hover:bg-gray-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Redo (Ctrl+Y)" aria-label="Redo script change">
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 10H11a8 8 0 00-8 8v2m18-10l-4-4m4 4l-4 4" /></svg>
                       </button>
                 </div>
             </div>
             <div className="flex gap-6 p-6 h-[70vh]">
-                <div className="w-1/3 md:w-1/4 flex flex-col gap-4 border-r border-slate-700 pr-6">
-                    <h3 className="text-base font-semibold text-cyan-400">Characters</h3>
+                <div className="w-1/3 md:w-1/4 flex flex-col gap-4 border-r border-gray-700/80 pr-6">
+                    <h3 className="text-md font-semibold text-cyan-400">Characters</h3>
                     <ul className="space-y-2 flex-grow overflow-y-auto">
                         {characters.map(char => (
-                            <li key={char.id} className="group flex items-center justify-between p-2 rounded-md bg-slate-900/50 hover:bg-slate-800">
-                                <span className="text-sm font-medium text-slate-200">{char.name}</span>
+                            <li key={char.id} className="group flex items-center justify-between p-2 rounded-lg bg-gray-900/50 hover:bg-gray-800/70 transition-colors">
+                                <span className="text-sm font-medium text-gray-200">{char.name}</span>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => renameCharacter(char.id)} title="Rename" className="p-1 hover:bg-slate-700 rounded"><svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg></button>
-                                    <button onClick={() => deleteCharacter(char.id)} title="Delete" className="p-1 hover:bg-slate-700 rounded"><svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg></button>
+                                    <button onClick={() => renameCharacter(char.id)} title="Rename" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg></button>
+                                    <button onClick={() => deleteCharacter(char.id)} title="Delete" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg></button>
                                 </div>
                             </li>
                         ))}
                     </ul>
-                    <button onClick={addCharacter} className="w-full text-sm py-2 px-3 bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 rounded-md transition-colors">+ Add Character</button>
+                    <button onClick={addCharacter} className="w-full text-sm py-2 px-3 bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 rounded-lg transition-colors font-semibold">+ Add Character</button>
                 </div>
                 <div className="w-2/3 md:w-3/4 flex-grow overflow-y-auto space-y-4 pr-2">
                     {script.map(block => (
-                        <div key={block.id} className="bg-slate-900/70 p-3 rounded-md border border-slate-700">
+                        <div key={block.id} className="bg-gray-900/40 p-4 rounded-lg border border-gray-700/60">
                             {block.type === 'dialogue' && (
-                                <>
-                                    <div className="flex items-center gap-2 mb-1">
+                                <div className="mb-2">
+                                    <div className="flex items-center gap-2">
                                          <select 
                                             value={block.characterId || ''} 
                                             onChange={e => handleCharacterChange(block.id, e.target.value)}
-                                            className="text-xs font-bold uppercase bg-slate-800 border border-slate-600 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                            className="text-sm font-bold bg-gray-800 border border-gray-600 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-cyan-500 appearance-none">
                                             <option value="" disabled>Unassigned</option>
                                             {characters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                          </select>
-                                          <button onClick={() => toggleBlockType(block.id)} title="Change to Narration" className="text-xs text-slate-400 hover:text-white">[Narration]</button>
+                                          <button onClick={() => toggleBlockType(block.id)} title="Change to Narration" className="text-xs text-gray-400 hover:text-white font-semibold">[Narration]</button>
                                     </div>
-                                    <div className="text-sm font-bold text-slate-300 uppercase tracking-wider ml-1 mb-1">
-                                        {characters.find(c => c.id === block.characterId)?.name || 'UNASSIGNED'}
-                                    </div>
-                                </>
+                                </div>
                             )}
                              {block.type === 'narration' && (
-                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs font-bold text-cyan-400 uppercase">Narration</span>
-                                    <button onClick={() => toggleBlockType(block.id)} title="Change to Dialogue" className="text-xs text-slate-400 hover:text-white">[Dialogue]</button>
+                                 <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-bold text-cyan-400 uppercase">Narration</span>
+                                    <button onClick={() => toggleBlockType(block.id)} title="Change to Dialogue" className="text-xs text-gray-400 hover:text-white font-semibold">[Dialogue]</button>
                                  </div>
                              )}
                             <div
                                 contentEditable
                                 suppressContentEditableWarning
                                 onBlur={(e) => handleContentChange(block.id, e.currentTarget.innerText)}
-                                className="w-full bg-transparent font-sans text-slate-200 focus:outline-none prose prose-invert prose-sm max-w-none"
+                                className="w-full bg-transparent font-serif text-gray-200 focus:outline-none leading-relaxed"
                             >
                                 {block.content}
                             </div>
@@ -249,14 +246,15 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ initialScript, initialChara
 // --- END: ScriptEditor Component ---
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
+    const commonClasses = "text-xs font-medium transition-all duration-300 flex items-center gap-1.5";
     switch (status) {
         case 'dirty':
-            return <span className="text-xs text-yellow-400/90 font-medium">Unsaved changes</span>;
+            return <span className={`${commonClasses} text-amber-400/90`}><svg className="h-3 w-3 animate-pulse" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" /></svg>Unsaved changes</span>;
         case 'saving':
-            return <span className="text-xs text-cyan-400/90 font-medium">Saving...</span>;
+            return <span className={`${commonClasses} text-cyan-400/90`}><svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>;
         case 'saved':
         case 'clean':
-            return <span className="text-xs text-green-400/90 font-medium">All changes saved</span>;
+            return <span className={`${commonClasses} text-green-400/90`}><svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>All changes saved</span>;
         default:
             return null;
     }
@@ -289,20 +287,20 @@ const formatOutlineToPlainText = (outline: Scene[]): string => {
 const EditableField: React.FC<{label: string, field: keyof Omit<Scene, 'id'>, value: string, sceneId: string, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void, isTextarea?: boolean}> = 
   ({ label, field, value, sceneId, onChange, isTextarea = false }) => (
       <div>
-        <label className="block text-xs font-medium text-cyan-400 mb-1">{label}</label>
+        <label className="block text-xs font-semibold text-cyan-400 mb-1.5 tracking-wide uppercase">{label}</label>
         {isTextarea ? (
           <textarea
             value={value}
             onChange={(e) => onChange(sceneId, field, e.target.value)}
-            className="w-full bg-slate-900/50 p-2 rounded-md border border-slate-600 focus:ring-cyan-500 focus:border-cyan-500 text-sm resize-y"
-            rows={3}
+            className="w-full bg-gray-900/50 p-2 rounded-md border border-gray-600/70 focus:ring-cyan-500 focus:border-cyan-500 text-sm resize-y transition-colors focus:bg-gray-900"
+            rows={4}
           />
         ) : (
           <input
             type="text"
             value={value}
             onChange={(e) => onChange(sceneId, field, e.target.value)}
-            className="w-full bg-slate-900/50 p-2 rounded-md border border-slate-600 focus:ring-cyan-500 focus:border-cyan-500 text-sm"
+            className="w-full bg-gray-900/50 p-2 rounded-md border border-gray-600/70 focus:ring-cyan-500 focus:border-cyan-500 text-sm transition-colors focus:bg-gray-900"
           />
         )}
       </div>
@@ -334,19 +332,19 @@ const RichTextField: React.FC<{
 
   return (
     <div>
-      <label className="block text-xs font-medium text-cyan-400 mb-1">{label}</label>
-      <div className="bg-slate-900/50 border border-slate-600 rounded-md focus-within:ring-2 focus-within:ring-cyan-500 transition-all">
-        <div className="p-1 border-b border-slate-600 flex items-center gap-1">
-            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('bold')} className="p-1.5 hover:bg-slate-700 rounded transition-colors" title="Bold (Ctrl+B)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5.25 4.5h4.5a3.25 3.25 0 010 6.5H5.25V4.5zm0 2.5v1.5h4.5a.75.75 0 000-1.5H5.25zM5.25 12h5.5a3.25 3.25 0 010 6.5H5.25V12zm0 2.5v1.5h5.5a.75.75 0 000-1.5H5.25z" /></svg></button>
-            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('italic')} className="p-1.5 hover:bg-slate-700 rounded transition-colors" title="Italic (Ctrl+I)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M7.75 4.5a.75.75 0 000 1.5h1.259l-2.25 7.5H5.5a.75.75 0 000 1.5h5a.75.75 0 000-1.5H9.241l2.25-7.5H12.5a.75.75 0 000-1.5h-5z" /></svg></button>
-            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('insertUnorderedList')} className="p-1.5 hover:bg-slate-700 rounded transition-colors" title="Bulleted List"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M2 5.75A.75.75 0 012.75 5h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 5.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 4.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" /></svg></button>
+      <label className="block text-xs font-semibold text-cyan-400 mb-1.5 tracking-wide uppercase">{label}</label>
+      <div className="bg-gray-900/50 border border-gray-600/70 rounded-md focus-within:ring-2 focus-within:ring-cyan-500 transition-all focus-within:border-cyan-500">
+        <div className="p-1 border-b border-gray-600/70 flex items-center gap-1">
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('bold')} className="p-2 text-gray-400 hover:bg-gray-700/80 hover:text-white rounded transition-colors" title="Bold (Ctrl+B)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5.25 4.5h4.5a3.25 3.25 0 010 6.5H5.25V4.5zm0 2.5v1.5h4.5a.75.75 0 000-1.5H5.25zM5.25 12h5.5a3.25 3.25 0 010 6.5H5.25V12zm0 2.5v1.5h5.5a.75.75 0 000-1.5H5.25z" /></svg></button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('italic')} className="p-2 text-gray-400 hover:bg-gray-700/80 hover:text-white rounded transition-colors" title="Italic (Ctrl+I)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M7.75 4.5a.75.75 0 000 1.5h1.259l-2.25 7.5H5.5a.75.75 0 000 1.5h5a.75.75 0 000-1.5H9.241l2.25-7.5H12.5a.75.75 0 000-1.5h-5z" /></svg></button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('insertUnorderedList')} className="p-2 text-gray-400 hover:bg-gray-700/80 hover:text-white rounded transition-colors" title="Bulleted List"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M2 5.75A.75.75 0 012.75 5h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 5.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 4.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" /></svg></button>
         </div>
         <div
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}
-          className="w-full bg-transparent p-2 text-sm text-slate-200 focus:outline-none min-h-[80px] prose prose-invert prose-sm max-w-none prose-ul:list-disc prose-ul:my-2 prose-li:my-0"
+          className="w-full bg-transparent p-3 text-sm text-gray-200 focus:outline-none min-h-[100px] prose prose-invert prose-sm max-w-none prose-ul:list-disc prose-ul:my-2 prose-li:my-0"
         />
       </div>
     </div>
@@ -356,15 +354,15 @@ const RichTextField: React.FC<{
 
 const SceneEditorCard: React.FC<{scene: Scene, onChange: (sceneId: string, field: keyof Omit<Scene, 'id'>, value: string) => void}> = ({ scene, onChange }) => {
     return (
-        <div id={scene.id} className="p-4 bg-slate-900/70 rounded-lg border border-slate-700 space-y-3">
+        <div id={scene.id} className="p-6 bg-gray-900/40 rounded-xl border border-gray-700/60 space-y-4">
             <input
                 type="text"
                 value={scene.title}
                 onChange={(e) => onChange(scene.id, 'title', e.target.value)}
                 aria-label="Scene Title"
-                className="w-full bg-transparent text-lg font-bold text-yellow-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-md p-1 -m-1"
+                className="w-full bg-transparent text-xl font-bold text-amber-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-lg p-1 -m-1"
             />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <EditableField label="Location" field="location" value={scene.location} sceneId={scene.id} onChange={onChange} />
                 <EditableField label="Time of Day" field="timeOfDay" value={scene.timeOfDay} sceneId={scene.id} onChange={onChange} />
                 <EditableField label="Atmosphere" field="atmosphere" value={scene.atmosphere} sceneId={scene.id} onChange={onChange} />
@@ -376,15 +374,16 @@ const SceneEditorCard: React.FC<{scene: Scene, onChange: (sceneId: string, field
             />
             <EditableField label="Key Visual Elements" field="keyVisualElements" value={scene.keyVisualElements} sceneId={scene.id} onChange={onChange} isTextarea />
             <EditableField label="Visuals" field="visuals" value={scene.visuals} sceneId={scene.id} onChange={onChange} isTextarea />
-            <EditableField label="Transition" field="transition" value={scene.transition} sceneId={scene.id} onChange={onChange} />
-            <EditableField label="Pacing & Emotion" field="pacingEmotion" value={scene.pacingEmotion} sceneId={scene.id} onChange={onChange} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <EditableField label="Transition" field="transition" value={scene.transition} sceneId={scene.id} onChange={onChange} />
+              <EditableField label="Pacing & Emotion" field="pacingEmotion" value={scene.pacingEmotion} sceneId={scene.id} onChange={onChange} />
+            </div>
         </div>
     )
 };
 
 export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, onScriptSave, onOutlineSave, onBtsSave, isLoading }) => {
   const [activeTab, setActiveTab] = useState<Tab>('script');
-  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   
   const [editedOutline, setEditedOutline] = useState<Scene[]>(generatedAssets.visualOutline);
   const [editedBts, setEditedBts] = useState(generatedAssets.btsDocument);
@@ -466,33 +465,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     return () => sceneElements.forEach(el => observer.unobserve(el));
   }, [activeTab, editedOutline, activeSceneId]);
 
-  const handleCopy = useCallback(() => {
-    if (activeTab === 'images') return;
-    let contentToCopy;
-    switch (activeTab) {
-      case 'script':
-        const { script, characters } = generatedAssets;
-        contentToCopy = script.map(block => {
-            if (block.type === 'narration') return block.content;
-            const charName = characters.find(c => c.id === block.characterId)?.name || 'UNASSIGNED';
-            return `${charName.toUpperCase()}\n    ${block.content}`;
-        }).join('\n\n');
-        break;
-      case 'outline':
-        contentToCopy = formatOutlineToPlainText(editedOutline);
-        break;
-      case 'bts':
-        contentToCopy = getPlainText(editedBts);
-        break;
-      default:
-        contentToCopy = '';
-    }
-    navigator.clipboard.writeText(contentToCopy).then(() => {
-      setCopyStatus('copied');
-      setTimeout(() => setCopyStatus('idle'), 2000);
-    });
-  }, [activeTab, generatedAssets, editedOutline, editedBts]);
-
   const handleExportPackage = useCallback(() => {
     const { script, characters } = generatedAssets;
     const scriptHtml = script.map(block => {
@@ -507,13 +479,8 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     }).join('');
 
     const outlineHtml = editedOutline.map(scene => {
-      // Helper to safely render text content as HTML (escape special characters)
       const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-      
-      const formatMultiLine = (text: string) => {
-          if (!text) return '';
-          return '<ul>' + text.split('\n').filter(line => line.trim() !== '').map(line => `<li>${escape(line.replace(/^- /, ''))}</li>`).join('') + '</ul>';
-      }
+      const formatMultiLine = (text: string) => !text ? '' : '<ul>' + text.split('\n').filter(line => line.trim() !== '').map(line => `<li>${escape(line.replace(/^- /, ''))}</li>`).join('') + '</ul>';
 
       return `
         <div style="margin-top: 2em; padding-top: 1em; border-top: 1px solid #eee;">
@@ -526,8 +493,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
           <div><strong style="display: block; margin-bottom: 0.5em;">Visuals:</strong>${formatMultiLine(scene.visuals)}</div>
           <p><strong>Transition:</strong> ${escape(scene.transition)}</p>
           <p><strong>Pacing & Emotion:</strong> ${escape(scene.pacingEmotion)}</p>
-        </div>
-      `;
+        </div>`;
     }).join('');
     
     const btsHtml = editedBts;
@@ -619,41 +585,27 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
   const handleBtsFormat = (command: string) => document.execCommand(command, false);
 
   const TabButton = ({ tab, label }: { tab: Tab; label: string }) => (
-    <button onClick={() => setActiveTab(tab)} className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === tab ? 'bg-cyan-600 text-white' : 'text-slate-300 hover:bg-slate-700'}`}>
+    <button onClick={() => setActiveTab(tab)} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors relative ${activeTab === tab ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700/50'}`}>
       {label}
+      {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500 rounded-full"></div>}
     </button>
   );
 
   return (
-    <div className="bg-slate-800/50 p-1 rounded-xl border border-slate-700 animate-fade-in">
-        <div className="flex justify-between items-center p-4 border-b border-slate-700 flex-wrap gap-4">
+    <div className="bg-gray-800/50 rounded-2xl border border-gray-700/50 animate-fade-in shadow-2xl shadow-black/20">
+        <div className="flex justify-between items-center p-4 border-b border-gray-700/80 flex-wrap gap-4">
             <div className="flex space-x-2">
-                <TabButton tab="script" label="Narration Script" />
+                <TabButton tab="script" label="Script Editor" />
                 <TabButton tab="outline" label="Visual Outline" />
                 <TabButton tab="images" label="Reference Images" />
                 <TabButton tab="bts" label="BTS Document" />
             </div>
-             <button onClick={handleExportPackage} className="px-4 py-2 text-sm font-semibold rounded-md transition-all flex items-center gap-2 bg-yellow-600 text-white hover:bg-yellow-500" title="Compile and export all text assets for submission">
+             <button onClick={handleExportPackage} className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-amber-600 text-white hover:bg-amber-500 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-gray-800" title="Compile and export all text assets for submission">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm.5 3.5a.5.5 0 01.5-.5h4a.5.5 0 010 1h-4a.5.5 0 01-.5-.5zM5 9.5a.5.5 0 01.5-.5h8a.5.5 0 010 1h-8a.5.5 0 01-.5-.5zm.5 2.5a.5.5 0 000 1h8a.5.5 0 000-1h-8z" /></svg>
               Export Package
             </button>
         </div>
         
-        {activeTab !== 'script' && (
-            <div className="p-4 border-b border-slate-700">
-                {activeTab === 'outline' && (
-                   <div className="flex items-center gap-4">
-                     <SaveStatusIndicator status={outlineSaveStatus} />
-                     <button onClick={handleAddNewScene} className="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors flex items-center gap-2 ml-auto" title="Add a new scene to the outline">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                        Add Scene
-                      </button>
-                   </div>
-                )}
-                 {activeTab === 'bts' && <SaveStatusIndicator status={btsSaveStatus} />}
-            </div>
-        )}
-
         <div>
             {activeTab === 'script' && (
                 <ScriptEditor 
@@ -664,74 +616,89 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                 />
             )}
             {activeTab === 'outline' && (
-              <div className="flex gap-6 p-6">
-                <nav className="w-1/3 md:w-1/4 h-[65vh] overflow-y-auto pr-4 border-r border-slate-600">
-                  <h3 className="text-base font-semibold mb-3 text-cyan-400 sticky top-0 bg-slate-800/80 backdrop-blur-sm pb-2 z-10">Scenes</h3>
-                  <ul className="space-y-1">
-                    {editedOutline.map(scene => (
-                      <li 
-                        key={scene.id}
-                        draggable="true"
-                        onDragStart={(e) => handleDragStart(e, scene.id)}
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, scene.id)}
-                        onDragEnd={handleDragEnd}
-                        className={`group w-full text-left p-2 rounded-md transition-all duration-150 relative cursor-move ${activeSceneId === scene.id ? 'bg-cyan-600 text-white font-semibold' : 'text-slate-300 hover:bg-slate-700'} ${draggedSceneId === scene.id ? 'opacity-50' : ''}`}>
-                        <button onClick={() => handleSceneJump(scene.id)} className="w-full h-full text-left text-xs pr-6" style={{pointerEvents: draggedSceneId ? 'none' : 'auto'}}>
-                          {scene.title}
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteScene(scene.id)} 
-                          className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:bg-red-900/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Delete Scene"
-                          aria-label={`Delete scene: ${scene.title}`}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-                <div ref={outlineContainerRef} className="w-2/3 md:w-3/4 h-[65vh] overflow-y-auto space-y-4 pr-2">
-                  {editedOutline.map(scene => (
-                      <SceneEditorCard 
-                        key={scene.id} 
-                        scene={scene} 
-                        onChange={handleSceneFieldChange} 
-                      />
-                  ))}
+              <>
+                <div className="flex justify-between items-center p-4 border-b border-gray-700/80 bg-gray-800/30">
+                     <SaveStatusIndicator status={outlineSaveStatus} />
+                     <button onClick={handleAddNewScene} className="px-3 py-2 text-xs font-semibold text-gray-300 bg-gray-700/50 hover:bg-gray-700 rounded-md transition-colors flex items-center gap-2" title="Add a new scene to the outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        Add Scene
+                      </button>
                 </div>
-              </div>
+                <div className="flex gap-6 p-6">
+                  <nav className="w-1/3 md:w-1/4 h-[65vh] overflow-y-auto pr-4 border-r border-gray-700/80">
+                    <h3 className="text-md font-semibold mb-3 text-cyan-400 sticky top-0 bg-gray-800/80 backdrop-blur-sm pb-2 z-10">Scenes</h3>
+                    <ul className="space-y-1">
+                      {editedOutline.map(scene => (
+                        <li 
+                          key={scene.id}
+                          draggable="true"
+                          onDragStart={(e) => handleDragStart(e, scene.id)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, scene.id)}
+                          onDragEnd={handleDragEnd}
+                          className={`group w-full text-left p-2.5 rounded-lg transition-all duration-150 relative cursor-move ${draggedSceneId === scene.id ? 'opacity-30 bg-gray-600' : ''} ${activeSceneId === scene.id ? 'bg-cyan-600/20' : 'text-gray-300 hover:bg-gray-700/50'}`}>
+                          <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg transition-all ${activeSceneId === scene.id ? 'bg-cyan-500' : 'bg-transparent'}`}></div>
+                          <button onClick={() => handleSceneJump(scene.id)} className="w-full h-full text-left text-sm font-medium pr-6" style={{pointerEvents: draggedSceneId ? 'none' : 'auto', color: activeSceneId === scene.id ? '#fff' : ''}}>
+                            {scene.title}
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteScene(scene.id)} 
+                            className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-gray-400 hover:bg-red-900/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Delete Scene"
+                            aria-label={`Delete scene: ${scene.title}`}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                  <div ref={outlineContainerRef} className="w-2/3 md:w-3/4 h-[65vh] overflow-y-auto space-y-4 pr-2">
+                    {editedOutline.map(scene => (
+                        <SceneEditorCard 
+                          key={scene.id} 
+                          scene={scene} 
+                          onChange={handleSceneFieldChange} 
+                        />
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
             {activeTab === 'images' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto p-6">
                 {generatedAssets.referenceImages.map((image) => (
-                  <div key={image.title} className="bg-slate-900/50 p-2 rounded-lg border border-slate-700 flex flex-col gap-2">
-                    <img src={image.imageUrl} alt={image.title} className="rounded-md w-full aspect-video object-cover" />
+                  <div key={image.title} className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/60 flex flex-col gap-3 group">
+                    <img src={image.imageUrl} alt={image.title} className="rounded-lg w-full aspect-video object-cover transition-transform group-hover:scale-105" />
                     <h4 className="text-md font-semibold text-cyan-400 text-center">{image.title}</h4>
                   </div>
                 ))}
               </div>
             )}
             {activeTab === 'bts' && (
-               <div className="flex flex-col h-[70vh] p-6">
-                 <div className="bg-slate-900/70 border border-slate-700 rounded-t-md p-2 flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                        <button onClick={() => handleBtsFormat('bold')} className="p-2 hover:bg-slate-700 rounded transition-colors" title="Bold (Ctrl+B)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5.25 4.5h4.5a3.25 3.25 0 010 6.5H5.25V4.5zm0 2.5v1.5h4.5a.75.75 0 000-1.5H5.25zM5.25 12h5.5a3.25 3.25 0 010 6.5H5.25V12zm0 2.5v1.5h5.5a.75.75 0 000-1.5H5.25z" /></svg></button>
-                        <button onClick={() => handleBtsFormat('italic')} className="p-2 hover:bg-slate-700 rounded transition-colors" title="Italic (Ctrl+I)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M7.75 4.5a.75.75 0 000 1.5h1.259l-2.25 7.5H5.5a.75.75 0 000 1.5h5a.75.75 0 000-1.5H9.241l2.25-7.5H12.5a.75.75 0 000-1.5h-5z" /></svg></button>
-                        <button onClick={() => handleBtsFormat('insertUnorderedList')} className="p-2 hover:bg-slate-700 rounded transition-colors" title="Bulleted List"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M2 5.75A.75.75 0 012.75 5h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 5.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 4.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" /></svg></button>
+              <>
+                <div className="flex justify-between items-center p-4 border-b border-gray-700/80 bg-gray-800/30">
+                     <SaveStatusIndicator status={btsSaveStatus} />
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-gray-700/50 p-1 rounded-md">
+                            <button onClick={() => handleBtsFormat('bold')} className="p-2 text-gray-300 hover:bg-gray-700 rounded transition-colors" title="Bold (Ctrl+B)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5.25 4.5h4.5a3.25 3.25 0 010 6.5H5.25V4.5zm0 2.5v1.5h4.5a.75.75 0 000-1.5H5.25zM5.25 12h5.5a3.25 3.25 0 010 6.5H5.25V12zm0 2.5v1.5h5.5a.75.75 0 000-1.5H5.25z" /></svg></button>
+                            <button onClick={() => handleBtsFormat('italic')} className="p-2 text-gray-300 hover:bg-gray-700 rounded transition-colors" title="Italic (Ctrl+I)"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M7.75 4.5a.75.75 0 000 1.5h1.259l-2.25 7.5H5.5a.75.75 0 000 1.5h5a.75.75 0 000-1.5H9.241l2.25-7.5H12.5a.75.75 0 000-1.5h-5z" /></svg></button>
+                            <button onClick={() => handleBtsFormat('insertUnorderedList')} className="p-2 text-gray-300 hover:bg-gray-700 rounded transition-colors" title="Bulleted List"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M2 5.75A.75.75 0 012.75 5h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 5.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 4.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" /></svg></button>
+                        </div>
+                        <div className="w-px h-5 bg-gray-600 mx-2"></div>
+                        <div className="text-xs text-gray-400">{btsWordCount} words</div>
                     </div>
-                    <div className="w-px h-5 bg-slate-600 mx-2"></div>
-                    <div className="text-xs text-slate-400">{btsWordCount} words</div>
-                 </div>
+                </div>
+                <div className="p-6 h-[70vh] overflow-y-auto">
                  <div
                    contentEditable
                    onInput={(e: React.FormEvent<HTMLDivElement>) => handleBtsChange(e.currentTarget.innerHTML)}
                    dangerouslySetInnerHTML={{ __html: editedBts }}
-                   className="w-full flex-grow bg-slate-900/70 p-4 rounded-b-md font-sans text-slate-200 border-x border-b border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow prose prose-invert prose-sm md:prose-base max-w-none prose-ul:list-disc prose-ul:ml-6"
+                   className="w-full h-full bg-transparent font-sans text-gray-200 focus:outline-none transition-shadow prose prose-invert prose-sm md:prose-base max-w-none prose-ul:list-disc prose-ul:ml-6"
                    aria-label="Editable Behind-the-Scenes document"
                  />
                </div>
+              </>
             )}
         </div>
     </div>
