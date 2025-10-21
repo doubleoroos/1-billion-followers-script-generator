@@ -476,7 +476,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, scene: Scene, index: number) => {
         if (e.key === ' ' || e.key === 'Enter') {
-            if (e.target instanceof HTMLTextAreaElement) return;
+            if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return;
             e.preventDefault();
             if (liftedSceneId === scene.id) {
                 setLiftedSceneId(null);
@@ -512,18 +512,24 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
             }
         }
     };
-
-    const handleDescriptionChange = (index: number, description: string) => {
+    
+    const handleSceneFieldChange = (index: number, field: keyof Scene, value: string) => {
         const newOutline = [...editedOutline];
-        newOutline[index] = { ...newOutline[index], description };
+        newOutline[index] = { ...newOutline[index], [field]: value };
         setEditedOutline(newOutline);
         save(newOutline);
     };
 
-    const InfoField: React.FC<{label: string, value: string | undefined, fullWidth?: boolean}> = ({ label, value, fullWidth = false }) => (
+    const EditableField: React.FC<{label: string, id: string, value: string, onChange: (value: string) => void, fullWidth?: boolean}> = ({ label, id, value, onChange, fullWidth = false }) => (
         <div className={fullWidth ? 'md:col-span-2' : ''}>
-            <p className="block text-gray-400 font-semibold mb-1">{label}</p>
-            <p className="text-gray-200 bg-gray-900/40 p-2 rounded-md min-h-[2.5rem] whitespace-pre-wrap">{value || '...'}</p>
+            <label htmlFor={id} className="block text-gray-400 font-semibold mb-1">{label}</label>
+            <input
+                id={id}
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-cyan-500 focus:bg-gray-900/80 transition"
+            />
         </div>
     );
     
@@ -560,12 +566,18 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                         >
                             { isDraggedOver && <div className="absolute top-0 left-6 right-6 h-1 bg-cyan-400 rounded-full animate-pulse"></div> }
                             <div className="flex items-start justify-between gap-4 mb-4">
-                                <h4 className="text-xl font-bold text-white flex-grow">{scene.title}</h4>
+                                <input
+                                    type="text"
+                                    value={scene.title}
+                                    onChange={(e) => handleSceneFieldChange(index, 'title', e.target.value)}
+                                    aria-label="Scene Title"
+                                    className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-cyan-500 rounded-md p-1 -m-1 w-full flex-grow"
+                                />
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     <button onClick={() => handleDuplicateScene(scene, index)} title="Duplicate Scene" className="p-2 rounded-full text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-all duration-200 active:scale-[0.9]">
                                         <DuplicateIcon />
                                     </button>
-                                    <button onClick={() => handleEditClick(scene)} title="Edit Scene" className="p-2 rounded-full text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200 active:scale-[0.9]">
+                                    <button onClick={() => handleEditClick(scene)} title="Edit Scene (Advanced)" className="p-2 rounded-full text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200 active:scale-[0.9]">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
                                     </button>
                                     <button onClick={() => handleDeleteClick(scene)} title="Delete Scene" className="p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200 active:scale-[0.9]">
@@ -574,15 +586,15 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                               <InfoField label="Location" value={scene.location} />
-                               <InfoField label="Time of Day" value={scene.timeOfDay} />
-                               <InfoField label="Atmosphere" value={scene.atmosphere} fullWidth />
+                               <EditableField label="Location" id={`location-${scene.id}`} value={scene.location} onChange={(value) => handleSceneFieldChange(index, 'location', value)} />
+                               <EditableField label="Time of Day" id={`timeOfDay-${scene.id}`} value={scene.timeOfDay} onChange={(value) => handleSceneFieldChange(index, 'timeOfDay', value)} />
+                               <EditableField label="Atmosphere" id={`atmosphere-${scene.id}`} value={scene.atmosphere} onChange={(value) => handleSceneFieldChange(index, 'atmosphere', value)} fullWidth />
                                <div className="md:col-span-2">
                                     <label htmlFor={`description-${scene.id}`} className="block text-gray-400 font-semibold mb-1">Description</label>
                                     <textarea
                                         id={`description-${scene.id}`}
                                         value={scene.description}
-                                        onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                                        onChange={(e) => handleSceneFieldChange(index, 'description', e.target.value)}
                                         placeholder="Enter scene description..."
                                         className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-sans focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
                                     />
