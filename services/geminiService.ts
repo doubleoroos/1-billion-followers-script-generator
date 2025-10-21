@@ -269,7 +269,6 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
       return `${charName.toUpperCase()}\n${block.content}`;
     }).join('\n\n');
 
-    // Fix: Use the `visualOutline` parameter passed to the function instead of an undefined variable.
     const outlineTextForBTS = formatOutlineForPrompt(visualOutline);
     const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
     const btsResponse = await ai.models.generateContent({

@@ -354,11 +354,10 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
 };
 
 
-const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) => void, onVideoSave: (updatedScene: Scene) => void, visualStyle: VisualStyle }> = ({ outline, onSave, onVideoSave, visualStyle }) => {
+const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) => void }> = ({ outline, onSave }) => {
     const [editedOutline, setEditedOutline] = useState<Scene[]>(outline);
     const [sceneToDelete, setSceneToDelete] = useState<Scene | null>(null);
     const [editingScene, setEditingScene] = useState<Scene | null>(null);
-    const [generationStatus, setGenerationStatus] = useState<Record<string, { status: 'idle' | 'loading' | 'error', error?: string }>>({});
     const [liftedSceneId, setLiftedSceneId] = useState<string | null>(null);
     const [liveRegionMessage, setLiveRegionMessage] = useState('');
 
@@ -521,27 +520,6 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
         save(newOutline);
     };
 
-    const handlePromptChange = (index: number, prompt: string) => {
-        const newOutline = [...editedOutline];
-        newOutline[index] = { ...newOutline[index], videoPrompt: prompt };
-        setEditedOutline(newOutline);
-        save(newOutline);
-    };
-
-    const handleGenerateVideo = async (scene: Scene) => {
-        setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'loading' } }));
-        try {
-            const downloadLink = await generateVideoForScene(scene, visualStyle);
-            const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
-            
-            onVideoSave({ ...scene, videoUrl: finalUrl });
-            setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'idle' } }));
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-            setGenerationStatus(prev => ({ ...prev, [scene.id]: { status: 'error', error: errorMessage } }));
-        }
-    };
-
     const InfoField: React.FC<{label: string, value: string | undefined, fullWidth?: boolean}> = ({ label, value, fullWidth = false }) => (
         <div className={fullWidth ? 'md:col-span-2' : ''}>
             <p className="block text-gray-400 font-semibold mb-1">{label}</p>
@@ -609,67 +587,6 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                                         className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-sans focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
                                     />
                                 </div>
-
-                                <div className="md:col-span-2 mt-4 pt-4 border-t border-white/10">
-                                     <div className="mb-4">
-                                        <label htmlFor={`prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-2">Video Generation Prompt</label>
-                                        <textarea
-                                            id={`prompt-${scene.id}`}
-                                            value={scene.videoPrompt || ''}
-                                            onChange={(e) => handlePromptChange(index, e.target.value)}
-                                            placeholder="Describe the video you want to generate for this scene. If empty, a prompt is generated from scene details."
-                                            className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-gray-300 font-sans focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
-                                        />
-                                    </div>
-                                    
-                                    {scene.videoUrl && (
-                                        <div>
-                                            <h5 className="font-semibold text-gray-400 mb-2">Generated Video</h5>
-                                            <video src={scene.videoUrl} controls className="w-full rounded-lg bg-black aspect-video"></video>
-                                        </div>
-                                    )}
-
-                                    {!scene.videoUrl && (() => {
-                                        const statusInfo = generationStatus[scene.id] || { status: 'idle' };
-                                        const isLoading = statusInfo.status === 'loading';
-                                        
-                                        switch (statusInfo.status) {
-                                            case 'loading':
-                                                return (
-                                                    <div className="flex flex-col items-center justify-center bg-black/20 p-6 rounded-lg aspect-video">
-                                                        <svg className="animate-spin h-8 w-8 text-cyan-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                        <p className="text-white font-semibold">Generating video...</p>
-                                                        <p className="text-gray-400 text-sm mt-1">This can take a few minutes.</p>
-                                                    </div>
-                                                );
-                                            case 'error':
-                                                return (
-                                                    <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                                        <div className="flex-grow">
-                                                            <p className="font-semibold text-white flex items-center gap-2">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                                Generation Failed
-                                                            </p>
-                                                            <p className="text-sm text-red-300 mt-1 pl-7">{statusInfo.error}</p>
-                                                        </div>
-                                                        <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all flex-shrink-0 self-end sm:self-center active:scale-[0.98]">Retry Generation</button>
-                                                    </div>
-                                                );
-                                            default: // 'idle'
-                                                return (
-                                                    <button
-                                                        onClick={() => handleGenerateVideo(scene)}
-                                                        disabled={isLoading}
-                                                        className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed"
-                                                    >
-                                                        <VideoIcon />
-                                                        Generate Scene Video
-                                                    </button>
-                                                );
-                                        }
-                                    })()}
-                                </div>
-
                             </div>
                         </div>
                     )
@@ -1022,7 +939,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
                 case 'script':
                     return <ScriptPanel script={generatedAssets.script} characters={generatedAssets.characters} onSave={onScriptSave} />;
                 case 'outline':
-                    return <OutlinePanel outline={generatedAssets.visualOutline} onSave={onOutlineSave} onVideoSave={onVideoSave} visualStyle={visualStyle} />;
+                    return <OutlinePanel outline={generatedAssets.visualOutline} onSave={onOutlineSave} />;
                 case 'images':
                     return <ImagesPanel images={generatedAssets.referenceImages} />;
                 case 'bts':
