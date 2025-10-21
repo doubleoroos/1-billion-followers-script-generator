@@ -98,7 +98,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
         <button
           onClick={onGenerate}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-4 px-4 rounded-xl transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-400/50 relative shadow-lg animate-glow"
+          className="w-full flex items-center justify-center gap-3 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-4 px-4 rounded-xl transition-all duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-amber-400/50 relative shadow-lg animate-glow transform hover:scale-[1.02] active:scale-[0.98] disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none disabled:animate-none"
         >
           {isLoading ? (
             <>

@@ -214,7 +214,7 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
             <div>
                  <div className="flex justify-between items-center mb-2">
                     <h4 className="font-bold text-cyan-400">Characters</h4>
-                    <button onClick={() => openCharacterModal(null)} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1 px-3 rounded-md">+ Add</button>
+                    <button onClick={() => openCharacterModal(null)} className="text-sm bg-cyan-900/40 border border-cyan-700/50 text-cyan-300 font-semibold py-1 px-3 rounded-md transition-all duration-200 hover:bg-cyan-800/60 active:scale-[0.98]">+ Add</button>
                  </div>
                 <div className="space-y-4">
                     {editedCharacters.map((char) => (
@@ -263,8 +263,8 @@ const ScriptPanel: React.FC<{ script: ScriptBlock[], characters: Character[], on
                         <textarea placeholder="Description" value={editingCharacter.description} onChange={e => setEditingCharacter({...editingCharacter, description: e.target.value})} className="w-full h-24 bg-gray-900/50 border border-gray-700 rounded p-2 text-white" />
                     </div>
                     <div className="flex justify-end gap-2 mt-6">
-                        <button onClick={closeCharacterModal} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md">Cancel</button>
-                        <button onClick={handleCharacterSave} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md">Save</button>
+                        <button onClick={closeCharacterModal} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-transform active:scale-[0.98]">Cancel</button>
+                        <button onClick={handleCharacterSave} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md transition-transform active:scale-[0.98]">Save</button>
                     </div>
                 </div>
             </div>
@@ -344,8 +344,8 @@ const SceneEditModal: React.FC<{ scene: Scene; onSave: (scene: Scene) => void; o
                     </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-8">
-                    <button onClick={onClose} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
-                    <button onClick={handleSave} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md transition-colors">Save Changes</button>
+                    <button onClick={onClose} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Cancel</button>
+                    <button onClick={handleSave} className="text-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -576,13 +576,13 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                             <div className="flex items-start justify-between gap-4 mb-4">
                                 <h4 className="text-xl font-bold text-white flex-grow">{scene.title}</h4>
                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                    <button onClick={() => handleDuplicateScene(scene, index)} title="Duplicate Scene" className="p-2 rounded-full text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-all duration-200">
+                                    <button onClick={() => handleDuplicateScene(scene, index)} title="Duplicate Scene" className="p-2 rounded-full text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-all duration-200 active:scale-[0.9]">
                                         <DuplicateIcon />
                                     </button>
-                                    <button onClick={() => handleEditClick(scene)} title="Edit Scene" className="p-2 rounded-full text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200">
+                                    <button onClick={() => handleEditClick(scene)} title="Edit Scene" className="p-2 rounded-full text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200 active:scale-[0.9]">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
                                     </button>
-                                    <button onClick={() => handleDeleteClick(scene)} title="Delete Scene" className="p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200">
+                                    <button onClick={() => handleDeleteClick(scene)} title="Delete Scene" className="p-2 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200 active:scale-[0.9]">
                                         <TrashIcon />
                                     </button>
                                 </div>
@@ -627,12 +627,15 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                                                 );
                                             case 'error':
                                                 return (
-                                                    <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-3 rounded-lg flex flex-col items-start gap-2">
-                                                        <div>
-                                                          <p className="font-semibold text-white">Generation Failed</p>
-                                                          <p className="text-sm text-red-300">{statusInfo.error}</p>
+                                                    <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                                        <div className="flex-grow">
+                                                            <p className="font-semibold text-white flex items-center gap-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                Generation Failed
+                                                            </p>
+                                                            <p className="text-sm text-red-300 mt-1 pl-7">{statusInfo.error}</p>
                                                         </div>
-                                                        <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-md">Retry</button>
+                                                        <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all flex-shrink-0 self-end sm:self-center active:scale-[0.98]">Retry Generation</button>
                                                     </div>
                                                 );
                                             default: // 'idle'
@@ -640,7 +643,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                                                     <button
                                                         onClick={() => handleGenerateVideo(scene)}
                                                         disabled={isLoading}
-                                                        className="w-full flex items-center justify-center gap-2 bg-cyan-600/80 hover:bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed"
+                                                        className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed"
                                                     >
                                                         <VideoIcon />
                                                         Generate Scene Video
@@ -659,7 +662,7 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
             <div className="mt-8 flex justify-center">
                 <button
                     onClick={handleAddNewScene}
-                    className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-cyan-300 bg-cyan-900/40 border border-cyan-700/50 rounded-lg hover:bg-cyan-800/60 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#161b22] focus:ring-cyan-400"
+                    className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-cyan-300 bg-cyan-900/40 border border-cyan-700/50 rounded-lg hover:bg-cyan-800/60 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#161b22] focus:ring-cyan-400 active:scale-[0.98]"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -685,8 +688,8 @@ const OutlinePanel: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) =
                         </h3>
                         <p className="text-gray-300 mt-3 mb-6">Are you sure you want to permanently delete the scene: <strong className="text-white">"{sceneToDelete.title}"</strong>? This action cannot be undone.</p>
                         <div className="flex justify-end gap-3">
-                            <button onClick={closeModal} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
-                            <button onClick={handleConfirmDelete} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-colors">Delete Scene</button>
+                            <button onClick={closeModal} className="text-sm bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Cancel</button>
+                            <button onClick={handleConfirmDelete} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Delete Scene</button>
                         </div>
                     </div>
                 </div>
@@ -812,7 +815,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                     official documentation
                 </a>.
             </p>
-            <button onClick={handleSelectKey} className="flex items-center justify-center gap-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-2 px-5 rounded-lg hover:from-amber-400 hover:to-orange-500 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400/50">
+            <button onClick={handleSelectKey} className="flex items-center justify-center gap-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-2 px-5 rounded-lg shadow-lg transition-all duration-200 ease-in-out hover:from-amber-400 hover:to-orange-500 focus:outline-none focus:ring-4 focus:ring-amber-400/50 transform hover:scale-[1.02] active:scale-[0.98]">
                 Select API Key
             </button>
         </div>
@@ -838,7 +841,7 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                                 </div>
                                 <button 
                                     onClick={() => handleGenerateVideo(scene)}
-                                    className="w-full flex items-center justify-center gap-2 bg-cyan-600/50 hover:bg-cyan-600/70 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300"
+                                    className="w-full flex items-center justify-center gap-2 bg-cyan-600/50 hover:bg-cyan-600/70 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98]"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
@@ -865,12 +868,12 @@ const VideoPanel: React.FC<{ outline: Scene[], visualStyle: VisualStyle, onSave:
                                     </p>
                                     <p className="text-sm text-red-300 mt-1 pl-7">{statusInfo.error}</p>
                                 </div>
-                                <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-colors flex-shrink-0 self-end sm:self-center">Retry Generation</button>
+                                <button onClick={() => handleGenerateVideo(scene)} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all flex-shrink-0 self-end sm:self-center active:scale-[0.98]">Retry Generation</button>
                             </div>
                         )}
 
                         {!scene.videoUrl && statusInfo.status === 'idle' && (
-                            <button onClick={() => handleGenerateVideo(scene)} disabled={isLoading} className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed">
+                            <button onClick={() => handleGenerateVideo(scene)} disabled={isLoading} className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed">
                                 <VideoIcon/>
                                 Generate Video
                             </button>
