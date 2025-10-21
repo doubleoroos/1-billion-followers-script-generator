@@ -4,13 +4,18 @@ import { InputPanel } from './components/InputPanel';
 import { OutputDisplay } from './components/OutputDisplay';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { generateCreativeAssets, reviseScript } from './services/geminiService';
-import type { GeneratedAssets, EmotionalArcIntensity } from './types';
+import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone } from './types';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedAssets, setGeneratedAssets] = useState<GeneratedAssets | null>(null);
+  
+  // Creative Controls State
   const [emotionalArc, setEmotionalArc] = useState<EmotionalArcIntensity>('moderate');
+  const [visualStyle, setVisualStyle] = useState<VisualStyle>('cinematic');
+  const [narrativeTone, setNarrativeTone] = useState<NarrativeTone>('poetic');
+  
   const [loadingMessage, setLoadingMessage] = useState<string>('');
 
   const handleGenerate = useCallback(async () => {
@@ -20,7 +25,7 @@ const App: React.FC = () => {
     setLoadingMessage('Generating script, outline, and reference images...');
 
     try {
-      const result = await generateCreativeAssets(emotionalArc);
+      const result = await generateCreativeAssets(emotionalArc, visualStyle, narrativeTone);
       setGeneratedAssets(result);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
@@ -30,7 +35,7 @@ const App: React.FC = () => {
       setIsLoading(false);
       setLoadingMessage('');
     }
-  }, [emotionalArc]);
+  }, [emotionalArc, visualStyle, narrativeTone]);
 
   const handleReviseScript = useCallback(async (feedback: string) => {
     if (!generatedAssets?.script) {
@@ -46,7 +51,9 @@ const App: React.FC = () => {
         generatedAssets.script,
         generatedAssets.visualOutline,
         feedback,
-        emotionalArc
+        emotionalArc,
+        visualStyle,
+        narrativeTone
       );
       setGeneratedAssets(prevAssets => {
         if (!prevAssets) return null;
@@ -63,7 +70,7 @@ const App: React.FC = () => {
       setIsLoading(false);
       setLoadingMessage('');
     }
-  }, [generatedAssets, emotionalArc]);
+  }, [generatedAssets, emotionalArc, visualStyle, narrativeTone]);
   
   const handleScriptSave = useCallback((newScript: string) => {
     setGeneratedAssets(prevAssets => {
@@ -106,6 +113,10 @@ const App: React.FC = () => {
               isLoading={isLoading}
               emotionalArc={emotionalArc}
               setEmotionalArc={setEmotionalArc}
+              visualStyle={visualStyle}
+              setVisualStyle={setVisualStyle}
+              narrativeTone={narrativeTone}
+              setNarrativeTone={setNarrativeTone}
             />
           </div>
           <div className="lg:col-span-2">

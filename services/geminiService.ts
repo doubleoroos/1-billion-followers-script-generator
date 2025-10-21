@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity } from '../types';
+import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -11,77 +11,94 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const getIntensityDescription = (intensity: EmotionalArcIntensity): string => {
     switch (intensity) {
-        case 'subtle':
-            return "The emotional arc should be gentle and contemplative, building slowly with a quiet, introspective tone. Focus on nuanced feelings and gradual shifts in mood.";
-        case 'intense':
-            return "Design a powerful and dramatic emotional arc. Use stark contrasts in visuals and narration, build to moments of profound emotional weight, and aim for a climactic, cathartic release. The pacing should be dynamic and impactful.";
-        case 'moderate':
-        default:
-            return "Craft a balanced emotional journey with clear peaks and valleys, moving from curiosity to tension, and finally to a hopeful resolution. This should follow a standard cinematic arc for a 10-minute film.";
+        case 'subtle': return "The emotional arc should be gentle and contemplative, building slowly with a quiet, introspective tone. Focus on nuanced feelings and gradual shifts in mood.";
+        case 'intense': return "Design a powerful and dramatic emotional arc. Use stark contrasts, build to moments of profound emotional weight, and aim for a climactic, cathartic release.";
+        default: return "Craft a balanced emotional journey with clear peaks and valleys, moving from curiosity to tension, and finally to a hopeful resolution.";
+    }
+};
+
+const getVisualStyleDescription = (style: VisualStyle): string => {
+    switch (style) {
+        case 'solarpunk': return "The visual style is Solarpunk: optimistic, eco-conscious, and technologically advanced, featuring lush greenery integrated with elegant, organic architecture and a focus on community and nature.";
+        case 'minimalist': return "The visual style is Minimalist: clean, abstract, and symbolic. It uses simple geometric forms, a limited color palette, and ample negative space to convey complex ideas with clarity and focus.";
+        case 'biomorphic': return "The visual style is Biomorphic: fluid, organic, and abstract shapes inspired by the curves and patterns found in nature. The aesthetic is flowing, elegant, and interconnected.";
+        default: return "The visual style is highly Cinematic and Photorealistic: emotionally resonant, with dramatic lighting, a grand sense of scale, and hyper-detailed textures to create a deeply immersive experience.";
     }
 }
 
-const createPrompt = (intensity: EmotionalArcIntensity): string => {
+const getNarrativeToneDescription = (tone: NarrativeTone): string => {
+    switch (tone) {
+        case 'philosophical': return "The narrative tone is Philosophical: contemplative and profound, exploring deep questions about humanity, consciousness, and the nature of ideas.";
+        case 'hopeful': return "The narrative tone is Hopeful: inspiring, optimistic, and uplifting, focusing on the potential for positive change and collective action.";
+        case 'intimate': return "The narrative tone is Intimate: personal, gentle, and reflective, as if sharing a quiet, profound secret with the viewer.";
+        default: return "The narrative tone is Poetic: lyrical and evocative, using rich metaphors and imagery to convey emotion and meaning rather than literal description.";
+    }
+}
+
+const createPrompt = (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
     const intensityDescription = getIntensityDescription(intensity);
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    const toneDescription = getNarrativeToneDescription(narrativeTone);
 
     return `
-You are an expert screenwriter and concept artist specializing in philosophical, visually-driven short films. Your task is to generate a complete script and visual outline for a 10-minute film based on the following concept.
+You are an expert screenwriter and concept artist specializing in philosophical, visually-driven short films. Your task is to generate a complete script and visual outline for a 10-minute film.
 
 **Project Title:** 1 Billion Followers
+**Theme:** A short film that envisions a future where 1 billion people follow a single, positive idea.
+**Core Concept:** A poetic AI-generated film exploring the journey of a powerful, positive idea—from its inception to its adoption by a billion people, transforming the world with collective hope and unity.
 
-**Theme:** Create a short film that envisions a future where 1 billion people follow a single, positive idea.
-
-**Core Concept:** A poetic AI-generated short film that explores the journey of a single, powerful, positive idea—from its inception in the mind of one person to its adoption by a billion people, transforming the world. The film visualizes the birth, spread, and ultimate impact of this idea, imagining a future defined by collective hope, unity, and constructive action. The film's core message should be optimistic and inspiring.
-
-**Emotional Arc Instruction:** The overall emotional arc for this 10-minute film should be **${intensity.toUpperCase()}**. ${intensityDescription}
+**Creative Direction:**
+- **Narrative Tone:** ${toneDescription}
+- **Visual Style:** ${styleDescription}
+- **Emotional Arc:** ${intensityDescription}
 
 **Your Task:**
 
-1.  **Script Generation:** Write a poetic, philosophical narration script. The script should guide the viewer through the emotional and temporal journey of the idea. The tone should be meditative, hopeful, and profound, **adhering strictly to the specified '${intensity}' emotional arc.** The total spoken length should be appropriate for a 10-minute film. Format it with standard narration script conventions.
+1.  **Script Generation:** Write a narration script guided by the specified **Narrative Tone**. The script must guide the viewer through the emotional and temporal journey of the idea. The total spoken length should be appropriate for a 10-minute film, and it must align with the requested **Emotional Arc**.
 
-2.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. For each scene, describe:
+2.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline. Every scene description, element, and composition choice must strictly adhere to the specified **Visual Style**.
     *   **Scene Number & Title:**
-    *   **Scene Description:** An evocative paragraph setting the scene, describing key actions, and establishing the overall mood. This provides narrative context.
-    *   **Key Visual Elements:** A bulleted list of 3-5 specific, crucial visual elements (props, character details, background features) that define the scene's look and feel.
-    *   **Visuals:** Specific details on camera angles, lighting, and composition.
+    *   **Scene Description:** An evocative paragraph setting the scene, establishing the mood in line with the **Visual Style**.
+    *   **Key Visual Elements:** A bulleted list of 3-5 specific visual elements that define the scene's **Visual Style**.
+    *   **Visuals:** Specific details on camera angles, lighting, and composition that reflect the **Visual Style**.
     *   **Transition:** How this scene transitions to the next.
-    *   **Pacing & Emotion:** **Crucially, ensure this section reflects the requested '${intensity}' emotional arc.** Note the intended emotional journey and pacing for the scene to match the overall intensity.
+    *   **Pacing & Emotion:** **Crucially, ensure this section reflects the requested Emotional Arc and Intensity.**
 
 **Output Format:**
 Return the output as a JSON object with two keys: "script" and "visualOutline".
-- The "script" should be a single string with proper formatting for a narration script.
-- The "visualOutline" should be a single string formatted with Markdown for clarity (e.g., using headings for scenes).
+- "script" should be a single string.
+- "visualOutline" should be a single string formatted with Markdown.
 `;
 }
 
-const createBTSPrompt = (intensity: EmotionalArcIntensity, script: string, visualOutline: string): string => {
+const createBTSPrompt = (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: string, visualOutline: string): string => {
+  const intensityDescription = getIntensityDescription(intensity).split('.')[0];
+  const styleDescription = getVisualStyleDescription(visualStyle).split('.')[0];
+  const toneDescription = getNarrativeToneDescription(narrativeTone).split('.')[0];
+  
   return `
-You are a filmmaker creating a submission for the "1 Billion Followers" AI film competition. Your task is to write a "Behind the Scenes" (BTS) document of approximately 400-500 words. This document will detail the creative process for generating the film's script and visual concept using AI.
+You are a filmmaker writing a "Behind the Scenes" (BTS) document (400-500 words) for the "1 Billion Followers" AI film competition.
 
-**Context:**
-- **Competition Theme:** Envision a future where 1 billion people follow a single, positive idea.
-- **AI Tools Used:**
-    - Script & Visual Outline: Google Gemini 2.5 Pro
-    - Concept Art/Reference Images: Google Imagen 4.0
-- **Creative Choices:** The emotional arc was set to **'${intensity}'**.
-- **Generated Assets:** You have been provided with the final narration script and the detailed visual outline.
+**Creative Choices Made:**
+- **Narrative Tone:** ${narrativeTone.charAt(0).toUpperCase() + narrativeTone.slice(1)} (${toneDescription}).
+- **Visual Style:** ${visualStyle.charAt(0).toUpperCase() + visualStyle.slice(1)} (${styleDescription}).
+- **Emotional Arc:** ${intensity.charAt(0).toUpperCase() + intensity.slice(1)} (${intensityDescription}).
 
 **Your Task:**
-Write a compelling BTS document that covers the following points:
-1.  **Introduction:** Briefly introduce the project "1 Billion Followers" and its core optimistic message.
-2.  **Creative Vision & AI Partnership:** Describe how you approached the project, framing AI not just as a tool, but as a creative partner. Explain the decision to set a specific emotional arc ('${intensity}') and how that guided the AI's generation process.
-3.  **The Scripting Process:** Briefly analyze the generated script. Mention its poetic and philosophical tone, and how it aligns with the chosen emotional arc and the film's core theme.
-4.  **Visual Development:** Discuss the generated visual outline. Explain how it translates the script's abstract ideas into concrete, evocative scenes. Touch upon how the visual language supports the '${intensity}' emotional journey.
-5.  **Conclusion:** Summarize the process and reiterate the film's hopeful vision for the future.
+Write a compelling BTS document that explains your creative process using AI as a partner.
+1.  **Introduction:** Introduce the project's optimistic message.
+2.  **Creative Vision & AI Partnership:** Explain your deliberate choice of tone, style, and emotional arc. Describe how these specific parameters guided the AI (Gemini and Imagen) to generate a cohesive and unique vision. This is the most important section.
+3.  **The Scripting Process:** Analyze how the generated script reflects the chosen **Narrative Tone** and **Emotional Arc**.
+4.  **Visual Development:** Discuss how the visual outline and reference images translate the script's ideas into the chosen **Visual Style**.
+5.  **Conclusion:** Summarize the process and reiterate the film's hopeful vision.
 
-**Formatting and Tone:**
-- The tone should be professional, insightful, and reflective of a creative process.
-- The document should be well-structured with clear paragraphs.
-- Do not use markdown. Output a single block of text.
-- The total length should be around 400-500 words.
+**Formatting:**
+- Professional, insightful tone.
+- Well-structured paragraphs.
+- Output a single block of text (no markdown).
+- Total length: 400-500 words.
 
-**Here are the generated assets to base your document on:**
-
+**Generated Assets for Reference:**
 ---
 **NARRATION SCRIPT:**
 ${script}
@@ -92,23 +109,23 @@ ${visualOutline}
 `;
 }
 
-const createRevisionPrompt = (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity): string => {
+const createRevisionPrompt = (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
   return `
-  You are an expert script doctor. Your task is to revise a narration script for a 10-minute philosophical short film titled "1 Billion Followers".
+  You are an expert script doctor revising a narration script for a 10-minute philosophical short film.
 
-  **Context:**
+  **Creative Direction:**
   - **Theme:** A future where one billion people follow a single, positive idea.
-  - **Emotional Arc:** The film's emotional journey is intended to be **${intensity.toUpperCase()}**.
-  - **Visuals:** The script must remain perfectly synchronized with the existing visual outline.
+  - **Narrative Tone:** Must be **${narrativeTone}**.
+  - **Visual Style:** Must align with a **${visualStyle}** aesthetic.
+  - **Emotional Arc:** Must follow a **${intensity}** intensity.
 
   **Your Task:**
-  Revise the **Original Narration Script** based on the provided **Revision Feedback**. The revised script must:
-  1.  Incorporate the user's feedback directly and thoughtfully.
-  2.  Maintain the original's poetic, meditative, and hopeful tone.
+  Revise the **Original Narration Script** based on the **Revision Feedback**. The revised script must:
+  1.  Incorporate the user's feedback thoughtfully.
+  2.  Maintain the established Creative Direction (tone, style, arc).
   3.  Align seamlessly with the provided **Visual Outline**.
-  4.  Adhere to the specified **'${intensity}'** emotional arc.
 
-  **Do not change the visual outline.** Only provide the full, revised narration script as a single block of text.
+  **Do not change the visual outline.** Return only the complete, revised script as a single block of text.
 
   ---
   **ORIGINAL NARRATION SCRIPT:**
@@ -125,30 +142,31 @@ const createRevisionPrompt = (originalScript: string, visualOutline: string, fee
   `;
 }
 
+const getImageStages = (visualStyle: VisualStyle): { title: string, prompt: string }[] => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    return [
+      {
+        title: 'The Spark',
+        prompt: `An intimate, powerful, hopeful portrait of a single person, their face softly illuminated by an internal, warm light. Their eyes are closed in deep thought. The background is dark and abstract. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
+      },
+      {
+        title: 'The Ripple',
+        prompt: `A stunning visual metaphor of an idea spreading. A luminous, golden thread of light travels from one person to another across a diverse tapestry of faces from all over the world, forming a beautiful web of light. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
+      },
+      {
+        title: 'The Chorus',
+        prompt: `An awe-inspiring, high-angle shot of a vast, diverse crowd of a billion people. They are a beautiful mosaic of individuals, standing together in a vast landscape at twilight, all looking up at a subtle aurora of light representing their shared idea. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
+      },
+      {
+        title: 'The New Dawn',
+        prompt: `A breathtaking, utopian landscape representing the future transformed. A futuristic, yet harmonious city integrated with nature. People walk together, their faces filled with peace and purpose, bathed in the warm, golden light of a sunrise. Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed.`
+      }
+    ];
+};
 
-const IMAGE_STAGES = [
-  {
-    title: 'The Spark',
-    prompt: 'Ultra-photorealistic, emotionally resonant portrait of a single person, their face softly illuminated by an internal, warm light. Their eyes are closed in deep thought, a subtle smile playing on their lips as a profound, world-changing positive idea dawns upon them. The background is dark and abstract, focusing all attention on their moment of quiet epiphany. Mood: Intimate, powerful, hopeful. Cinematic, 16:9 aspect ratio, hyper-detailed.'
-  },
-  {
-    title: 'The Ripple',
-    prompt: 'A stunning visual metaphor of an idea spreading. A luminous, golden thread of light travels from one person to another across a diverse tapestry of faces from all over the world. The network grows exponentially, forming a beautiful, intricate web of light against a dark background. The faces show expressions of dawning realization and connection. Mood: Dynamic, interconnected, and optimistic. Cinematic, 16:9 aspect ratio, hyper-detailed.'
-  },
-  {
-    title: 'The Chorus',
-    prompt: 'An awe-inspiring, high-angle shot of a vast, diverse crowd of what feels like a billion people. They are not a uniform mass, but a beautiful mosaic of individuals. They stand together in a natural landscape—perhaps a vast desert or plain at twilight—all looking up at the sky where a subtle aurora of light represents their shared idea. Mood: Awe-inspiring, unified, and monumental. Cinematic, 16:9 aspect ratio, hyper-detailed.'
-  },
-  {
-    title: 'The New Dawn',
-    prompt: 'A breathtaking, utopian landscape representing the future transformed by the positive idea. A futuristic, yet harmonious city integrated with nature. Lush vertical gardens climb elegant, organic architecture, and clean energy sources hum quietly. People of all ages walk together, their faces filled with peace and purpose, bathed in the warm, golden light of a sunrise. Mood: Serene, hopeful, and transformative. Cinematic, 16:9 aspect ratio, hyper-detailed.'
-  }
-];
-
-
-export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): Promise<GeneratedAssets> => {
+export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
-    const prompt = createPrompt(intensity);
+    const prompt = createPrompt(intensity, visualStyle, narrativeTone);
     const scriptPromise = ai.models.generateContent({
       model: "gemini-2.5-pro",
       contents: prompt,
@@ -157,21 +175,16 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): 
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            script: {
-              type: Type.STRING,
-              description: 'The poetic narration script for the film, formatted correctly.',
-            },
-            visualOutline: {
-              type: Type.STRING,
-              description: 'The detailed scene-by-scene visual outline, formatted with Markdown.',
-            },
+            script: { type: Type.STRING },
+            visualOutline: { type: Type.STRING },
           },
           required: ["script", "visualOutline"],
         },
       },
     });
 
-    const imagePromises = IMAGE_STAGES.map(stage => 
+    const imageStages = getImageStages(visualStyle);
+    const imagePromises = imageStages.map(stage => 
       ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: stage.prompt,
@@ -186,7 +199,6 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): 
       }))
     );
     
-    // Step 1: Generate Script, Outline, and Images
     const [scriptResponse, referenceImages] = await Promise.all([
       scriptPromise,
       Promise.all(imagePromises)
@@ -201,8 +213,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): 
     
     const { script, visualOutline } = parsedScriptData;
 
-    // Step 2: Generate BTS Document based on the results of Step 1
-    const btsPrompt = createBTSPrompt(intensity, script, visualOutline);
+    const btsPrompt = createBTSPrompt(intensity, visualStyle, narrativeTone, script, visualOutline);
     const btsResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: btsPrompt,
@@ -223,12 +234,12 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity): 
   }
 };
 
-export const reviseScript = async (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity): Promise<string> => {
+export const reviseScript = async (originalScript: string, visualOutline: string, feedback: string, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<string> => {
     if (!feedback.trim()) {
         throw new Error("Revision feedback cannot be empty.");
     }
     try {
-        const prompt = createRevisionPrompt(originalScript, visualOutline, feedback, intensity);
+        const prompt = createRevisionPrompt(originalScript, visualOutline, feedback, intensity, visualStyle, narrativeTone);
         const response = await ai.models.generateContent({
             model: "gemini-2.5-pro",
             contents: prompt,

@@ -325,33 +325,68 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
     setTimeout(() => setBtsSaveStatus('saved'), 500);
   }, [editedBts, onBtsSave]);
 
-  const handleExportMarkdown = useCallback(() => {
-    if (!editedOutline) return;
-    
-    const blob = new Blob([editedOutline], { type: 'text/markdown' });
+  const handleExportPackage = useCallback(() => {
+    const scriptHtml = `<pre style="white-space: pre-wrap; font-family: sans-serif; font-size: 1rem;">${editedScript}</pre>`;
+    const outlineHtml = editedOutline
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^- (.*)$/gm, '<ul><li>$1</li></ul>')
+      .replace(/<\/ul>\s*<ul>/g, '') // Merge adjacent lists
+      .replace(/\n/g, '<br>');
+    const btsHtml = editedBts; // It's already HTML
+
+    const content = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>1 Billion Followers - Submission Package</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 40px auto; padding: 20px; }
+          h1, h2, h3 { color: #111; line-height: 1.2; }
+          h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+          @media print {
+            body { margin: 20px; padding: 0; }
+            .no-print { display: none; }
+          }
+          .page-break { page-break-before: always; }
+          .info-box { background-color: #f0f8ff; border: 1px solid #b0e0e6; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+        </style>
+      </head>
+      <body>
+        <div class="info-box no-print">
+          <p><strong>To save as a PDF:</strong> Open the print dialog (Ctrl/Cmd + P) and select "Save as PDF" as the destination.</p>
+          <p><strong>Note:</strong> This package contains your text documents. Please remember to download your Reference Images separately from the main application.</p>
+        </div>
+        
+        <h1>Project: 1 Billion Followers</h1>
+        
+        <div class="page-break"></div>
+        <h2>Narration Script</h2>
+        ${scriptHtml}
+
+        <div class="page-break"></div>
+        <h2>Visual Outline</h2>
+        ${outlineHtml}
+
+        <div class="page-break"></div>
+        <h2>Behind the Scenes Document</h2>
+        ${btsHtml}
+
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([content], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'visual-outline.md';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [editedOutline]);
-  
-  const handleExportTxt = useCallback(() => {
-    if (!editedBts) return;
-    const plainText = getPlainText(editedBts);
-    const blob = new Blob([plainText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'behind-the-scenes.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [editedBts]);
+    const newWindow = window.open(url, '_blank');
+    if (newWindow) {
+        newWindow.onload = () => {
+            URL.revokeObjectURL(url);
+        };
+    }
+  }, [editedScript, editedOutline, editedBts]);
 
   const handleAddNewScene = useCallback(() => {
     const title = window.prompt("Enter the title for the new scene:");
@@ -387,6 +422,19 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
   const handleBtsFormat = (command: string) => {
     document.execCommand(command, false);
   };
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const isUndo = (e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey;
+    const isRedo = (e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey));
+
+    if (isUndo) {
+      e.preventDefault();
+      if (canUndo) undo();
+    } else if (isRedo) {
+      e.preventDefault();
+      if (canRedo) redo();
+    }
+  };
 
   const TabButton = ({ tab, label }: { tab: Tab; label: string }) => (
     <button
@@ -403,24 +451,34 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
 
   return (
     <div className="bg-slate-800/50 p-1 rounded-xl border border-slate-700 animate-fade-in">
-        <div className="flex justify-between items-center p-4 border-b border-slate-700">
+        <div className="flex justify-between items-center p-4 border-b border-slate-700 flex-wrap gap-4">
             <div className="flex space-x-2">
                 <TabButton tab="script" label="Narration Script" />
                 <TabButton tab="outline" label="Visual Outline" />
                 <TabButton tab="images" label="Reference Images" />
                 <TabButton tab="bts" label="BTS Document" />
             </div>
-            
-            <div className="flex items-center gap-2">
-                {activeTab === 'script' && (
+             <button
+              onClick={handleExportPackage}
+              className="px-4 py-2 text-sm font-semibold rounded-md transition-all flex items-center gap-2 bg-yellow-600 text-white hover:bg-yellow-500"
+              title="Compile and export all text assets for submission"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm.5 3.5a.5.5 0 01.5-.5h4a.5.5 0 010 1h-4a.5.5 0 01-.5-.5zM5 9.5a.5.5 0 01.5-.5h8a.5.5 0 010 1h-8a.5.5 0 01-.5-.5zm.5 2.5a.5.5 0 000 1h8a.5.5 0 000-1h-8z" />
+              </svg>
+              Export Package for Submission
+            </button>
+        </div>
+        <div className="p-4 border-b border-slate-700">
+             {activeTab === 'script' && (
                   <div className="flex items-center gap-4">
                     <SaveStatusIndicator status={scriptSaveStatus} />
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 ml-auto">
                       <button
                         onClick={undo}
                         disabled={!canUndo || isLoading}
                         className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Undo"
+                        title="Undo (Ctrl+Z)"
                         aria-label="Undo script change"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -431,34 +489,22 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                         onClick={redo}
                         disabled={!canRedo || isLoading}
                         className="p-2 text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Redo"
+                        title="Redo (Ctrl+Y)"
                         aria-label="Redo script change"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 00-6 6v3" />
                         </svg>
                       </button>
-                      <div className="w-px h-6 bg-slate-600 mx-1"></div>
-                      <button
-                        onClick={handleSaveScript}
-                        disabled={scriptSaveStatus === 'clean' || scriptSaveStatus === 'saving' || scriptSaveStatus === 'saved' || isLoading}
-                        className="px-3 py-2 text-xs font-semibold rounded-md transition-all flex items-center gap-2 bg-cyan-700 text-slate-300 hover:bg-cyan-600 disabled:bg-slate-600 disabled:cursor-not-allowed"
-                      >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M5 4a2 2 0 012-2h6.101a2 2 0 011.414.586l4.899 4.899A2 2 0 0120 8.899V18a2 2 0 01-2 2H7a2 2 0 01-2-2V4zm7 1a1 1 0 00-1 1v5a1 1 0 001 1h2a1 1 0 001-1V6a1 1 0 00-1-1h-2z" />
-                          </svg>
-                          Save Script
-                      </button>
                     </div>
                   </div>
                 )}
                 {activeTab === 'outline' && (
-                  <div className="flex items-center gap-4">
+                   <div className="flex items-center gap-4">
                      <SaveStatusIndicator status={outlineSaveStatus} />
-                    <div className="flex items-center gap-2">
-                      <button
+                     <button
                         onClick={handleAddNewScene}
-                        className="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors flex items-center gap-2"
+                        className="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors flex items-center gap-2 ml-auto"
                         title="Add a new scene to the outline"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -466,74 +512,13 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                         </svg>
                         Add Scene
                       </button>
-                      <button
-                        onClick={handleSaveOutline}
-                        disabled={outlineSaveStatus === 'clean' || outlineSaveStatus === 'saving' || outlineSaveStatus === 'saved'}
-                         className="px-3 py-2 text-xs font-semibold rounded-md transition-all flex items-center gap-2 bg-cyan-700 text-slate-300 hover:bg-cyan-600 disabled:bg-slate-600 disabled:cursor-not-allowed"
-                      >
-                        Save Outline
-                      </button>
-                      <div className="w-px h-6 bg-slate-600 mx-1"></div>
-                      <button
-                        onClick={handleExportMarkdown}
-                        className="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors flex items-center gap-2"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Export .md
-                      </button>
-                    </div>
-                  </div>
+                   </div>
                 )}
-                {activeTab === 'bts' && (
-                  <div className="flex items-center gap-4">
+                 {activeTab === 'bts' && (
+                   <div className="flex items-center gap-4">
                      <SaveStatusIndicator status={btsSaveStatus} />
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleSaveBts}
-                        disabled={btsSaveStatus === 'clean' || btsSaveStatus === 'saving' || btsSaveStatus === 'saved'}
-                         className="px-3 py-2 text-xs font-semibold rounded-md transition-all flex items-center gap-2 bg-cyan-700 text-slate-300 hover:bg-cyan-600 disabled:bg-slate-600 disabled:cursor-not-allowed"
-                      >
-                        Save Document
-                      </button>
-                      <div className="w-px h-6 bg-slate-600 mx-1"></div>
-                      <button
-                        onClick={handleExportTxt}
-                        className="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors flex items-center gap-2"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Export .txt
-                      </button>
-                    </div>
-                  </div>
+                   </div>
                 )}
-                {activeTab !== 'images' && (
-                  <button
-                      onClick={handleCopy}
-                      className="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors flex items-center gap-2"
-                  >
-                      {copyStatus === 'copied' ? (
-                        <>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                          Copy
-                        </>
-                      )}
-                  </button>
-                )}
-            </div>
-            
         </div>
 
         <div className="p-6">
@@ -543,6 +528,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ generatedAssets, o
                    <textarea
                      value={editedScript}
                      onChange={(e) => handleScriptChange(e.target.value)}
+                     onKeyDown={handleKeyDown}
                      className="w-full h-full bg-slate-900/70 p-4 rounded-md font-sans text-slate-200 border border-slate-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-shadow"
                      aria-label="Editable script area"
                      disabled={isLoading}

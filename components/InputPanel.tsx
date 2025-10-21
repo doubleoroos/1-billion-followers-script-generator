@@ -1,21 +1,31 @@
 import React from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
-import type { EmotionalArcIntensity } from '../types';
+import type { EmotionalArcIntensity, VisualStyle, NarrativeTone } from '../types';
 
 interface InputPanelProps {
   onGenerate: () => void;
   isLoading: boolean;
   emotionalArc: EmotionalArcIntensity;
   setEmotionalArc: (intensity: EmotionalArcIntensity) => void;
+  visualStyle: VisualStyle;
+  setVisualStyle: (style: VisualStyle) => void;
+  narrativeTone: NarrativeTone;
+  setNarrativeTone: (tone: NarrativeTone) => void;
 }
 
-const IntensityButton: React.FC<{
-  value: EmotionalArcIntensity;
-  current: EmotionalArcIntensity;
-  onClick: (value: EmotionalArcIntensity) => void;
+const OptionButton = <T extends string>({
+  value,
+  current,
+  onClick,
+  children,
+  tooltip,
+}: {
+  value: T;
+  current: T;
+  onClick: (value: T) => void;
   children: React.ReactNode;
   tooltip: string;
-}> = ({ value, current, onClick, children, tooltip }) => {
+}) => {
   const isActive = value === current;
   return (
     <button
@@ -32,61 +42,64 @@ const IntensityButton: React.FC<{
   );
 };
 
-export const InputPanel: React.FC<InputPanelProps> = ({ onGenerate, isLoading, emotionalArc, setEmotionalArc }) => {
+export const InputPanel: React.FC<InputPanelProps> = ({ 
+  onGenerate, 
+  isLoading, 
+  emotionalArc, 
+  setEmotionalArc,
+  visualStyle,
+  setVisualStyle,
+  narrativeTone,
+  setNarrativeTone
+}) => {
   return (
     <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 h-full flex flex-col">
-      <h2 className="text-xl font-semibold mb-4 text-white">Concept & Workflow</h2>
+      <h2 className="text-xl font-semibold mb-4 text-white">Concept & Creative Controls</h2>
       
-      <div className="space-y-4 text-slate-300 flex-grow">
+      <div className="space-y-3 text-slate-300 flex-grow">
         <div>
           <h3 className="font-bold text-cyan-400">Project Title:</h3>
-          <p>1 Billion Followers</p>
+          <p className="text-sm">1 Billion Followers</p>
         </div>
         <div>
           <h3 className="font-bold text-cyan-400">Theme:</h3>
-          <p>Envisioning a future where 1 billion people follow a single, positive idea.</p>
-        </div>
-        <div>
-          <h3 className="font-bold text-cyan-400">Concept Summary:</h3>
-          <p className="italic">
-            A poetic AI-generated short film that explores a future where one billion people are united by a single, positive idea. The film visualizes the birth, growth, and impact of this idea on humanity, imagining a future of collective hope and action.
-          </p>
+          <p className="text-sm">Envisioning a future where 1 billion people follow a single, positive idea.</p>
         </div>
          <div>
           <h3 className="font-bold text-cyan-400">Generation Task:</h3>
-          <p>
+          <p className="text-sm">
             Use Gemini to generate assets for <strong>Phase 1: Script & Visual Outline</strong> of the "1 Billion Followers" AI Film Award, including a draft for your BTS document.
           </p>
         </div>
       </div>
       
-      <div className="mt-6">
-        <h3 className="font-bold text-cyan-400 mb-3">Emotional Arc Intensity:</h3>
-        <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
-          <IntensityButton
-            value="subtle"
-            current={emotionalArc}
-            onClick={setEmotionalArc}
-            tooltip="A gentle, contemplative arc with nuanced feelings and gradual mood shifts."
-          >
-            Subtle
-          </IntensityButton>
-          <IntensityButton
-            value="moderate"
-            current={emotionalArc}
-            onClick={setEmotionalArc}
-            tooltip="A balanced emotional journey with clear peaks and valleys, like a standard film."
-          >
-            Moderate
-          </IntensityButton>
-          <IntensityButton
-            value="intense"
-            current={emotionalArc}
-            onClick={setEmotionalArc}
-            tooltip="A powerful, dramatic arc with stark contrasts and a cathartic, impactful climax."
-          >
-            Intense
-          </IntensityButton>
+      <div className="mt-6 space-y-4">
+        <div>
+          <h3 className="font-bold text-cyan-400 mb-2">Narrative Tone:</h3>
+          <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+              <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Evocative, metaphorical language; focuses on feeling and imagery.">Poetic</OptionButton>
+              <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Explores deep questions about existence, humanity, and meaning.">Philosophical</OptionButton>
+              <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Inspiring and optimistic, focusing on positive outcomes.">Hopeful</OptionButton>
+              <OptionButton value="intimate" current={narrativeTone} onClick={setNarrativeTone} tooltip="A close, personal, and reflective perspective.">Intimate</OptionButton>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-bold text-cyan-400 mb-2">Visual Style:</h3>
+          <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+              <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Photorealistic, grand, and emotionally resonant visuals with dramatic lighting.">Cinematic</OptionButton>
+              <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Utopian and nature-integrated, with organic architecture and lush greenery.">Solarpunk</OptionButton>
+              <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Clean, abstract, and symbolic, using simple forms and negative space.">Minimalist</OptionButton>
+              <OptionButton value="biomorphic" current={visualStyle} onClick={setVisualStyle} tooltip="Fluid, organic shapes inspired by nature's curves and patterns.">Biomorphic</OptionButton>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-bold text-cyan-400 mb-2">Emotional Arc Intensity:</h3>
+          <div className="flex justify-between items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+            {/* FIX: Added children to the OptionButton components to provide their text labels and resolve the missing 'children' prop error. */}
+            <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle, contemplative arc with nuanced feelings.">Subtle</OptionButton>
+            <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="A balanced journey with clear peaks and valleys.">Moderate</OptionButton>
+            <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A powerful, dramatic arc with stark contrasts.">Intense</OptionButton>
+          </div>
         </div>
       </div>
 
