@@ -288,7 +288,7 @@ export const generateCreativeAssets = async (intensity: EmotionalArcIntensity, v
 
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to communicate with the AI model. Please check your API key and network connection.");
+    throw new Error("The AI muse hit a block. Perhaps try a different creative direction or check your connection.");
   }
 };
 

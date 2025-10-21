@@ -22,14 +22,14 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setGeneratedAssets(null);
-    setLoadingMessage('Generating script, outline, and reference images...');
+    setLoadingMessage('Warming up the render farm...');
 
     try {
       const result = await generateCreativeAssets(emotionalArc, visualStyle, narrativeTone);
       setGeneratedAssets(result);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-      setError(`Failed to generate assets: ${errorMessage}`);
+      setError(errorMessage);
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -106,12 +106,12 @@ const App: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div>
-                    <h3 className="text-xl font-semibold mb-2 text-white">Generation Failed</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-white">An Unexpected Plot Twist</h3>
                     <p className="mb-4 text-gray-300">{error}</p>
                     <button
                       onClick={handleGenerate}
                       disabled={isLoading}
-                      className="flex items-center justify-center gap-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-2 px-5 rounded-lg hover:from-amber-400 hover:to-orange-500 transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400/50 focus:ring-offset-2 focus:ring-offset-[#0D1117] shadow-lg"
+                      className="flex items-center justify-center gap-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-2 px-5 rounded-lg hover:from-amber-400 hover:to-orange-500 transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-400/50 focus:ring-offset-2 focus:ring-offset-[#0D1117] shadow-lg"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
@@ -133,10 +133,10 @@ const App: React.FC = () => {
               />
             )}
              {!isLoading && !error && !generatedAssets && (
-                <div className="flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm border-2 border-dashed border-white/10 p-12 rounded-2xl h-full min-h-[500px] text-center shadow-inner">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white/20 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4" /></svg>
-                    <h3 className="text-2xl font-bold text-white">Your Cinematic Universe Awaits</h3>
-                    <p className="text-gray-400 mt-2 max-w-md">Use the Creative Controls to set your vision, then click "Generate Assets" to begin the AI-powered filmmaking process.</p>
+                <div className="flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm border-2 border-dashed border-white/10 p-12 rounded-2xl h-full min-h-[500px] text-center shadow-inner overflow-hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white/20 mb-6 animate-ken-burns" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4" /></svg>
+                    <h3 className="text-2xl font-bold text-white animate-fade-in [animation-delay:200ms]">Your Cinematic Universe Awaits</h3>
+                    <p className="text-gray-400 mt-2 max-w-md animate-fade-in [animation-delay:400ms]">Set your creative compass. Choose the tone, style, and heart of your story, then bring your universe to life.</p>
                 </div>
             )}
           </div>

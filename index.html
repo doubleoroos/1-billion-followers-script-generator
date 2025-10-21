@@ -23,17 +23,27 @@
             },
             keyframes: {
               'subtle-fade-in': {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
+                '0%': { opacity: '0', transform: 'translateY(10px) scale(0.98)' },
+                '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
               },
               'glow': {
                 '0%, 100%': { boxShadow: '0 0 10px rgba(251, 191, 36, 0.2), 0 0 20px rgba(251, 191, 36, 0.1)' },
                 '50%': { boxShadow: '0 0 20px rgba(251, 191, 36, 0.4), 0 0 30px rgba(251, 191, 36, 0.2)' },
+              },
+              'ken-burns': {
+                '0%': { transform: 'scale(1) translate(0, 0)', opacity: 0.8 },
+                '100%': { transform: 'scale(1.1) translate(-2px, 2px)', opacity: 1 },
+              },
+              'draw-checkmark': {
+                '0%': { strokeDashoffset: 24 },
+                '100%': { strokeDashoffset: 0 },
               }
             },
             animation: {
               'fade-in': 'subtle-fade-in 0.5s ease-out forwards',
               'glow': 'glow 3s ease-in-out infinite',
+              'ken-burns': 'ken-burns 15s ease-in-out infinite alternate forwards',
+              'draw-checkmark': 'draw-checkmark 0.3s ease-out forwards',
             }
           }
         }
