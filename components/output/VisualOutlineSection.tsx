@@ -286,10 +286,11 @@ const SceneCard: React.FC<SceneCardProps> = ({
                 />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
                 <EditableField label="Location" id={`loc-${scene.id}`} value={scene.location} field="location" />
                 <EditableField label="Time of Day" id={`time-${scene.id}`} value={scene.timeOfDay} field="timeOfDay" />
-                <div className="md:col-span-2">
+                <EditableField label="Duration" id={`duration-${scene.id}`} value={scene.duration} field="duration" placeholder="e.g., 10s" />
+                <div className="md:col-span-3">
                     <EditableField
                         label="Description"
                         id={`desc-${scene.id}`}
@@ -299,7 +300,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         placeholder="Describe the scene's mood, setting, and key actions..."
                     />
                 </div>
-                <div className="md:col-span-2 relative">
+                <div className="md:col-span-3 relative">
                     <label htmlFor={`prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Video Generation Prompt</label>
                     <div className="relative group">
                         <textarea

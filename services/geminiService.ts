@@ -82,7 +82,7 @@ Return the output as a JSON object with three keys: "characters", "script", and 
     - a "type" key ('narration' or 'dialogue').
     - a "content" key with the text for that block.
     - if the type is 'dialogue', it must also have a "characterName" key matching a name from the characters list.
-- "visualOutline" should be an array of scene objects. Each object must have string keys: "title", "location", "timeOfDay", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion".
+- "visualOutline" should be an array of scene objects. Each object must have string keys: "title", "location", "timeOfDay", "duration", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion".
 `;
 }
 
@@ -92,6 +92,7 @@ const formatOutlineForPrompt = (outline: Scene[]): string => {
 **Scene Number & Title:** Scene ${index + 1}: ${scene.title}
 **Location:** ${scene.location}
 **Time of Day:** ${scene.timeOfDay}
+**Duration:** ${scene.duration}
 **Atmosphere:** ${scene.atmosphere}
 **Scene Description:** ${scene.description}
 **Key Visual Elements:** ${scene.keyVisualElements}
@@ -241,6 +242,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
                   title: { type: Type.STRING },
                   location: { type: Type.STRING },
                   timeOfDay: { type: Type.STRING },
+                  duration: { type: Type.STRING, description: "Estimated duration of the scene in seconds (e.g., '15s')."},
                   atmosphere: { type: Type.STRING },
                   description: {
                     type: Type.STRING,
@@ -251,7 +253,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
                   transition: { type: Type.STRING },
                   pacingEmotion: { type: Type.STRING },
                 },
-                required: ["title", "location", "timeOfDay", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion"]
+                required: ["title", "location", "timeOfDay", "duration", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion"]
               }
             },
           },

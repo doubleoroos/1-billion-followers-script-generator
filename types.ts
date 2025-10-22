@@ -28,6 +28,7 @@ export interface Scene {
   title: string;
   location: string;
   timeOfDay: string;
+  duration: string;
   atmosphere: string;
   description: string;
   keyVisualElements: string;
