@@ -87,6 +87,7 @@ interface VideoGenerationControlsProps {
 }
 
 const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statusInfo, onGenerate, onCancel, isVeoKeySelected, onSelectKey, hasVideo }) => {
+    // Loading State (compact)
     if (statusInfo.status === 'loading') {
         return (
             <div className="flex flex-col items-center gap-2 animate-fade-in w-full">
@@ -99,23 +100,40 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
         );
     }
     
+    // Error State (expanded)
     if (statusInfo.status === 'error') {
       return (
-          <div className="text-center">
-              <p className="text-xs text-red-400 mb-2">Generation Failed</p>
-              <button onClick={onGenerate} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Retry</button>
+          <div className="bg-red-900/30 border border-red-600/50 p-3 rounded-lg animate-fade-in w-full text-left">
+              <h5 className="font-semibold text-white text-sm mb-2">Generation Error</h5>
+              <p className="text-xs font-mono p-2 bg-black/20 rounded text-red-200/80 mb-3 break-words">
+                {statusInfo.error || 'An unknown error occurred.'}
+              </p>
+              <div className="flex justify-end gap-2">
+                {isVeoKeySelected === false && (
+                    <button onClick={onSelectKey} className="text-xs bg-violet-600 hover:bg-violet-500 text-white font-bold py-1 px-3 rounded-md transition-all active:scale-[0.98]">Select New Key</button>
+                )}
+                <button onClick={onGenerate} className="text-xs bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-md transition-all active:scale-[0.98]">Retry</button>
+              </div>
           </div>
-      )
+      );
     }
 
+    // Key Selection State (expanded)
     if (isVeoKeySelected === false) {
         return (
-            <button onClick={onSelectKey} className="flex items-center justify-center gap-2 w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg transition-all text-sm">
-                <KeyIcon /> Select API Key
-            </button>
+             <div className="bg-blue-deep/50 p-4 rounded-lg border border-violet-glow/30 text-center animate-fade-in w-full">
+                <p className="text-gray-300 text-sm mb-2">
+                    Video generation with Veo requires a billed API key.
+                </p>
+                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-lum hover:underline mb-3 block">Learn more about billing</a>
+                <button onClick={onSelectKey} className="flex items-center justify-center gap-2 w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg transition-all text-sm">
+                    <KeyIcon /> Select API Key
+                </button>
+            </div>
         );
     }
     
+    // Verifying State (compact)
     if (isVeoKeySelected === null) {
         return (
             <div className="flex items-center justify-center gap-2 text-sm text-gray-400 h-10">
@@ -125,6 +143,7 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
         );
     }
     
+    // Idle/Generate State (compact)
     const buttonText = hasVideo ? 'Regenerate' : 'Generate Video';
     const Icon = hasVideo ? RegenerateIcon : VideoIcon;
     
@@ -217,6 +236,8 @@ const SceneCard: React.FC<SceneCardProps> = ({
         </div>
     )};
 
+    const showExpandedControls = generationStatus.status === 'error' || isVeoKeySelected === false;
+
     return (
         <div className="relative bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300 border border-white/10 shadow-lg">
              <div className="flex justify-between items-start gap-4 mb-6">
@@ -229,7 +250,22 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-violet-glow rounded-md p-1 -m-1 w-full"
                     />
                 </div>
-                <div className="flex-shrink-0 w-44">
+                {!showExpandedControls && (
+                    <div className="flex-shrink-0 w-44">
+                        <VideoGenerationControls 
+                            statusInfo={generationStatus}
+                            onGenerate={handleGenerateVideo}
+                            onCancel={handleCancelGeneration}
+                            isVeoKeySelected={isVeoKeySelected}
+                            onSelectKey={onSelectKey}
+                            hasVideo={!!scene.videoUrl}
+                        />
+                    </div>
+                )}
+            </div>
+
+            {showExpandedControls && (
+                <div className="mb-4 animate-fade-in">
                     <VideoGenerationControls 
                         statusInfo={generationStatus}
                         onGenerate={handleGenerateVideo}
@@ -239,29 +275,8 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         hasVideo={!!scene.videoUrl}
                     />
                 </div>
-            </div>
-
-            {generationStatus.status === 'error' && (
-              <div className="bg-red-900/30 border border-red-600/50 p-3 rounded-lg animate-fade-in mb-4">
-                  <h5 className="font-semibold text-white text-sm">Generation Error</h5>
-                  <p className="text-xs font-mono p-2 bg-black/20 rounded mt-2 text-red-200/80">{generationStatus.error}</p>
-                   {isVeoKeySelected === false && (
-                       <div className="flex justify-end mt-2">
-                         <button onClick={onSelectKey} className="text-xs bg-violet-600 hover:bg-violet-500 text-white font-bold py-1 px-3 rounded-md transition-all active:scale-[0.98]">Select New Key</button>
-                       </div>
-                    )}
-              </div>
             )}
             
-            {isVeoKeySelected === false && generationStatus.status !== 'error' && (
-                <div className="bg-blue-deep/50 p-4 rounded-lg border border-violet-glow/30 text-center animate-fade-in mb-4">
-                    <p className="text-gray-300 text-sm">
-                        Video generation with Veo requires a billed API key.
-                    </p>
-                    <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-lum hover:underline my-2 block">Learn more about billing</a>
-                </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                 <EditableField label="Location" id={`loc-${scene.id}`} value={scene.location} field="location" />
                 <EditableField label="Time of Day" id={`time-${scene.id}`} value={scene.timeOfDay} field="timeOfDay" />
