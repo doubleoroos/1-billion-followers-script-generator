@@ -69,7 +69,7 @@ You are an expert screenwriter and concept artist creating assets for a film sub
 
 **Your Task:**
 
-1.  **Character Generation:** Based on the theme, create 2-4 compelling characters who will drive the story. For each character, provide a name and a brief, one-sentence description of their role or essence.
+1.  **Character Generation:** Based on the theme, create 2-4 compelling characters who will drive the story. For each character, provide a name, a brief, one-sentence description of their essence, and a specific role (e.g., 'Protagonist', 'Antagonist', 'Mentor', 'Supporting Character').
 
 2.  **Script Generation:** Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. Structure it as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. It must follow a complete narrative arc with a beginning, middle, and end, featuring clear character development, conflict, and resolution, all aligning with the requested **Emotional Arc**.
 
@@ -77,7 +77,7 @@ You are an expert screenwriter and concept artist creating assets for a film sub
 
 **Output Format:**
 Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
-- "characters" should be an array of objects, where each object has a "name" key and a "description" key (e.g., [{ "name": "The Architect", "description": "An AI ethicist designing a system for global good." }]).
+- "characters" should be an array of objects, where each object has a "name" key, a "description" key, and a "role" key (e.g., [{ "name": "The Architect", "description": "An AI ethicist designing a system for global good.", "role": "Protagonist" }]).
 - "script" should be an array of objects. Each object must have:
     - a "type" key ('narration' or 'dialogue').
     - a "content" key with the text for that block.
@@ -225,9 +225,10 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
                 type: Type.OBJECT,
                 properties: { 
                   name: { type: Type.STRING },
-                  description: { type: Type.STRING, description: "A brief, one-sentence description of the character's role or essence." }
+                  description: { type: Type.STRING, description: "A brief, one-sentence description of the character's role or essence." },
+                  role: { type: Type.STRING, description: "The character's role in the story (e.g., Protagonist, Antagonist)." }
                 },
-                required: ["name", "description"],
+                required: ["name", "description", "role"],
               },
             },
             script: {
@@ -305,13 +306,14 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const parsedData = JSON.parse(jsonText);
     
     // Process characters and script
-    const rawCharacters: { name: string; description: string; }[] = parsedData.characters || [];
+    const rawCharacters: { name: string; description: string; role: string; }[] = parsedData.characters || [];
     const rawScript: { type: 'narration' | 'dialogue', characterName?: string, content: string }[] = parsedData.script || [];
 
     const characters: Character[] = rawCharacters.map(c => ({ 
         id: `char_${Math.random().toString(36).substring(2, 9)}`, 
         name: c.name,
-        description: c.description
+        description: c.description,
+        role: c.role,
     }));
     
     const characterNameToIdMap = new Map(characters.map(c => [c.name, c.id]));

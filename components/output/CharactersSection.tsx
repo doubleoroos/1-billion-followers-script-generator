@@ -14,12 +14,14 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(character.name);
     const [editedDescription, setEditedDescription] = useState(character.description);
+    const [editedRole, setEditedRole] = useState(character.role);
 
     const handleSave = () => {
         onSave({
             ...character,
             name: editedName,
             description: editedDescription,
+            role: editedRole,
         });
         setIsEditing(false);
     };
@@ -27,6 +29,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
     const handleCancel = () => {
         setEditedName(character.name);
         setEditedDescription(character.description);
+        setEditedRole(character.role);
         setIsEditing(false);
     };
 
@@ -35,6 +38,17 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
             <div className="flex-grow">
                 {isEditing ? (
                     <div className="space-y-4 text-left">
+                        <div>
+                            <label htmlFor={`role-${character.id}`} className="block text-sm font-medium text-gray-400 mb-1">Role</label>
+                            <input
+                                id={`role-${character.id}`}
+                                type="text"
+                                value={editedRole}
+                                onChange={(e) => setEditedRole(e.target.value)}
+                                className="w-full bg-gray-900/60 p-2 rounded-md text-cyan-lum border border-white/20 focus:border-cyan-lum focus:ring-cyan-lum text-sm font-semibold uppercase tracking-wider"
+                                placeholder="e.g., Protagonist"
+                            />
+                        </div>
                         <div>
                             <label htmlFor={`name-${character.id}`} className="block text-sm font-medium text-gray-400 mb-1">Name</label>
                             <input
@@ -58,6 +72,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                     </div>
                 ) : (
                     <>
+                        <p className="text-sm font-semibold uppercase tracking-wider text-cyan-lum mb-2">{character.role}</p>
                         <h3 className="text-xl font-bold text-violet-glow">{character.name}</h3>
                         <p className="text-gray-300 italic mt-2">{character.description}</p>
                     </>

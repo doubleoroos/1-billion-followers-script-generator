@@ -14,6 +14,7 @@ export interface Character {
   id: string;
   name: string;
   description: string;
+  role: string;
 }
 
 export interface ScriptBlock {
