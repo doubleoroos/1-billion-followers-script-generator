@@ -101,6 +101,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                     <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
                     <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
                     <OptionButton value="biomorphic" current={visualStyle} onClick={setVisualStyle} tooltip="Draw from nature's blueprint. Create a flowing, interconnected world of organic shapes.">Biomorphic</OptionButton>
+                    <OptionButton value="abstract" current={visualStyle} onClick={setVisualStyle} tooltip="Evoke feelings through non-literal forms. Use color, shape, and texture to build an inner landscape.">Abstract</OptionButton>
                 </div>
             </div>
             <div className="p-4 bg-gray-800/20 rounded-xl border border-white/10 relative overflow-hidden">
@@ -110,7 +111,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                     {/* FIX: Added children to OptionButton components to satisfy the 'children' prop requirement. */}
                     <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
                     <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
-                    <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
+                    <OptionButton value="intimate" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 
 
 export type EmotionalArcIntensity = 'subtle' | 'moderate' | 'intense';
-export type VisualStyle = 'cinematic' | 'solarpunk' | 'minimalist' | 'biomorphic';
+export type VisualStyle = 'cinematic' | 'solarpunk' | 'minimalist' | 'biomorphic' | 'abstract';
 export type NarrativeTone = 'poetic' | 'philosophical' | 'hopeful' | 'intimate';
 export type RewriteTomorrowTheme = 'abundance' | 'ascension' | 'harmony' | 'enlightenment';
 
