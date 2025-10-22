@@ -73,7 +73,7 @@ You are an expert screenwriter and concept artist creating assets for a film sub
 
 2.  **Script Generation:** Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. Structure it as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. It must follow a complete narrative arc with a beginning, middle, and end, featuring clear character development, conflict, and resolution, all aligning with the requested **Emotional Arc**.
 
-3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
+3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style. Also, provide a 'charactersInScene' field that briefly describes which characters are present and their key actions or emotional state.
 
 **Output Format:**
 Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
@@ -82,7 +82,7 @@ Return the output as a JSON object with three keys: "characters", "script", and 
     - a "type" key ('narration' or 'dialogue').
     - a "content" key with the text for that block.
     - if the type is 'dialogue', it must also have a "characterName" key matching a name from the characters list.
-- "visualOutline" should be an array of scene objects. Each object must have string keys: "title", "location", "timeOfDay", "duration", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion".
+- "visualOutline" should be an array of scene objects. Each object must have string keys: "title", "location", "timeOfDay", "duration", "atmosphere", "charactersInScene", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion".
 `;
 }
 
@@ -94,6 +94,7 @@ const formatOutlineForPrompt = (outline: Scene[]): string => {
 **Time of Day:** ${scene.timeOfDay}
 **Duration:** ${scene.duration}
 **Atmosphere:** ${scene.atmosphere}
+**Characters in Scene:** ${scene.charactersInScene}
 **Scene Description:** ${scene.description}
 **Key Visual Elements:** ${scene.keyVisualElements}
 **Visuals:** ${scene.visuals}
@@ -201,6 +202,7 @@ const createVideoPrompt = (scene: Scene | Omit<Scene, 'id' | 'videoUrl' | 'video
 **Visual Style:** ${styleDescription}.
 **Scene Title:** ${scene.title}.
 **Atmosphere:** ${scene.atmosphere}.
+**Characters in Scene:** ${scene.charactersInScene}.
 **Description:** ${scene.description}.
 **Key Visuals:** ${scene.keyVisualElements}.
 The video should be cinematic, high-quality, and evoke the emotion of: ${scene.pacingEmotion}.`;
@@ -250,6 +252,10 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
                   timeOfDay: { type: Type.STRING },
                   duration: { type: Type.STRING, description: "Estimated duration of the scene in seconds (e.g., '15s')."},
                   atmosphere: { type: Type.STRING },
+                  charactersInScene: { 
+                    type: Type.STRING,
+                    description: "A description of which characters are present in this scene and their key actions or emotional states."
+                  },
                   description: {
                     type: Type.STRING,
                     description: "A highly evocative and detailed paragraph that paints a vivid picture of the scene, embodying the selected visual style. It must detail the mood, setting, and key actions or moments."
@@ -259,7 +265,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
                   transition: { type: Type.STRING },
                   pacingEmotion: { type: Type.STRING },
                 },
-                required: ["title", "location", "timeOfDay", "duration", "atmosphere", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion"]
+                required: ["title", "location", "timeOfDay", "duration", "atmosphere", "charactersInScene", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion"]
               }
             },
           },
@@ -423,6 +429,7 @@ export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: V
     **SCENE DETAILS:**
     - **Title:** ${scene.title}
     - **Atmosphere:** ${scene.atmosphere}
+    - **Characters in Scene:** ${scene.charactersInScene}
     - **Description:** ${scene.description}
     - **Key Visuals:** ${scene.keyVisualElements}
     - **Pacing/Emotion:** ${scene.pacingEmotion}

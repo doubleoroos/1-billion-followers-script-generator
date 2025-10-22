@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene } from '../../services/geminiService';
@@ -336,7 +337,15 @@ const SceneCard: React.FC<SceneCardProps> = ({
         generationController.current?.abort();
     };
 
-    const EditableField: React.FC<{label: string, id: string, value: string, field: keyof Scene, isTextarea?: boolean, placeholder?: string}> = ({ label, id, value, field, isTextarea, placeholder }) => {
+    const EditableField: React.FC<{
+        label: string;
+        id: string;
+        value: string;
+        field: keyof Scene;
+        isTextarea?: boolean;
+        placeholder?: string;
+        rows?: number;
+    }> = ({ label, id, value, field, isTextarea, placeholder, rows = 4 }) => {
         const commonClasses = "w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition";
         return (
         <div>
@@ -346,7 +355,8 @@ const SceneCard: React.FC<SceneCardProps> = ({
                     id={id}
                     value={value}
                     onChange={(e) => onFieldChange(field, e.target.value)}
-                    className={`${commonClasses} h-28 resize-y`}
+                    rows={rows}
+                    className={`${commonClasses} resize-y`}
                     placeholder={placeholder}
                 />
             ) : (
@@ -399,11 +409,23 @@ const SceneCard: React.FC<SceneCardProps> = ({
                 <EditableField label="Duration" id={`duration-${scene.id}`} value={scene.duration} field="duration" placeholder="e.g., 10s or 240f" />
                 <div className="md:col-span-2">
                     <EditableField
+                        label="Characters in Scene"
+                        id={`chars-${scene.id}`}
+                        value={scene.charactersInScene}
+                        field="charactersInScene"
+                        isTextarea
+                        rows={3}
+                        placeholder="Describe characters present and their key actions/emotions..."
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <EditableField
                         label="Description"
                         id={`desc-${scene.id}`}
                         value={scene.description}
                         field="description"
                         isTextarea
+                        rows={5}
                         placeholder="Describe the scene's mood, setting, and key actions..."
                     />
                 </div>

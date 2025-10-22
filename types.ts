@@ -30,6 +30,7 @@ export interface Scene {
   timeOfDay: string;
   duration: string;
   atmosphere: string;
+  charactersInScene: string;
   description: string;
   keyVisualElements: string;
   visuals: string;
