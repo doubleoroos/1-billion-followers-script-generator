@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene } from '../../services/geminiService';
@@ -62,6 +63,52 @@ const ApiKeyManager: React.FC<{
     </div>
   );
 };
+
+const atmosphereOptions = [
+    'Misty',
+    'Golden Hour',
+    'Stormy',
+    'Serene',
+    'Eerie',
+    'Bustling',
+    'Oppressive',
+    'Tranquil',
+    'Vibrant',
+    'Desolate',
+    'Futuristic',
+    'Nostalgic',
+];
+
+const DatalistInput: React.FC<{
+  label: string;
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  placeholder?: string;
+}> = ({ label, id, value, onChange, options, placeholder }) => {
+  const datalistId = `${id}-list`;
+  return (
+    <div>
+      <label htmlFor={id} className="block text-gray-400 font-semibold mb-1 text-sm">{label}</label>
+      <input
+        id={id}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        list={datalistId}
+        className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition"
+        placeholder={placeholder}
+      />
+      <datalist id={datalistId}>
+        {options.map(option => (
+          <option key={option} value={option} />
+        ))}
+      </datalist>
+    </div>
+  );
+};
+
 
 export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({ 
   outline, onSave, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError 
@@ -286,11 +333,19 @@ const SceneCard: React.FC<SceneCardProps> = ({
                 />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                 <EditableField label="Location" id={`loc-${scene.id}`} value={scene.location} field="location" />
                 <EditableField label="Time of Day" id={`time-${scene.id}`} value={scene.timeOfDay} field="timeOfDay" />
+                <DatalistInput
+                    label="Atmosphere"
+                    id={`atmos-${scene.id}`}
+                    value={scene.atmosphere}
+                    onChange={(value) => onFieldChange('atmosphere', value)}
+                    options={atmosphereOptions}
+                    placeholder="e.g., Serene, Stormy..."
+                />
                 <EditableField label="Duration" id={`duration-${scene.id}`} value={scene.duration} field="duration" placeholder="e.g., 10s" />
-                <div className="md:col-span-3">
+                <div className="md:col-span-2">
                     <EditableField
                         label="Description"
                         id={`desc-${scene.id}`}
@@ -300,7 +355,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         placeholder="Describe the scene's mood, setting, and key actions..."
                     />
                 </div>
-                <div className="md:col-span-3 relative">
+                <div className="md:col-span-2 relative">
                     <label htmlFor={`prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Video Generation Prompt</label>
                     <div className="relative group">
                         <textarea
