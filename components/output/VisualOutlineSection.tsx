@@ -191,15 +191,28 @@ const SceneCard: React.FC<SceneCardProps> = ({
         generationController.current?.abort();
     };
 
-    const EditableField: React.FC<{label: string, id: string, value: string, field: keyof Scene, isTextarea?: boolean}> = ({ label, id, value, field, isTextarea }) => {
+    const EditableField: React.FC<{label: string, id: string, value: string, field: keyof Scene, isTextarea?: boolean, placeholder?: string}> = ({ label, id, value, field, isTextarea, placeholder }) => {
         const commonClasses = "w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition";
         return (
         <div>
             <label htmlFor={id} className="block text-gray-400 font-semibold mb-1 text-sm">{label}</label>
             {isTextarea ? (
-                <textarea id={id} value={value} onChange={(e) => onFieldChange(field, e.target.value)} className={`${commonClasses} h-24 resize-y`} />
+                <textarea
+                    id={id}
+                    value={value}
+                    onChange={(e) => onFieldChange(field, e.target.value)}
+                    className={`${commonClasses} h-28 resize-y`}
+                    placeholder={placeholder}
+                />
             ) : (
-                <input id={id} type="text" value={value} onChange={(e) => onFieldChange(field, e.target.value)} className={commonClasses} />
+                <input
+                    id={id}
+                    type="text"
+                    value={value}
+                    onChange={(e) => onFieldChange(field, e.target.value)}
+                    className={commonClasses}
+                    placeholder={placeholder}
+                />
             )}
         </div>
     )};
@@ -253,7 +266,14 @@ const SceneCard: React.FC<SceneCardProps> = ({
                 <EditableField label="Location" id={`loc-${scene.id}`} value={scene.location} field="location" />
                 <EditableField label="Time of Day" id={`time-${scene.id}`} value={scene.timeOfDay} field="timeOfDay" />
                 <div className="md:col-span-2">
-                    <EditableField label="Description" id={`desc-${scene.id}`} value={scene.description} field="description" isTextarea />
+                    <EditableField
+                        label="Description"
+                        id={`desc-${scene.id}`}
+                        value={scene.description}
+                        field="description"
+                        isTextarea
+                        placeholder="Describe the scene's mood, setting, and key actions..."
+                    />
                 </div>
                 <div className="md:col-span-2 relative">
                     <label htmlFor={`prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Video Generation Prompt</label>
