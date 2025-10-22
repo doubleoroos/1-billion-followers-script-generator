@@ -368,6 +368,45 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
   }
 };
 
+const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): string => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    return `Generate a cinematic preview image for a film scene.
+**Visual Style:** ${styleDescription}.
+**Scene Title:** ${scene.title}.
+**Atmosphere:** ${scene.atmosphere}.
+**Characters in Scene:** ${scene.charactersInScene}.
+**Scene Description:** ${scene.description}.
+**Key Visuals:** ${scene.keyVisualElements}.
+The image should be cinematic, 16:9 aspect ratio, hyper-detailed, and evoke the emotion of: ${scene.pacingEmotion}.`;
+};
+
+export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    try {
+        const prompt = createImagePromptForScene(scene, visualStyle);
+        const response = await ai.models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt: prompt,
+            config: {
+                numberOfImages: 1,
+                outputMimeType: 'image/jpeg',
+                aspectRatio: '16:9',
+            },
+        });
+
+        if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
+            throw new Error("Image generation failed. The model did not return an image, which may be due to safety filters or a temporary model issue.");
+        }
+
+        return `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
+    } catch (error) {
+        console.error("Error generating scene image:", error);
+        if (error instanceof Error) {
+            throw new Error(`Failed to generate preview image. Reason: ${error.message}`);
+        }
+        throw new Error("An unknown error occurred during image generation.");
+    }
+};
+
 export const generateVideoForScene = async (scene: Scene, visualStyle: VisualStyle, signal?: AbortSignal): Promise<string> => {
     try {
       // Re-initialize to ensure the latest API key is used, as per guidelines for Veo models.
