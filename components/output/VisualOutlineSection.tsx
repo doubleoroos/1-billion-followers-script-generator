@@ -140,6 +140,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
   scene, onFieldChange, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError
 }) => {
     const [generationStatus, setGenerationStatus] = useState<{ status: 'idle' | 'loading' | 'error', error?: string }>({ status: 'idle' });
+    const [showSuccess, setShowSuccess] = useState(false);
     const generationController = useRef<AbortController | null>(null);
     const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
     const [promptError, setPromptError] = useState<string | null>(null);
@@ -147,11 +148,14 @@ const SceneCard: React.FC<SceneCardProps> = ({
     const handleGenerateVideo = async () => {
         generationController.current = new AbortController();
         setGenerationStatus({ status: 'loading' });
+        setShowSuccess(false);
         try {
             const downloadLink = await generateVideoForScene(scene, visualStyle, generationController.current.signal);
             const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
             onVideoSave({ ...scene, videoUrl: finalUrl });
             setGenerationStatus({ status: 'idle' });
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 4000);
         } catch (error) {
             if (error instanceof DOMException && error.name === 'AbortError') {
                 setGenerationStatus({ status: 'idle' });
@@ -286,9 +290,15 @@ const SceneCard: React.FC<SceneCardProps> = ({
             </div>
 
             {scene.videoUrl && generationStatus.status !== 'loading' && (
-                 <div className="mt-6 border-t border-white/10 pt-6">
+                 <div className="mt-6 border-t border-white/10 pt-6 animate-fade-in">
+                    {showSuccess && (
+                        <div className="bg-green-500/20 border border-green-500/30 text-green-300 text-sm p-3 rounded-lg mb-4 flex items-center gap-3 animate-fade-in">
+                            <CheckmarkIcon />
+                            <span>Video generated successfully! Ready for review.</span>
+                        </div>
+                    )}
                     <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3">
-                        <video src={scene.videoUrl} controls className="w-full h-full"></video>
+                        <video key={scene.videoUrl} src={scene.videoUrl} controls className="w-full h-full"></video>
                     </div>
                     <div className="flex justify-end">
                         <button onClick={() => window.open(scene.videoUrl, '_blank')} className="flex items-center justify-center gap-2 bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm">
