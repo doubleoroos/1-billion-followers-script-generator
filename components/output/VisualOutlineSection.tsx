@@ -6,7 +6,7 @@ import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
 
 // Re-usable Icons
-const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
 const CheckmarkIcon = () => <svg className="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path className="animate-draw-checkmark" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" style={{ strokeDasharray: 24, strokeDashoffset: 24 }} /></svg>;
 const RegenerateIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg>;
@@ -236,46 +236,28 @@ const SceneCard: React.FC<SceneCardProps> = ({
         </div>
     )};
 
-    const showExpandedControls = generationStatus.status === 'error' || isVeoKeySelected === false;
-
     return (
         <div className="relative bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300 border border-white/10 shadow-lg">
-             <div className="flex justify-between items-start gap-4 mb-6">
-                <div className="flex-grow">
-                     <input
-                        type="text"
-                        value={scene.title}
-                        onChange={(e) => onFieldChange('title', e.target.value)}
-                        aria-label="Scene Title"
-                        className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-violet-glow rounded-md p-1 -m-1 w-full"
-                    />
-                </div>
-                {!showExpandedControls && (
-                    <div className="flex-shrink-0 w-44">
-                        <VideoGenerationControls 
-                            statusInfo={generationStatus}
-                            onGenerate={handleGenerateVideo}
-                            onCancel={handleCancelGeneration}
-                            isVeoKeySelected={isVeoKeySelected}
-                            onSelectKey={onSelectKey}
-                            hasVideo={!!scene.videoUrl}
-                        />
-                    </div>
-                )}
+             <div className="flex-grow">
+                 <input
+                    type="text"
+                    value={scene.title}
+                    onChange={(e) => onFieldChange('title', e.target.value)}
+                    aria-label="Scene Title"
+                    className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-violet-glow rounded-md p-1 -m-1 w-full"
+                />
             </div>
-
-            {showExpandedControls && (
-                <div className="mb-4 animate-fade-in">
-                    <VideoGenerationControls 
-                        statusInfo={generationStatus}
-                        onGenerate={handleGenerateVideo}
-                        onCancel={handleCancelGeneration}
-                        isVeoKeySelected={isVeoKeySelected}
-                        onSelectKey={onSelectKey}
-                        hasVideo={!!scene.videoUrl}
-                    />
-                </div>
-            )}
+            
+            <div className="my-6">
+                <VideoGenerationControls 
+                    statusInfo={generationStatus}
+                    onGenerate={handleGenerateVideo}
+                    onCancel={handleCancelGeneration}
+                    isVeoKeySelected={isVeoKeySelected}
+                    onSelectKey={onSelectKey}
+                    hasVideo={!!scene.videoUrl}
+                />
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                 <EditableField label="Location" id={`loc-${scene.id}`} value={scene.location} field="location" />
