@@ -1,8 +1,7 @@
-
 import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { InputPanel } from './components/InputPanel';
-import { OutputDisplay } from './components/OutputDisplay';
+import { OutputDisplay } from './components/output/OutputDisplay';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { generateCreativeAssets } from './services/geminiService';
 import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone, ScriptBlock, Character, Scene, RewriteTomorrowTheme } from './types';
@@ -70,6 +69,12 @@ const App: React.FC = () => {
         return <LoadingSpinner />;
       case 'reveal':
         if (generatedAssets) {
+          const creativeChoices = {
+            theme: rewriteTomorrowTheme,
+            arc: emotionalArc,
+            style: visualStyle,
+            tone: narrativeTone,
+          };
           return (
             <OutputDisplay 
               generatedAssets={generatedAssets}
@@ -78,6 +83,7 @@ const App: React.FC = () => {
               onBtsSave={handleBtsSave}
               onVideoSave={handleVideoSave}
               visualStyle={visualStyle}
+              creativeChoices={creativeChoices}
             />
           );
         }
