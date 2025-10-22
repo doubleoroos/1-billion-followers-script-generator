@@ -64,7 +64,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
     <div className="max-w-3xl mx-auto animate-fade-in">
         <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold text-white mb-3 bg-gradient-to-r from-white to-gray-400 text-transparent bg-clip-text">Envision a New Future</h2>
-            <p className="text-gray-400 text-lg">Select a core theme and creative direction. Your choices will guide the AI in generating a complete concept for your 7-10 minute film.</p>
+            <p className="text-gray-400 text-lg">Select a core theme and creative direction. Your choices will guide the AI in generating a complete concept for your 1-3 minute film.</p>
         </div>
       
         <div className="bg-black/20 backdrop-blur-lg p-6 md:p-8 rounded-2xl border border-white/10 flex flex-col space-y-8 shadow-2xl shadow-black/30">
@@ -74,6 +74,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Rewrite Tomorrow Theme</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {/* Fix: Added children to OptionButton components */}
                     <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
                     <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
                     <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
@@ -84,6 +85,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Narrative Tone</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {/* Fix: Added children to OptionButton components */}
                     <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
                     <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Ponder the great questions. Explore the depths of meaning and existence.">Philosophical</OptionButton>
                     <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Paint a vision of tomorrow. Inspire with a story of optimism and unity.">Hopeful</OptionButton>
@@ -94,6 +96,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Visual Style</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {/* Fix: Added children to OptionButton components */}
                     <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
                     <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
                     <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
@@ -104,6 +107,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Emotional Arc Intensity</h3>
                 <div className="flex justify-between items-center gap-2">
+                    {/* Fix: Added children to OptionButton components */}
                     <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
                     <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
                     <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>

@@ -124,7 +124,19 @@ const ScriptSection: React.FC<{ script: ScriptBlock[], characters: Character[], 
     );
 };
 
-const VisualOutlineSection: React.FC<{ outline: Scene[], onSave: (newOutline: Scene[]) => void, onVideoSave: (scene: Scene) => void, visualStyle: VisualStyle }> = ({ outline, onSave, onVideoSave, visualStyle }) => {
+interface VisualOutlineSectionProps {
+  outline: Scene[];
+  onSave: (newOutline: Scene[]) => void;
+  onVideoSave: (scene: Scene) => void;
+  visualStyle: VisualStyle;
+  isVeoKeySelected: boolean | null;
+  onSelectKey: () => Promise<void>;
+  onInvalidKeyError: () => void;
+}
+
+const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({ 
+  outline, onSave, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError 
+}) => {
     const [editedOutline, setEditedOutline] = useState<Scene[]>(outline);
     const { status, save } = useAutosave({ onSave });
      
@@ -149,13 +161,28 @@ const VisualOutlineSection: React.FC<{ outline: Scene[], onSave: (newOutline: Sc
                     onFieldChange={(field, value) => handleSceneFieldChange(index, field, value)}
                     onVideoSave={onVideoSave}
                     visualStyle={visualStyle}
+                    isVeoKeySelected={isVeoKeySelected}
+                    onSelectKey={onSelectKey}
+                    onInvalidKeyError={onInvalidKeyError}
                 />
             ))}
         </div>
     );
 };
 
-const SceneCard: React.FC<{ scene: Scene, onFieldChange: (field: keyof Scene, value: string) => void, onVideoSave: (scene: Scene) => void, visualStyle: VisualStyle }> = ({ scene, onFieldChange, onVideoSave, visualStyle }) => {
+interface SceneCardProps {
+  scene: Scene;
+  onFieldChange: (field: keyof Scene, value: string) => void;
+  onVideoSave: (scene: Scene) => void;
+  visualStyle: VisualStyle;
+  isVeoKeySelected: boolean | null;
+  onSelectKey: () => Promise<void>;
+  onInvalidKeyError: () => void;
+}
+
+const SceneCard: React.FC<SceneCardProps> = ({ 
+  scene, onFieldChange, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError
+}) => {
     const [generationStatus, setGenerationStatus] = useState<{ status: 'idle' | 'loading' | 'error', error?: string }>({ status: 'idle' });
     const generationController = useRef<AbortController | null>(null);
     const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
@@ -175,7 +202,12 @@ const SceneCard: React.FC<{ scene: Scene, onFieldChange: (field: keyof Scene, va
                 return;
             }
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-            setGenerationStatus({ status: 'error', error: errorMessage });
+            if (errorMessage.includes('Requested entity was not found.')) {
+              setGenerationStatus({ status: 'error', error: "Your API Key appears to be invalid. Please select a different one to continue." });
+              onInvalidKeyError();
+            } else {
+              setGenerationStatus({ status: 'error', error: errorMessage });
+            }
         }
     };
     
@@ -264,15 +296,24 @@ const SceneCard: React.FC<{ scene: Scene, onFieldChange: (field: keyof Scene, va
                     statusInfo={generationStatus}
                     onGenerate={handleGenerateVideo}
                     onCancel={handleCancelGeneration}
-                    onVideoSave={onVideoSave}
+                    isVeoKeySelected={isVeoKeySelected}
+                    onSelectKey={onSelectKey}
                 />
             </div>
         </div>
     );
 };
 
+interface VideoGenerationUnitProps {
+  scene: Scene;
+  statusInfo: { status: 'idle' | 'loading' | 'error', error?: string };
+  onGenerate: () => void;
+  onCancel: () => void;
+  isVeoKeySelected: boolean | null;
+  onSelectKey: () => Promise<void>;
+}
 
-const VideoGenerationUnit: React.FC<{ scene: Scene; statusInfo: { status: 'idle' | 'loading' | 'error', error?: string }; onGenerate: () => void; onCancel: () => void; onVideoSave: (scene: Scene) => void; }> = ({ scene, statusInfo, onGenerate, onCancel, onVideoSave }) => {
+const VideoGenerationUnit: React.FC<VideoGenerationUnitProps> = ({ scene, statusInfo, onGenerate, onCancel, isVeoKeySelected, onSelectKey }) => {
     
     if (scene.videoUrl && statusInfo.status !== 'loading') {
         return (
@@ -281,7 +322,7 @@ const VideoGenerationUnit: React.FC<{ scene: Scene; statusInfo: { status: 'idle'
                     <video src={scene.videoUrl} controls className="w-full h-full"></video>
                 </div>
                 <div className="mt-3 flex flex-col sm:flex-row gap-3">
-                    <button onClick={() => {}} className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed">
+                    <button onClick={() => window.open(scene.videoUrl, '_blank')} className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] disabled:bg-gray-700 disabled:cursor-not-allowed">
                         <DownloadIcon /><span>Download</span>
                     </button>
                     <button onClick={onGenerate} className="flex-1 flex items-center justify-center gap-2 bg-gray-600/80 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98]">
@@ -314,12 +355,41 @@ const VideoGenerationUnit: React.FC<{ scene: Scene; statusInfo: { status: 'idle'
                 <h5 className="font-semibold text-white">An Unexpected Plot Twist</h5>
                 <p className="text-sm font-mono p-2 bg-black/20 rounded mt-2 text-red-200/80">{statusInfo.error}</p>
                 <div className="flex justify-end mt-4">
-                    <button onClick={onGenerate} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Retry</button>
+                     {isVeoKeySelected ? (
+                        <button onClick={onGenerate} className="text-sm bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Retry</button>
+                    ) : (
+                         <button onClick={onSelectKey} className="text-sm bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded-md transition-all active:scale-[0.98]">Select New Key</button>
+                    )}
                 </div>
             </div>
         );
     }
 
+    if (isVeoKeySelected === false) {
+        return (
+            <div className="bg-blue-deep/50 p-6 rounded-lg border border-violet-glow/30 text-center animate-fade-in">
+                <h4 className="font-bold text-white text-lg mb-2">API Key Required for Veo</h4>
+                <p className="text-gray-300 text-sm mb-4">
+                    Video generation with Google's Veo model requires an API key associated with a project that has billing enabled. Please select your key to proceed.
+                </p>
+                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-sm text-cyan-lum hover:underline mb-4 block">Learn more about billing</a>
+                <button onClick={onSelectKey} className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98]">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1-1.257-.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>
+                    Select API Key
+                </button>
+            </div>
+        );
+    }
+
+    if (isVeoKeySelected === null) {
+        return (
+            <div className="w-full flex items-center justify-center gap-2 bg-gray-700 text-white font-bold py-3 px-4 rounded-lg">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Verifying API Key...
+            </div>
+        );
+    }
+    
     return (
         <button onClick={onGenerate} className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 active:scale-[0.98]">
             <VideoIcon/> Generate Video Clip
@@ -357,6 +427,38 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
   visualStyle,
 }) => {
     const { script, characters, visualOutline, referenceImages, btsDocument } = generatedAssets;
+    const [isVeoKeySelected, setIsVeoKeySelected] = useState<boolean | null>(null);
+
+    const checkApiKey = useCallback(async () => {
+        if ((window as any).aistudio) {
+            try {
+                const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+                setIsVeoKeySelected(hasKey);
+            } catch (e) {
+                console.error("Error checking API key status:", e);
+                setIsVeoKeySelected(false);
+            }
+        } else {
+            console.warn("window.aistudio not found. Assuming no key selected.");
+            setIsVeoKeySelected(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        checkApiKey();
+    }, [checkApiKey]);
+
+    const handleSelectKey = async () => {
+        if ((window as any).aistudio) {
+            await (window as any).aistudio.openSelectKey();
+            setIsVeoKeySelected(true); // Optimistic update
+            checkApiKey(); // Re-verify in the background
+        }
+    };
+
+    const handleInvalidKeyError = useCallback(() => {
+        setIsVeoKeySelected(false);
+    }, []);
 
     const handleCharacterSave = (newCharacters: Character[]) => {
         onScriptSave(script, newCharacters);
@@ -384,7 +486,15 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             </StoryboardSection>
 
             <StoryboardSection title="Visual Outline" style={{ animationDelay: '600ms' }}>
-                <VisualOutlineSection outline={visualOutline} onSave={onOutlineSave} onVideoSave={onVideoSave} visualStyle={visualStyle} />
+                <VisualOutlineSection 
+                    outline={visualOutline} 
+                    onSave={onOutlineSave} 
+                    onVideoSave={onVideoSave} 
+                    visualStyle={visualStyle} 
+                    isVeoKeySelected={isVeoKeySelected}
+                    onSelectKey={handleSelectKey}
+                    onInvalidKeyError={handleInvalidKeyError}
+                />
             </StoryboardSection>
 
             <StoryboardSection title="Moodboard" style={{ animationDelay: '800ms' }}>
