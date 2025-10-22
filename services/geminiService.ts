@@ -56,8 +56,8 @@ const createPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntens
 You are an expert screenwriter and concept artist creating assets for a film submission to the "1 Billion Summit AI Film Award".
 
 **Competition Theme:** "Rewrite Tomorrow - Stories imagining the future with a positive twist."
-**Film Length:** 1 to 3 minutes.
-**Storytelling Mandate:** The film must tell a cohesive and emotionally resonant story with a clear narrative structure (beginning, middle, end), character development, and a sense of conflict, tension, or resolution.
+**Film Length:** 7 to 10 minutes.
+**Storytelling Mandate:** The film must tell a cohesive and emotionally resonant story with a clear narrative structure (beginning, middle, end), character development, dialogue-driven scenes, and a sense of conflict, tension, and resolution, leading to a clear emotional impact. The story must have internal consistency and logic.
 
 **Your Assigned Focus:**
 - **Core Concept:** ${themeDescription}
@@ -69,11 +69,11 @@ You are an expert screenwriter and concept artist creating assets for a film sub
 
 **Your Task:**
 
-1.  **Character Generation:** Based on the theme, create 2-3 compelling characters who will drive the story. For each character, provide a name and a brief, one-sentence description of their role or essence.
+1.  **Character Generation:** Based on the theme, create 2-4 compelling characters who will drive the story. For each character, provide a name and a brief, one-sentence description of their role or essence.
 
-2.  **Script Generation:** Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **1-3 minute film**. Structure it as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. It must follow a complete narrative arc with clear character development, aligning with the requested **Emotional Arc**.
+2.  **Script Generation:** Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. Structure it as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. It must follow a complete narrative arc with a beginning, middle, and end, featuring clear character development, conflict, and resolution, all aligning with the requested **Emotional Arc**.
 
-3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (3-5 scenes) that strictly adheres to the specified **Visual Style**. This outline must map to the script and be suitable for a 1-3 minute film. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
+3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
 
 **Output Format:**
 Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
@@ -114,9 +114,10 @@ const createBTSPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcInt
 You are a filmmaker writing a "Behind the Scenes" (BTS) document (500-600 words) for the "1 Billion Summit AI Film Award".
 
 **Competition Rules to Address:**
-- **Film Length:** 1-3 minutes.
+- **Film Length:** 7-10 minutes.
 - **AI Integration:** Must be at least 70% AI-generated.
-- **Mandatory Tools:** Google Gemini models (Veo, Imagen), ElevenLabs, and Pika or Runway.
+- **Mandatory Tools:** Heavy use of Google Gemini models is required for video generation (e.g., Veo) and image generation (e.g., Imagen).
+- **Technical Standards:** Must meet professional production standards (clean audio, audio/visual sync, professional sound design, English subtitles).
 
 **Creative Choices Made:**
 - **Theme:** ${theme.charAt(0).toUpperCase() + theme.slice(1)} (${themeDescription}).
@@ -125,16 +126,21 @@ You are a filmmaker writing a "Behind the Scenes" (BTS) document (500-600 words)
 - **Emotional Arc:** ${intensity.charAt(0).toUpperCase() + intensity.slice(1)} (${intensityDescription}).
 
 **Your Task:**
-Write a compelling BTS document that details your creative process using AI as a core partner, ensuring you address the competition's specific requirements.
-1.  **Introduction:** Introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and its ambitious scope as a 1-3 minute, heavily AI-driven narrative.
-2.  **AI as Creative Partner:** This is the most crucial section. Explain your specific choices for theme, tone, style, and arc. Describe how these parameters were used to direct a suite of AI tools. Detail the workflow:
-    - **Google Gemini:** For generating the foundational script, characters, and scene-by-scene visual outline.
-    - **Google Imagen:** For creating the initial concept art and moodboard to establish the film's aesthetic.
-    - **Google Veo (or Pika/Runway):** As the primary tool for generating the final video clips, translating the visual outline into cinematic motion.
-    - **ElevenLabs:** For generating the high-quality voiceover from the script's narration and dialogue.
-3.  **Narrative Construction:** Analyze how the generated script and outline successfully build a complete story for a 1-3 minute runtime, focusing on character development and emotional resonance.
-4.  **Achieving 70% AI-Generation:** Briefly explain the plan to meet this requirement, emphasizing that the core visual and narrative elements originate from the AI tools, with human effort focused on editing, sound design, and final assembly.
-5.  **Ethical & Innovative Use:** Conclude by summarizing the innovative aspects of using AI for long-form storytelling and affirm a commitment to ethical AI use, including transparency about the tools employed.
+Write a compelling BTS document detailing your creative process using AI as a core partner.
+
+1.  **Introduction:** Introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and its ambitious scope as a **7-10 minute**, heavily AI-driven narrative.
+
+2.  **AI as Creative Partner & Workflow:** This is the most crucial section. Detail the end-to-end workflow using the Google Gemini ecosystem:
+    - **Google Gemini (Pro/Flash):** Explain how it was used for the initial brainstorming and to generate the foundational script, characters, and a detailed, scene-by-scene visual outline for a 7-10 minute film.
+    - **Google Imagen:** Describe its role in creating the initial concept art and a comprehensive moodboard to establish a consistent aesthetic, aligning with the chosen visual style.
+    - **Google Veo:** Detail how Veo will be the primary tool for generating the final video clips, translating the visual outline's cinematic descriptions into high-quality motion.
+    - **Supplemental AI Tools:** Briefly mention plans for using tools like ElevenLabs for high-quality voiceover generation from the script's narration and dialogue.
+
+3.  **Narrative & Technical Execution:** Analyze how the generated script and outline successfully build a complete 7-10 minute story. Explain the plan for post-production, including editing the AI-generated clips for continuity, creating a clean audio mix, ensuring proper dialogue sync, and implementing a professional sound design with separate dialogue, music, and effects tracks. Mention the final step of adding English subtitles.
+
+4.  **Achieving >70% AI-Generation:** Clearly state how the project meets this requirement. Emphasize that all core narrative and visual assets (script, scenes, video clips, concept art) originate from AI, with human effort focused on creative direction, prompt engineering, editing, sound design, and final assembly.
+
+5.  **Ethical & Innovative Use:** Conclude by highlighting the innovative aspects of this AI-centric workflow for longer-form storytelling. Affirm a commitment to ethical AI use, including full transparency about the tools employed and a dedication to creating an unbiased, positive film.
 
 **Formatting:**
 - Professional, insightful tone.

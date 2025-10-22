@@ -64,7 +64,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
     <div className="max-w-3xl mx-auto animate-fade-in">
         <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold text-white mb-3 bg-gradient-to-r from-white to-gray-400 text-transparent bg-clip-text">Envision a New Future</h2>
-            <p className="text-gray-400 text-lg">Select a core theme and creative direction. Your choices will guide the AI in generating a complete concept for your 1-3 minute film.</p>
+            <p className="text-gray-400 text-lg">Select a core theme and creative direction. Your choices will guide the AI in generating a complete concept for your 7-10 minute film.</p>
         </div>
       
         <div className="bg-black/20 backdrop-blur-lg p-6 md:p-8 rounded-2xl border border-white/10 flex flex-col space-y-8 shadow-2xl shadow-black/30">

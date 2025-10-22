@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene } from '../../services/geminiService';

@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver }) =>
             <h1 className="text-xl font-bold text-white">
               <span className="bg-gradient-to-r from-violet-glow to-cyan-lum text-transparent bg-clip-text">Rewrite Tomorrow</span> Film Generator
             </h1>
-            <p className="text-gray-400 text-sm mt-1 hidden sm:block">Crafting positive futures for the 1-3 minute film challenge</p>
+            <p className="text-gray-400 text-sm mt-1 hidden sm:block">Crafting positive futures for the 7-10 minute film competition</p>
           </div>
         </div>
         {showStartOver && (
