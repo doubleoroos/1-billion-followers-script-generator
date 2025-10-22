@@ -125,6 +125,46 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         save(newOutline);
     };
 
+    // Drag and drop state and handlers
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
+    
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        dragItem.current = index;
+        setTimeout(() => {
+            e.currentTarget.classList.add('opacity-40', 'scale-[0.98]');
+        }, 0);
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        dragOverItem.current = index;
+        if (dragItem.current !== index) {
+            e.currentTarget.classList.add('bg-violet-glow/10');
+        }
+    };
+    
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.currentTarget.classList.remove('bg-violet-glow/10');
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.currentTarget.classList.remove('bg-violet-glow/10');
+        
+        if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+            const newOutline = [...editedOutline];
+            const draggedItemContent = newOutline.splice(dragItem.current, 1)[0];
+            newOutline.splice(dragOverItem.current, 0, draggedItemContent);
+            setEditedOutline(newOutline);
+            save(newOutline);
+        }
+    };
+    
+    const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+        e.currentTarget.classList.remove('opacity-40', 'scale-[0.98]');
+        dragItem.current = null;
+        dragOverItem.current = null;
+    };
+
     return (
         <div className="space-y-8 max-w-5xl mx-auto">
              <div className="flex justify-end items-center mb-4 px-1">
@@ -133,18 +173,31 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
 
             <ApiKeyManager isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} />
             
-            {editedOutline.map((scene, index) => (
-                <SceneCard 
-                    key={scene.id} 
-                    scene={scene} 
-                    onFieldChange={(field, value) => handleSceneFieldChange(index, field, value)}
-                    onVideoSave={onVideoSave}
-                    visualStyle={visualStyle}
-                    isVeoKeySelected={isVeoKeySelected}
-                    onSelectKey={onSelectKey}
-                    onInvalidKeyError={onInvalidKeyError}
-                />
-            ))}
+            <div className="space-y-4">
+                {editedOutline.map((scene, index) => (
+                    <div
+                        key={scene.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragEnter={(e) => handleDragEnter(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => e.preventDefault()}
+                        className="cursor-grab active:cursor-grabbing rounded-xl transition-all duration-300"
+                    >
+                        <SceneCard 
+                            scene={scene} 
+                            onFieldChange={(field, value) => handleSceneFieldChange(index, field, value)}
+                            onVideoSave={onVideoSave}
+                            visualStyle={visualStyle}
+                            isVeoKeySelected={isVeoKeySelected}
+                            onSelectKey={onSelectKey}
+                            onInvalidKeyError={onInvalidKeyError}
+                        />
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
@@ -344,7 +397,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
                     options={atmosphereOptions}
                     placeholder="e.g., Serene, Stormy..."
                 />
-                <EditableField label="Duration" id={`duration-${scene.id}`} value={scene.duration} field="duration" placeholder="e.g., 10s" />
+                <EditableField label="Duration" id={`duration-${scene.id}`} value={scene.duration} field="duration" placeholder="e.g., 10s or 240f" />
                 <div className="md:col-span-2">
                     <EditableField
                         label="Description"
