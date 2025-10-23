@@ -5,6 +5,8 @@ import type { Character } from '../../types';
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>;
 const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
 
+const COMMON_ROLES = ['Protagonist', 'Antagonist', 'Mentor', 'Supporting Character', 'Cameo'];
+
 interface CharacterCardProps {
     character: Character;
     onSave: (updatedCharacter: Character) => void;
@@ -47,7 +49,11 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                                 onChange={(e) => setEditedRole(e.target.value)}
                                 className="w-full bg-gray-900/60 p-2 rounded-md text-cyan-lum border border-white/20 focus:border-cyan-lum focus:ring-cyan-lum text-sm font-semibold uppercase tracking-wider"
                                 placeholder="e.g., Protagonist"
+                                list={`roles-list-${character.id}`}
                             />
+                            <datalist id={`roles-list-${character.id}`}>
+                                {COMMON_ROLES.map(role => <option key={role} value={role} />)}
+                            </datalist>
                         </div>
                         <div>
                             <label htmlFor={`name-${character.id}`} className="block text-sm font-medium text-gray-400 mb-1">Name</label>
