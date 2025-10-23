@@ -95,7 +95,11 @@ type BulkStatus = 'idle' | 'running' | 'error' | 'complete';
 type BulkProgress = { current: number; total: number };
 
 interface BulkGenerationControlsProps {
+    promptState: { status: BulkStatus; progress: BulkProgress; error?: string };
     videoState: { status: BulkStatus; progress: BulkProgress; error?: string };
+    onGeneratePrompt: () => void;
+    onCancelPrompt: () => void;
+    onDismissPromptError: () => void;
     onGenerateVideo: () => void;
     onCancelVideo: () => void;
     onDismissVideoError: () => void;
@@ -104,71 +108,79 @@ interface BulkGenerationControlsProps {
 }
 
 const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
+    promptState, onGeneratePrompt, onCancelPrompt, onDismissPromptError,
     videoState, onGenerateVideo, onCancelVideo, onDismissVideoError,
     isVeoKeySelected, scenesWithoutVideoCount
 }) => {
-    const renderVideoUI = () => {
-        if (videoState.status === 'running') {
-            const progressPercentage = videoState.progress.total > 0 ? (videoState.progress.current / videoState.progress.total) * 100 : 0;
+    const renderGenericUI = (
+        state: { status: BulkStatus; progress: BulkProgress; error?: string },
+        onGenerate: () => void, onCancel: () => void, onDismissError: () => void,
+        title: string, buttonText: string, Icon: React.FC, isDisabled: boolean, disabledTooltip: string
+    ) => {
+        if (state.status === 'running') {
+            const progressPercentage = state.progress.total > 0 ? (state.progress.current / state.progress.total) * 100 : 0;
             return (
                 <div className="flex-1 p-4 bg-blue-deep/50 rounded-lg border border-violet-glow/30 animate-fade-in text-center">
-                    <h4 className="font-bold text-white">Generation in Progress</h4>
-                    <p className="text-sm text-gray-300 my-2">Generating video {videoState.progress.current} of {videoState.progress.total}...</p>
+                    <h4 className="font-bold text-white">{title} in Progress</h4>
+                    <p className="text-sm text-gray-300 my-2">Processing scene {state.progress.current} of {state.progress.total}...</p>
                     <div className="w-full bg-gray-900/50 rounded-full h-2.5 my-3 overflow-hidden">
                         <div className="bg-gradient-to-r from-cyan-lum to-violet-glow h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
                     </div>
-                    <button onClick={onCancelVideo} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button onClick={onCancel} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
                 </div>
             );
         }
-        if (videoState.status === 'error') {
+        if (state.status === 'error') {
             return (
                 <div className="flex-1 p-4 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center">
-                    <h4 className="font-bold text-white">Generation Failed</h4>
-                    <p className="text-sm text-red-200 my-2 font-mono">{videoState.error}</p>
+                    <h4 className="font-bold text-white">{title} Failed</h4>
+                    <p className="text-sm text-red-200 my-2 font-mono break-all">{state.error}</p>
                     <div className="flex justify-center gap-4 mt-3">
-                        <button onClick={onDismissVideoError} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Dismiss</button>
+                        <button onClick={onDismissError} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Dismiss</button>
                     </div>
                 </div>
             );
         }
-        if (videoState.status === 'complete') {
+        if (state.status === 'complete') {
             return (
                  <div className="flex-1 p-4 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in text-center">
-                    <h4 className="font-bold text-white">Generation Complete!</h4>
-                    <p className="text-sm text-green-200 my-2">All {videoState.progress.total} videos generated.</p>
+                    <h4 className="font-bold text-white">{title} Complete!</h4>
+                    <p className="text-sm text-green-200 my-2">All {state.progress.total} scenes processed.</p>
                 </div>
             );
         }
-        
-        let disabledTooltip = '';
-        if (isVeoKeySelected === false) disabledTooltip = 'Please select an API key to enable video generation.';
-        else if (scenesWithoutVideoCount === 0) disabledTooltip = 'All scenes already have a generated video.';
-        const isVideoDisabled = !isVeoKeySelected || scenesWithoutVideoCount === 0;
-
         return (
             <div className="flex-1">
                  <button 
-                    onClick={onGenerateVideo} 
-                    disabled={isVideoDisabled}
+                    onClick={onGenerate} 
+                    disabled={isDisabled}
                     title={disabledTooltip}
-                    className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-5 rounded-lg transition-all text-sm disabled:bg-gray-600/50 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100"
+                    className="w-full flex items-center justify-center gap-2 bg-gray-700/50 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg transition-all text-sm disabled:bg-gray-600/50 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100 border border-white/10"
                 >
-                    <VideoIcon />
-                    Generate Missing Videos ({scenesWithoutVideoCount})
+                    <Icon />
+                    {buttonText} ({scenesWithoutVideoCount})
                 </button>
             </div>
         );
     };
 
+    const isPromptDisabled = scenesWithoutVideoCount === 0;
+    const promptDisabledTooltip = isPromptDisabled ? 'All scenes already have a generated video.' : '';
+
+    let videoDisabledTooltip = '';
+    if (isVeoKeySelected === false) videoDisabledTooltip = 'Please select an API key to enable video generation.';
+    else if (scenesWithoutVideoCount === 0) videoDisabledTooltip = 'All scenes already have a generated video.';
+    const isVideoDisabled = !isVeoKeySelected || scenesWithoutVideoCount === 0;
+
     return (
         <div className="bg-blue-deep/30 p-4 rounded-lg border border-white/10 text-center animate-fade-in mb-8">
             <h4 className="text-lg font-bold text-white mb-2">Bulk Asset Generation</h4>
-            <p className="text-gray-300 text-sm max-w-xl mx-auto mb-4">
-                Use this control to generate videos for all scenes that do not have one. This can take several minutes.
+            <p className="text-gray-300 text-sm max-w-2xl mx-auto mb-4">
+                Use these controls to first regenerate cinematic prompts for missing scenes, then generate the final video clips. This can take several minutes.
             </p>
-            <div className="flex justify-center items-stretch gap-4">
-                {renderVideoUI()}
+            <div className="flex flex-col md:flex-row justify-center items-stretch gap-4">
+                {renderGenericUI(promptState, onGeneratePrompt, onCancelPrompt, onDismissPromptError, 'Prompt Regeneration', 'Regenerate Missing Prompts', SparklesIcon, isPromptDisabled, promptDisabledTooltip)}
+                {renderGenericUI(videoState, onGenerateVideo, onCancelVideo, onDismissVideoError, 'Video Generation', 'Generate Missing Videos', VideoIcon, isVideoDisabled, videoDisabledTooltip)}
             </div>
         </div>
     );
@@ -181,8 +193,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const { status, save } = useAutosave({ onSave });
     const [searchTerm, setSearchTerm] = useState('');
     
-    // State for bulk video generation
+    // State for bulk operations
+    const [bulkPromptState, setBulkPromptState] = useState<{ status: BulkStatus; progress: BulkProgress; error?: string }>({ status: 'idle', progress: { current: 0, total: 0 } });
     const [bulkVideoState, setBulkVideoState] = useState<{ status: BulkStatus; progress: BulkProgress; error?: string }>({ status: 'idle', progress: { current: 0, total: 0 } });
+    const promptGenerationAbortController = useRef<AbortController | null>(null);
     const videoGenerationAbortController = useRef<AbortController | null>(null);
      
     useEffect(() => { setEditedOutline(outline); }, [outline]);
@@ -221,6 +235,44 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         e.currentTarget.classList.remove('opacity-40', 'scale-[0.98]');
         dragItem.current = null;
         dragOverItem.current = null;
+    };
+
+    const handleBulkPromptGenerate = async () => {
+        promptGenerationAbortController.current = new AbortController();
+        const signal = promptGenerationAbortController.current.signal;
+        const scenesToProcess = editedOutline.filter(scene => !scene.videoUrl);
+        if (scenesToProcess.length === 0) return;
+
+        setBulkPromptState({ status: 'running', progress: { current: 0, total: scenesToProcess.length } });
+        const successfulUpdates: Scene[] = [];
+
+        try {
+            for (let i = 0; i < scenesToProcess.length; i++) {
+                if (signal.aborted) throw new DOMException('Aborted by user', 'AbortError');
+                const scene = scenesToProcess[i];
+                setBulkPromptState(p => ({ ...p, progress: { ...p.progress, current: i + 1 } }));
+                const newPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
+                successfulUpdates.push({ ...scene, videoPrompt: newPrompt });
+            }
+            setBulkPromptState(p => ({ ...p, status: 'complete' }));
+            setTimeout(() => setBulkPromptState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
+        } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                setBulkPromptState({ status: 'idle', progress: { current: 0, total: 0 } });
+            } else {
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                const errorReason = errorMessage.split('Reason: ')[1] || errorMessage;
+                const progress = bulkPromptState.progress.current;
+                const sceneWithError = scenesToProcess[progress > 0 ? progress - 1 : 0];
+                setBulkPromptState({ status: 'error', progress: bulkPromptState.progress, error: `Failed on Scene ${sceneWithError.sceneNumber}: ${errorReason}` });
+            }
+        } finally {
+            if (successfulUpdates.length > 0) {
+                const newOutline = editedOutline.map(originalScene => successfulUpdates.find(u => u.id === originalScene.id) || originalScene);
+                setEditedOutline(newOutline);
+                save(newOutline);
+            }
+        }
     };
 
     const handleBulkVideoGenerate = async () => {
@@ -294,6 +346,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             </div>
             <ApiKeyManager isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} />
             <BulkGenerationControls
+                promptState={bulkPromptState}
+                onGeneratePrompt={handleBulkPromptGenerate}
+                onCancelPrompt={() => promptGenerationAbortController.current?.abort()}
+                onDismissPromptError={() => setBulkPromptState({ status: 'idle', progress: { current: 0, total: 0 } })}
                 videoState={bulkVideoState}
                 onGenerateVideo={handleBulkVideoGenerate}
                 onCancelVideo={() => videoGenerationAbortController.current?.abort()}
