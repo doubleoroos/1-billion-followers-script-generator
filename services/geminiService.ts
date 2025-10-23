@@ -344,6 +344,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     // Concurrently generate a cinematic, high-quality video prompt for each scene.
     // This makes the initial output much stronger and more useful.
     const promptGenerationPromises = sceneShells.map(scene =>
+// FIX: The function `regenerateVideoPromptForScene` was not defined. It has been added to this file.
       regenerateVideoPromptForScene(scene, visualStyle)
         .then(prompt => ({ ...scene, videoPrompt: prompt }))
         .catch(err => {
@@ -428,6 +429,48 @@ const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): stri
 **Core Moment to Capture:** ${scene.description} The key visual elements to emphasize are: **${scene.keyVisualElements}**.`;
 };
 
+export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+  const styleDescription = getVisualStyleDescription(visualStyle);
+  const prompt = `
+You are an expert prompt engineer for a text-to-video AI model (like Google Veo).
+Your task is to take the details of a film scene and write a new, highly-effective, and cinematic prompt for video generation.
+
+**Scene Details:**
+- **Title:** ${scene.title}
+- **Location:** ${scene.location}
+- **Time of Day:** ${scene.timeOfDay}
+- **Atmosphere:** ${scene.atmosphere}
+- **Pacing & Emotion:** ${scene.pacingEmotion}
+- **Characters Present:** ${scene.charactersInScene}
+- **Key Visual Elements:** ${scene.keyVisualElements}
+- **Core Scene Description:** ${scene.description}
+
+**Visual Style Mandate:** ${styleDescription}
+
+**Your Instructions:**
+1.  Synthesize all the scene details into a single, cohesive, and evocative paragraph.
+2.  The prompt should be written in a descriptive, narrative style that paints a vivid picture.
+3.  Focus on action, mood, and visual detail.
+4.  Directly incorporate the specified **Visual Style**.
+5.  The output should be **only the prompt text itself**, without any preamble or explanation. The prompt should be concise but powerful, ideally under 150 words.
+`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    return response.text.trim();
+  } catch (error) {
+    console.error("Error regenerating video prompt:", error);
+    if (error instanceof Error) {
+        throw new Error(`Failed to regenerate prompt. Reason: ${error.message}`);
+    }
+    throw new Error("An unknown error occurred during prompt regeneration.");
+  }
+};
+
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     try {
         const prompt = createImagePromptForScene(scene, visualStyle);
@@ -487,4 +530,18 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
           throw new Error(`Video generation failed: ${operation.error.message}`);
       }
   
-      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri
+      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+// FIX: The function was not returning a value. It now returns the download link or throws an error.
+      if (!downloadLink) {
+        throw new Error("Video generation completed, but no download link was provided.");
+      }
+      return downloadLink;
+    } catch (error) {
+        console.error("Error generating video for scene:", error);
+        if (error instanceof Error) {
+            // To provide a more specific error message to the UI
+            throw new Error(`Video generation failed. Reason: ${error.message}`);
+        }
+        throw new Error("An unknown error occurred during video generation.");
+    }
+};
