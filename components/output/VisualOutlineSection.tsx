@@ -6,7 +6,7 @@ import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
 
 // Re-usable Icons
-const DownloadIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
 const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
@@ -433,34 +433,80 @@ interface VideoGenerationControlsProps {
 }
 
 const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statusInfo, onGenerate, onCancel, isVeoKeySelected, onSelectKey, hasVideo, disabled = false }) => {
+    // 1. Loading State: Visually distinct loading state with a pulse animation.
     if (statusInfo.status === 'loading') {
         return (
-            <div className="flex flex-col items-center gap-2 animate-fade-in w-full">
-                <p className="text-sm text-gray-300">Generating Video...</p>
-                <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden relative"><div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div></div>
-                 <button onClick={onCancel} className="text-xs bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-full transition-all duration-300">Cancel</button>
+            <div className="flex flex-col items-center gap-2 animate-fade-in w-full p-2 bg-gray-800/20 rounded-lg border border-violet-glow/20 animate-pulse">
+                <p className="text-sm font-semibold text-gray-300">Generating Video...</p>
+                <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div>
+                </div>
+                <button onClick={onCancel} className="text-xs bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-full transition-all duration-300 mt-1">
+                    Cancel
+                </button>
             </div>
         );
     }
+    
+    // 2. Error State: Clear error message with an icon-driven retry button.
     if (statusInfo.status === 'error') {
       return (
           <div className="bg-red-900/30 border border-red-600/50 p-3 rounded-lg animate-fade-in w-full text-left">
               <h5 className="font-semibold text-white text-sm mb-2">Generation Error</h5>
               <p className="text-xs font-mono p-2 bg-black/20 rounded text-red-200/80 mb-3 break-words">{statusInfo.error || 'An unknown error occurred.'}</p>
-              <div className="flex justify-end gap-2"><button onClick={onGenerate} className="text-xs bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-md transition-all active:scale-[0.98]">Retry</button></div>
+              <div className="flex justify-end gap-2">
+                <button onClick={onGenerate} className="flex items-center gap-1.5 text-xs bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-md transition-all active:scale-[0.98]">
+                    <RegenerateIcon />
+                    Retry
+                </button>
+              </div>
           </div>
       );
     }
-    if (isVeoKeySelected === false || disabled) {
-        const buttonText = hasVideo ? 'Regenerate Video' : 'Generate Video'; const Icon = hasVideo ? RegenerateIcon : VideoIcon;
-        const title = disabled ? "Prerequisites not met. Generate videos for dependent scenes first." : "Please select an API Key above to enable video generation.";
-        return (<button disabled title={title} className="flex items-center justify-center gap-2 w-full bg-gray-600/50 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed text-sm"><Icon /> {buttonText}</button>);
-    }
+
+    // 4. API Key Status: Clear, polished display for the key verification process.
     if (isVeoKeySelected === null) {
-        return (<div className="flex items-center justify-center gap-2 text-sm text-gray-400 h-10"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Verifying...</span></div>);
+        return (
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-400 h-10 bg-gray-800/20 rounded-lg">
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Verifying API Key...</span>
+            </div>
+        );
     }
-    const buttonText = hasVideo ? 'Regenerate Video' : 'Generate Video'; const Icon = hasVideo ? RegenerateIcon : VideoIcon;
-    return (<button onClick={onGenerate} className="flex items-center justify-center gap-2 w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] text-sm"><Icon /> {buttonText}</button>);
+
+    // Disabled state for prerequisites or missing API key
+    if (isVeoKeySelected === false || disabled) {
+        const buttonText = hasVideo ? 'Regenerate Video' : 'Generate Video';
+        const Icon = hasVideo ? RegenerateIcon : VideoIcon;
+        const title = disabled ? "Prerequisites not met. Generate videos for dependent scenes first." : "Please select an API Key above to enable video generation.";
+        return (
+            <button disabled title={title} className="flex items-center justify-center gap-2 w-full bg-gray-600/50 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed text-sm">
+                <Icon /> {buttonText}
+            </button>
+        );
+    }
+    
+    // 3. Idle State: Clearly distinguished primary (Generate) and secondary (Regenerate) actions.
+    const baseClasses = "flex items-center justify-center gap-2 w-full font-bold py-2 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] text-sm";
+    
+    if (hasVideo) {
+        // Secondary action style for "Regenerate"
+        return (
+            <button onClick={onGenerate} className={`${baseClasses} bg-gray-700/60 hover:bg-gray-700 border border-white/10 text-white`}>
+                <RegenerateIcon /> Regenerate Video
+            </button>
+        );
+    } else {
+        // Primary action style for "Generate"
+        return (
+            <button onClick={onGenerate} className={`${baseClasses} bg-violet-600 hover:bg-violet-500 text-white`}>
+                <VideoIcon /> Generate Video
+            </button>
+        );
+    }
 };
 
 interface ImageGenerationControlsProps { statusInfo: { status: 'idle' | 'loading' | 'error', error?: string }; onGenerate: () => void; hasImage: boolean; disabled?: boolean; }
