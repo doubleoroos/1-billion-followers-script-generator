@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene } from '../../services/geminiService';
@@ -111,11 +112,97 @@ const DatalistInput: React.FC<{
 };
 
 
+interface BulkVideoGeneratorProps {
+    status: 'idle' | 'running' | 'error' | 'complete';
+    progress: { current: number; total: number };
+    error?: string;
+    onGenerate: () => void;
+    onCancel: () => void;
+    onDismissError: () => void;
+    isVeoKeySelected: boolean | null;
+    scenesWithoutVideoCount: number;
+}
+
+const BulkVideoGenerator: React.FC<BulkVideoGeneratorProps> = ({
+    status, progress, error, onGenerate, onCancel, onDismissError, isVeoKeySelected, scenesWithoutVideoCount
+}) => {
+    if (status === 'running') {
+        const progressPercentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
+        return (
+            <div className="bg-blue-deep/50 p-4 rounded-lg border border-violet-glow/30 text-center animate-fade-in mb-8">
+                <h4 className="font-bold text-white">Bulk Generation in Progress</h4>
+                <p className="text-sm text-gray-300 my-2">
+                    Generating video {progress.current} of {progress.total}... This can take several minutes per video.
+                </p>
+                <div className="w-full bg-gray-900/50 rounded-full h-2.5 my-3 overflow-hidden">
+                    <div className="bg-gradient-to-r from-cyan-lum to-violet-glow h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                </div>
+                <button onClick={onCancel} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-transform hover:scale-105 active:scale-100">
+                    Cancel Generation
+                </button>
+            </div>
+        );
+    }
+    
+    if (status === 'error') {
+        return (
+            <div className="bg-red-900/40 p-4 rounded-lg border border-red-500/50 text-center animate-fade-in mb-8">
+                <h4 className="font-bold text-white">Generation Failed</h4>
+                <p className="text-sm text-red-200 my-2 font-mono">{error}</p>
+                <div className="flex justify-center gap-4 mt-3">
+                    <button onClick={onDismissError} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Dismiss</button>
+                    <button onClick={onGenerate} className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Retry</button>
+                </div>
+            </div>
+        );
+    }
+    
+    if (status === 'complete') {
+        return (
+             <div className="bg-green-900/40 p-4 rounded-lg border border-green-500/50 text-center animate-fade-in mb-8">
+                <h4 className="font-bold text-white">Generation Complete!</h4>
+                <p className="text-sm text-green-200 my-2">All {progress.total} videos have been successfully generated.</p>
+            </div>
+        );
+    }
+
+    // Idle State
+    const hasScenesToGenerate = scenesWithoutVideoCount > 0;
+    const isDisabled = !isVeoKeySelected || !hasScenesToGenerate;
+    
+    let tooltip = '';
+    if (isVeoKeySelected === false) tooltip = 'Please select an API key to enable video generation.';
+    else if (!hasScenesToGenerate) tooltip = 'All scenes already have a generated video.';
+
+    if (!hasScenesToGenerate) return null;
+
+    return (
+        <div className="text-center mb-8 animate-fade-in">
+            <button 
+                onClick={onGenerate} 
+                disabled={isDisabled}
+                title={tooltip}
+                className="flex items-center justify-center gap-2 mx-auto bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-5 rounded-lg transition-all text-sm disabled:bg-gray-600/50 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100">
+                <VideoIcon /> 
+                Generate All Missing Videos ({scenesWithoutVideoCount})
+            </button>
+        </div>
+    );
+};
+
+
 export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({ 
   outline, onSave, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError 
 }) => {
     const [editedOutline, setEditedOutline] = useState<Scene[]>(outline);
     const { status, save } = useAutosave({ onSave });
+    
+    const [bulkGenerationState, setBulkGenerationState] = useState<{
+        status: 'idle' | 'running' | 'error' | 'complete';
+        progress: { current: number; total: number };
+        error?: string;
+    }>({ status: 'idle', progress: { current: 0, total: 0 } });
+    const generationAbortController = useRef<AbortController | null>(null);
      
     useEffect(() => { setEditedOutline(outline); }, [outline]);
 
@@ -166,6 +253,75 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         dragOverItem.current = null;
     };
 
+    const handleBulkGenerate = async () => {
+        generationAbortController.current = new AbortController();
+        const signal = generationAbortController.current.signal;
+
+        const scenesToProcess = editedOutline.filter(scene => !scene.videoUrl);
+        if (scenesToProcess.length === 0) return;
+
+        setBulkGenerationState({
+            status: 'running',
+            progress: { current: 0, total: scenesToProcess.length },
+        });
+
+        for (let i = 0; i < scenesToProcess.length; i++) {
+            if (signal.aborted) {
+                console.log("Bulk generation cancelled by user.");
+                break;
+            }
+
+            const scene = scenesToProcess[i];
+            setBulkGenerationState(prevState => ({
+                ...prevState,
+                progress: { ...prevState.progress, current: i + 1 },
+            }));
+
+            try {
+                const currentSceneState = editedOutline.find(s => s.id === scene.id);
+                if (!currentSceneState) continue;
+
+                const downloadLink = await generateVideoForScene(currentSceneState, visualStyle, signal);
+                const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
+                
+                const updatedScene = { ...currentSceneState, videoUrl: finalUrl };
+                onVideoSave(updatedScene); // Propagate up to App state
+                setEditedOutline(prevOutline => // Update local state for loop consistency
+                    prevOutline.map(s => s.id === updatedScene.id ? updatedScene : s)
+                );
+
+            } catch (error) {
+                if (error instanceof DOMException && error.name === 'AbortError') break;
+                
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                setBulkGenerationState({
+                    status: 'error',
+                    progress: { current: i + 1, total: scenesToProcess.length },
+                    error: `Failed on Scene ${scene.sceneNumber}: ${errorMessage.split('Reason: ')[1] || errorMessage}`,
+                });
+                
+                if (errorMessage.includes('Requested entity was not found.')) onInvalidKeyError();
+                return;
+            }
+        }
+        
+        // If we break out of the loop early via cancellation, reset to idle
+        if (signal.aborted) {
+             setBulkGenerationState({ status: 'idle', progress: { current: 0, total: 0 } });
+        } else {
+            setBulkGenerationState(prevState => ({ ...prevState, status: 'complete' }));
+            setTimeout(() => setBulkGenerationState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
+        }
+    };
+
+    const handleCancelBulkGenerate = () => {
+        generationAbortController.current?.abort();
+    };
+    
+    const handleDismissError = () => {
+        setBulkGenerationState({ status: 'idle', progress: { current: 0, total: 0 } });
+    }
+
     return (
         <div className="space-y-8 max-w-5xl mx-auto">
              <div className="flex justify-end items-center mb-4 px-1">
@@ -173,6 +329,17 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             </div>
 
             <ApiKeyManager isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} />
+
+            <BulkVideoGenerator
+                status={bulkGenerationState.status}
+                progress={bulkGenerationState.progress}
+                error={bulkGenerationState.error}
+                onGenerate={handleBulkGenerate}
+                onCancel={handleCancelBulkGenerate}
+                onDismissError={handleDismissError}
+                isVeoKeySelected={isVeoKeySelected}
+                scenesWithoutVideoCount={editedOutline.filter(s => !s.videoUrl).length}
+            />
             
             <div className="space-y-4">
                 {editedOutline.map((scene, index) => (
