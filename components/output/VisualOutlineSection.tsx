@@ -290,7 +290,16 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             setBulkVideoState(p => ({ ...p, progress: { ...p.progress, current: i + 1 } }));
 
             try {
-                const currentSceneState = editedOutline.find(s => s.id === scene.id)!;
+                // Before generating, let's regenerate the prompt for this scene if it's missing or empty
+                let currentSceneState = editedOutline.find(s => s.id === scene.id)!;
+                if (!currentSceneState.videoPrompt?.trim()) {
+                    console.log(`Regenerating prompt for Scene ${currentSceneState.sceneNumber} before video generation...`);
+                    const newPrompt = await regenerateVideoPromptForScene(currentSceneState, visualStyle);
+                    currentSceneState = { ...currentSceneState, videoPrompt: newPrompt };
+                    setEditedOutline(prev => prev.map(s => s.id === currentSceneState.id ? currentSceneState : s));
+                    save(editedOutline.map(s => s.id === currentSceneState.id ? currentSceneState : s));
+                }
+
                 const downloadLink = await generateVideoForScene(currentSceneState, visualStyle, signal);
                 const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
                 const updatedScene = { ...currentSceneState, videoUrl: finalUrl };
