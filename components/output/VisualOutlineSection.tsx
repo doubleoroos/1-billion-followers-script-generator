@@ -135,27 +135,32 @@ type BulkProgress = { current: number; total: number };
 interface BulkGenerationControlsProps {
     videoState: { status: BulkStatus; progress: BulkProgress; error?: string };
     imageState: { status: BulkStatus; progress: BulkProgress; error?: string };
+    promptState: { status: BulkStatus; progress: BulkProgress; error?: string };
     onGenerateVideo: () => void;
     onCancelVideo: () => void;
     onDismissVideoError: () => void;
     onGenerateImage: () => void;
     onCancelImage: () => void;
     onDismissImageError: () => void;
+    onGeneratePrompts: () => void;
+    onCancelPrompts: () => void;
+    onDismissPromptsError: () => void;
     isVeoKeySelected: boolean | null;
     scenesWithoutVideoCount: number;
     totalSceneCount: number;
 }
 
 const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
-    videoState, imageState,
+    videoState, imageState, promptState,
     onGenerateVideo, onCancelVideo, onDismissVideoError,
     onGenerateImage, onCancelImage, onDismissImageError,
+    onGeneratePrompts, onCancelPrompts, onDismissPromptsError,
     isVeoKeySelected, scenesWithoutVideoCount, totalSceneCount
 }) => {
-    const isAnyTaskRunning = videoState.status === 'running' || imageState.status === 'running';
+    const isAnyTaskRunning = videoState.status === 'running' || imageState.status === 'running' || promptState.status === 'running';
 
     const renderTaskUI = (
-        type: 'video' | 'image',
+        type: 'video' | 'image' | 'prompt',
         state: { status: BulkStatus; progress: BulkProgress; error?: string },
         onGenerate: () => void,
         onCancel: () => void,
@@ -224,15 +229,20 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     if (totalSceneCount === 0) imageDisabledTooltip = 'There are no scenes to generate images for.';
     const isImageDisabled = totalSceneCount === 0;
 
+    let promptDisabledTooltip = '';
+    if (totalSceneCount === 0) promptDisabledTooltip = 'There are no scenes to regenerate prompts for.';
+    const isPromptDisabled = totalSceneCount === 0;
+
     if (totalSceneCount === 0) return null;
 
     return (
         <div className="bg-blue-deep/30 p-4 rounded-lg border border-white/10 text-center animate-fade-in mb-8">
             <h4 className="text-lg font-bold text-white mb-2">Bulk Asset Generation</h4>
             <p className="text-gray-300 text-sm max-w-xl mx-auto mb-4">
-                Use these controls to generate assets for multiple scenes at once. This process can take a significant amount of time.
+                Use these controls to generate or regenerate assets for multiple scenes at once. This can take time.
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-stretch gap-4">
+                {renderTaskUI('prompt', promptState, onGeneratePrompts, onCancelPrompts, onDismissPromptsError, totalSceneCount, 'Regenerate All Prompts', <SparklesIcon />, promptDisabledTooltip, isPromptDisabled)}
                 {renderTaskUI('image', imageState, onGenerateImage, onCancelImage, onDismissImageError, totalSceneCount, 'Regenerate All Previews', <ImageIcon />, imageDisabledTooltip, isImageDisabled)}
                 {renderTaskUI('video', videoState, onGenerateVideo, onCancelVideo, onDismissVideoError, scenesWithoutVideoCount, 'Generate Missing Videos', <VideoIcon />, videoDisabledTooltip, isVideoDisabled)}
             </div>
@@ -254,6 +264,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     // State for bulk image generation
     const [bulkImageState, setBulkImageState] = useState<{ status: BulkStatus; progress: BulkProgress; error?: string }>({ status: 'idle', progress: { current: 0, total: 0 } });
     const imageGenerationAbortController = useRef<AbortController | null>(null);
+
+    // State for bulk prompt regeneration
+    const [bulkPromptState, setBulkPromptState] = useState<{ status: BulkStatus; progress: BulkProgress; error?: string }>({ status: 'idle', progress: { current: 0, total: 0 } });
+    const promptGenerationAbortController = useRef<AbortController | null>(null);
      
     useEffect(() => { setEditedOutline(outline); }, [outline]);
 
@@ -384,6 +398,51 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             setTimeout(() => setBulkImageState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
         }
     };
+
+    const handleBulkPromptRegenerate = async () => {
+        promptGenerationAbortController.current = new AbortController();
+        const signal = promptGenerationAbortController.current.signal;
+    
+        const scenesToProcess = [...editedOutline];
+        if (scenesToProcess.length === 0) return;
+    
+        setBulkPromptState({ status: 'running', progress: { current: 0, total: scenesToProcess.length } });
+        
+        let currentOutline = [...editedOutline];
+    
+        try {
+            for (let i = 0; i < scenesToProcess.length; i++) {
+                if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+                
+                const scene = scenesToProcess[i];
+                setBulkPromptState(p => ({ ...p, progress: { ...p.progress, current: i + 1 } }));
+                
+                const newPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
+                
+                currentOutline = currentOutline.map(s => s.id === scene.id ? { ...s, videoPrompt: newPrompt } : s);
+                setEditedOutline(currentOutline); // Update UI immediately
+                save(currentOutline); // Trigger debounced save
+            }
+            
+            setBulkPromptState(p => ({ ...p, status: 'complete' }));
+            setTimeout(() => setBulkPromptState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
+    
+        } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                console.log("Bulk prompt regeneration cancelled.");
+                setBulkPromptState({ status: 'idle', progress: { current: 0, total: 0 } });
+                return;
+            }
+    
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            const failedSceneNumber = scenesToProcess[bulkPromptState.progress.current]?.sceneNumber || 'unknown';
+            setBulkPromptState({ 
+                status: 'error', 
+                progress: bulkPromptState.progress,
+                error: `Failed on Scene #${failedSceneNumber}: ${errorMessage}` 
+            });
+        }
+    };
     
     // Memoized filtering logic to ensure drag-and-drop works correctly
     const filteredScenes = useMemo(() => {
@@ -437,12 +496,16 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             <BulkGenerationControls
                 videoState={bulkVideoState}
                 imageState={bulkImageState}
+                promptState={bulkPromptState}
                 onGenerateVideo={handleBulkVideoGenerate}
                 onCancelVideo={() => videoGenerationAbortController.current?.abort()}
                 onDismissVideoError={() => setBulkVideoState({ status: 'idle', progress: { current: 0, total: 0 } })}
                 onGenerateImage={handleBulkImageRegenerate}
                 onCancelImage={() => imageGenerationAbortController.current?.abort()}
                 onDismissImageError={() => setBulkImageState({ status: 'idle', progress: { current: 0, total: 0 } })}
+                onGeneratePrompts={handleBulkPromptRegenerate}
+                onCancelPrompts={() => promptGenerationAbortController.current?.abort()}
+                onDismissPromptsError={() => setBulkPromptState({ status: 'idle', progress: { current: 0, total: 0 } })}
                 isVeoKeySelected={isVeoKeySelected}
                 scenesWithoutVideoCount={editedOutline.filter(s => !s.videoUrl).length}
                 totalSceneCount={editedOutline.length}
