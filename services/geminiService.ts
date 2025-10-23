@@ -395,14 +395,15 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
 
 const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
-    return `Generate a cinematic preview image for a film scene.
+    // Create a more narrative and descriptive prompt to enhance the quality of the generated image,
+    // ensuring it captures the cinematic essence, emotional tone, and specific visual style.
+    return `A cinematic, hyper-detailed film still in a 16:9 aspect ratio, capturing a single, powerful moment from a scene.
+    
 **Visual Style:** ${styleDescription}.
-**Scene Title:** ${scene.title}.
-**Atmosphere:** ${scene.atmosphere}.
-**Characters in Scene:** ${scene.charactersInScene}.
-**Scene Description:** ${scene.description}.
-**Key Visuals:** ${scene.keyVisualElements}.
-The image should be cinematic, 16:9 aspect ratio, hyper-detailed, and evoke the emotion of: ${scene.pacingEmotion}.`;
+    
+**Scene Details:** The scene, titled "${scene.title}," is infused with a feeling of **${scene.pacingEmotion}** and a **${scene.atmosphere}** atmosphere. It features **${scene.charactersInScene}**.
+    
+**Core Moment to Capture:** ${scene.description} The key visual elements to emphasize are: **${scene.keyVisualElements}**.`;
 };
 
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {

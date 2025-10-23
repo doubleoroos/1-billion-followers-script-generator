@@ -113,7 +113,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                     {/* FIX: Added children to OptionButton components to satisfy the 'children' prop requirement. */}
                     <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
                     <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
-                    {/* FIX: Corrected typo in value from "intimate" to "intense" to match the defined type. */}
+                    {/* FIX: Added children to satisfy the 'children' prop requirement. The value "intense" is correct for the EmotionalArcIntensity type. */}
                     <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
                 </div>
             </div>
