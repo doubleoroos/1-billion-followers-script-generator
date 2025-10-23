@@ -349,8 +349,15 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             } catch (error) {
                 if (error instanceof DOMException && error.name === 'AbortError') break;
                 const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-                setBulkVideoState({ status: 'error', progress: { current: i + 1, total: scenesToProcess.length }, error: `Failed on Scene ${scene.sceneNumber}: ${errorMessage.split('Reason: ')[1] || errorMessage}` });
-                if (errorMessage.includes('Requested entity was not found.')) onInvalidKeyError();
+                const errorReason = errorMessage.split('Reason: ')[1] || errorMessage;
+
+                if (errorReason.includes('Requested entity was not found.')) {
+                    onInvalidKeyError();
+                    setBulkVideoState({ status: 'error', progress: { current: i + 1, total: scenesToProcess.length }, error: `API Key is invalid. Please select a valid key.` });
+
+                } else {
+                    setBulkVideoState({ status: 'error', progress: { current: i + 1, total: scenesToProcess.length }, error: `Failed on Scene ${scene.sceneNumber}: ${errorReason}` });
+                }
                 return;
             }
         }
