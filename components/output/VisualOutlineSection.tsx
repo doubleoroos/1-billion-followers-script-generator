@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene } from '../../services/geminiService';
@@ -429,13 +428,16 @@ const SceneCard: React.FC<SceneCardProps> = ({
 
     return (
         <div className="relative bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300 border border-white/10 shadow-lg">
-             <input
-                type="text"
-                value={scene.title}
-                onChange={(e) => onFieldChange('title', e.target.value)}
-                aria-label="Scene Title"
-                className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-violet-glow rounded-md p-1 -m-1 w-full mb-4"
-            />
+            <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl font-mono font-bold text-violet-glow/60 select-none">{String(scene.sceneNumber).padStart(2, '0')}</span>
+                <input
+                    type="text"
+                    value={scene.title}
+                    onChange={(e) => onFieldChange('title', e.target.value)}
+                    aria-label="Scene Title"
+                    className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-violet-glow rounded-md p-1 -m-1 w-full"
+                />
+            </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-2 space-y-4">
