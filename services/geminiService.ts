@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -199,15 +198,18 @@ const getThemeBasedImageStages = (theme: RewriteTomorrowTheme, visualStyle: Visu
 
 const createVideoPrompt = (scene: Scene | Omit<Scene, 'id' | 'videoUrl' | 'videoPrompt'>, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
-    return `Create a short, 5-second video clip for a film scene.
-**Visual Style:** ${styleDescription}.
-**Scene Title:** ${scene.title}.
-**Atmosphere:** ${scene.atmosphere}.
-**Characters in Scene:** ${scene.charactersInScene}.
-**Description:** ${scene.description}.
-**Key Visuals:** ${scene.keyVisualElements}.
-The video should be cinematic, high-quality, and evoke the emotion of: ${scene.pacingEmotion}.`;
+    
+    // Construct a more narrative and descriptive prompt for the Veo model.
+    // This guides the AI to produce a more cinematic and emotionally resonant clip.
+    return `Generate a cinematic, 5-second video clip embodying a **${styleDescription}** visual style. The scene should feel **${scene.pacingEmotion}** and have a palpable **${scene.atmosphere}** atmosphere.
+    
+**Scene Narrative:** In a setting described as "${scene.location}", the following unfolds: ${scene.description}.
+    
+**Key Focus:** The camera should capture **${scene.charactersInScene}**. Emphasize these key visual elements: ${scene.keyVisualElements}. The transition out of the scene is: ${scene.transition}.
+    
+The final shot must be hyper-detailed, emotionally powerful, and suitable for a high-quality film.`;
 };
+
 
 export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
