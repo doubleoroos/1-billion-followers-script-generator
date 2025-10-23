@@ -40,6 +40,7 @@ export interface Scene {
   videoUrl?: string;
   videoPrompt?: string;
   imageUrl?: string;
+  dependsOn?: string[];
 }
 
 export interface GeneratedAssets {
