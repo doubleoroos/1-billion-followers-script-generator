@@ -438,3 +438,73 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
         throw new Error("An unknown error occurred during video generation.");
     }
 };
+
+const getStyleGuidePrompts = (style: VisualStyle): string[] => {
+    const styleDescription = getVisualStyleDescription(style);
+    const commonSuffix = `A hyper-detailed, cinematic film still, 16:9 aspect ratio. The style is strictly ${styleDescription}.`;
+    
+    switch (style) {
+        case 'cinematic':
+            return [
+                `A lone figure stands on a rain-slicked neon street at night, looking up at towering skyscrapers. ${commonSuffix}`,
+                `A vast, sun-drenched desert landscape with a single, futuristic vehicle kicking up dust. Dramatic, wide-angle shot. ${commonSuffix}`,
+                `An intimate close-up of a character's face, half in shadow, with a single tear tracing a path down their cheek. Soft, emotional lighting. ${commonSuffix}`
+            ];
+        case 'solarpunk':
+            return [
+                `A bustling city market under a canopy of bioluminescent trees and elegant, Art Nouveau-inspired solar-sail skyscrapers. ${commonSuffix}`,
+                `A community garden on a skyscraper rooftop, with people tending to lush greenery and automated drones assisting. Bright, optimistic lighting. ${commonSuffix}`,
+                `A streamlined maglev train gliding silently through a green cityscape where buildings are covered in ivy and waterfalls. ${commonSuffix}`
+            ];
+        case 'minimalist':
+            return [
+                `A single red sphere floating in the center of a vast, empty white room. Stark shadows, geometric perfection. ${commonSuffix}`,
+                `The silhouette of a person walking along an infinitely long, straight path that disappears into a hazy, monochrome horizon. ${commonSuffix}`,
+                `Two simple geometric shapes, one light and one dark, interacting on a plain, textured background. Focus on form and negative space. ${commonSuffix}`
+            ];
+        case 'biomorphic':
+            return [
+                `An interior living space where the walls, furniture, and lighting flow into each other like liquid, cellular structures. ${commonSuffix}`,
+                `A tower that twists towards the sky like a growing vine, its surface covered in a pattern resembling iridescent scales. ${commonSuffix}`,
+                `A vehicle that resembles a smooth, polished seed pod, gliding over a landscape of soft, rolling hills. Fluid, organic lines. ${commonSuffix}`
+            ];
+        case 'abstract':
+             return [
+                `A chaotic explosion of vibrant colors and sharp, crystalline shapes representing a moment of sudden realization. Non-representational. ${commonSuffix}`,
+                `A slow, swirling vortex of dark, melancholic blues and grays, textured like thick oil paint, evoking a sense of loss. ${commonSuffix}`,
+                `A pulsating grid of light and energy that shifts and changes rhythmically, representing a digital consciousness. ${commonSuffix}`
+            ];
+        default:
+            return [];
+    }
+}
+
+export const generateStyleGuideImages = async (visualStyle: VisualStyle): Promise<{url: string, prompt: string}[]> => {
+    const prompts = getStyleGuidePrompts(visualStyle);
+    if (prompts.length === 0) return [];
+    
+    try {
+        const imagePromises = prompts.map(prompt => 
+            ai.models.generateImages({
+                model: 'imagen-4.0-generate-001',
+                prompt: prompt,
+                config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '16:9' },
+            }).then(response => {
+                if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
+                    throw new Error(`Image generation failed for style guide prompt: "${prompt.substring(0, 50)}..."`);
+                }
+                return {
+                    url: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`,
+                    prompt: prompt.split(' The style is strictly')[0] // Return the core prompt for the caption
+                };
+            })
+        );
+        
+        return await Promise.all(imagePromises);
+
+    } catch (error) {
+        console.error("Error generating style guide images:", error);
+        if (error instanceof Error) throw new Error(`Failed to generate style guide. Reason: ${error.message}`);
+        throw new Error("An unknown error occurred during style guide image generation.");
+    }
+}
