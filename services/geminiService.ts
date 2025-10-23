@@ -276,7 +276,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     });
 
     const imageStages = getThemeBasedImageStages(theme, visualStyle);
-    const imagePromises = imageStages.map(stage => 
+    const moodboardImagePromises = imageStages.map(stage => 
       ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: stage.prompt,
@@ -299,7 +299,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     
     const [scriptResponse, referenceImages] = await Promise.all([
       scriptPromise,
-      Promise.all(imagePromises)
+      Promise.all(moodboardImagePromises)
     ]);
     
     const jsonText = scriptResponse.text.trim();
@@ -326,7 +326,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     }));
     
     const rawVisualOutline: Omit<Scene, 'id' | 'videoPrompt'>[] = parsedData.visualOutline || [];
-    const visualOutline: Scene[] = rawVisualOutline.map((sceneData, index) => {
+    const initialVisualOutline: Scene[] = rawVisualOutline.map((sceneData, index) => {
         const title = `Scene ${index + 1}: ${sceneData.title}`;
         const sceneWithTitle = { ...sceneData, title };
         return {
@@ -336,7 +336,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         };
     });
 
-    // Create a plain text version of the script for the BTS prompt
+    // Create plain text versions of script and outline for the BTS prompt
     const scriptTextForBTS = script.map(block => {
       if (block.type === 'narration') {
         return `(NARRATION)\n${block.content}`;
@@ -344,13 +344,38 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
       const charName = characters.find(c => c.id === block.characterId)?.name || 'Unknown Character';
       return `${charName.toUpperCase()}\n${block.content}`;
     }).join('\n\n');
+    
+    // Use initialVisualOutline here to allow parallel execution
+    const outlineTextForBTS = formatOutlineForPrompt(initialVisualOutline);
 
-    const outlineTextForBTS = formatOutlineForPrompt(visualOutline);
+    // --- CONCURRENT GENERATION BLOCK ---
+    // Start generating preview images for each scene
+    const sceneImagePromises = initialVisualOutline.map(scene => 
+        generateImageForScene(scene, visualStyle).catch(err => {
+            console.error(`Failed to generate preview image for scene "${scene.title}":`, err);
+            return null; // Return null on failure to avoid breaking Promise.all
+        })
+    );
+
+    // Start generating the BTS document
     const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
-    const btsResponse = await ai.models.generateContent({
+    const btsPromise = ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: btsPrompt,
     });
+    
+    // Await both concurrent tasks
+    const [sceneImageUrls, btsResponse] = await Promise.all([
+        Promise.all(sceneImagePromises),
+        btsPromise,
+    ]);
+
+    // --- PROCESS RESULTS ---
+    // Combine initial outline with generated image URLs to create the final outline
+    const visualOutline: Scene[] = initialVisualOutline.map((scene, index) => ({
+        ...scene,
+        imageUrl: sceneImageUrls[index] ?? undefined,
+    }));
     
     const btsDocument = btsResponse.text.trim();
 
