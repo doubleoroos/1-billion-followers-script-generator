@@ -530,7 +530,7 @@ interface VideoGenerationControlsProps {
 }
 
 const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statusInfo, onGenerate, onCancel, isVeoKeySelected, onSelectKey, hasVideo, disabled = false }) => {
-    // 1. Loading State: Visually distinct loading state with a pulse animation.
+    // 1. Loading State: Visually distinct loading state with a pulse animation and cancel button.
     if (statusInfo.status === 'loading') {
         return (
             <div className="flex flex-col items-center gap-2 animate-fade-in w-full p-2 bg-gray-800/20 rounded-lg border border-violet-glow/20 animate-pulse">
@@ -708,6 +708,12 @@ const SceneCard: React.FC<SceneCardProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-2 space-y-4">
                     <div className="aspect-video bg-black/20 rounded-lg flex items-center justify-center relative border border-white/10 overflow-hidden">
+                        {scene.videoUrl && (
+                            <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-green-900/80 text-white text-xs font-bold py-1 px-2 rounded-full backdrop-blur-sm border border-green-500/50">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                <span>Generated</span>
+                            </div>
+                        )}
                         {videoGenerationStatus.status === 'loading' ? (<div className="p-4 text-center text-sm text-gray-300">Generating video...</div>) : scene.videoUrl ? (<video key={scene.videoUrl} src={scene.videoUrl} controls className="w-full h-full object-cover"></video>) : imageGenerationStatus.status === 'loading' ? (<div className="p-4 text-center text-sm text-gray-300">Generating image...</div>) : scene.imageUrl ? (<img src={scene.imageUrl} alt={`Preview for ${scene.title}`} className="w-full h-full object-cover" />) : (<div className="text-center text-gray-400 p-4"><PlaceholderImageIcon /><p className="mt-2 text-sm font-semibold">No Preview</p></div>)}
                     </div>
                     <ImageGenerationControls statusInfo={imageGenerationStatus} onGenerate={handleGenerateImage} hasImage={!!scene.imageUrl} disabled={isLocked} />
