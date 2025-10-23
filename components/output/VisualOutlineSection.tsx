@@ -6,7 +6,7 @@ import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
 
 // Re-usable Icons
-const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
 const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
@@ -278,50 +278,80 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleBulkVideoGenerate = async () => {
         videoGenerationAbortController.current = new AbortController();
         const signal = videoGenerationAbortController.current.signal;
-
-        const scenesToProcess = editedOutline.filter(scene => !scene.videoUrl);
-        if (scenesToProcess.length === 0) return;
-
-        setBulkVideoState({ status: 'running', progress: { current: 0, total: scenesToProcess.length } });
-
-        for (let i = 0; i < scenesToProcess.length; i++) {
-            if (signal.aborted) { console.log("Bulk video generation cancelled by user."); break; }
-            const scene = scenesToProcess[i];
-            setBulkVideoState(p => ({ ...p, progress: { ...p.progress, current: i + 1 } }));
-
-            try {
-                // Before generating, let's regenerate the prompt for this scene if it's missing or empty
-                let currentSceneState = editedOutline.find(s => s.id === scene.id)!;
-                if (!currentSceneState.videoPrompt?.trim()) {
-                    console.log(`Regenerating prompt for Scene ${currentSceneState.sceneNumber} before video generation...`);
-                    const newPrompt = await regenerateVideoPromptForScene(currentSceneState, visualStyle);
-                    currentSceneState = { ...currentSceneState, videoPrompt: newPrompt };
-                    setEditedOutline(prev => prev.map(s => s.id === currentSceneState.id ? currentSceneState : s));
-                    save(editedOutline.map(s => s.id === currentSceneState.id ? currentSceneState : s));
-                }
-
-                const downloadLink = await generateVideoForScene(currentSceneState, visualStyle, signal);
-                const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
-                const updatedScene = { ...currentSceneState, videoUrl: finalUrl };
-                onVideoSave(updatedScene);
-                setEditedOutline(prev => prev.map(s => s.id === updatedScene.id ? updatedScene : s));
-            } catch (error) {
-                if (error instanceof DOMException && error.name === 'AbortError') break;
-                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-                const errorReason = errorMessage.split('Reason: ')[1] || errorMessage;
-
-                if (errorReason.includes('Requested entity was not found.')) {
-                    onInvalidKeyError();
-                    setBulkVideoState({ status: 'error', progress: { current: i + 1, total: scenesToProcess.length }, error: `API Key is invalid. Please select a valid key.` });
-                } else {
-                    setBulkVideoState({ status: 'error', progress: { current: i + 1, total: scenesToProcess.length }, error: `Failed on Scene ${scene.sceneNumber}: ${errorReason}` });
-                }
+    
+        let scenesToProcess = editedOutline.filter(scene => !scene.videoUrl);
+        const totalScenesToProcess = scenesToProcess.length;
+        if (totalScenesToProcess === 0) return;
+    
+        setBulkVideoState({ status: 'running', progress: { current: 0, total: totalScenesToProcess } });
+    
+        let completedInThisRun = new Set<string>(editedOutline.filter(s => !!s.videoUrl).map(s => s.id));
+        let totalGeneratedCount = 0;
+        let lastLoopSceneCount = scenesToProcess.length + 1;
+    
+        while (scenesToProcess.length > 0) {
+            if (signal.aborted) {
+                console.log("Bulk video generation cancelled by user.");
+                break;
+            }
+    
+            if (scenesToProcess.length === lastLoopSceneCount) {
+                const remainingSceneNumbers = scenesToProcess.map(s => `#${s.sceneNumber}`).join(', ');
+                setBulkVideoState({ status: 'error', progress: bulkVideoState.progress, error: `Deadlock detected. Check for circular dependencies among scenes: ${remainingSceneNumbers}` });
                 return;
             }
+            lastLoopSceneCount = scenesToProcess.length;
+    
+            const generatableScenes = scenesToProcess.filter(scene =>
+                (scene.dependsOn ?? []).every(depId => completedInThisRun.has(depId))
+            );
+    
+            for (const scene of generatableScenes) {
+                if (signal.aborted) break;
+                
+                totalGeneratedCount++;
+                setBulkVideoState(p => ({ ...p, progress: { ...p.progress, current: totalGeneratedCount } }));
+    
+                try {
+                    let currentSceneState = editedOutline.find(s => s.id === scene.id)!;
+                    if (!currentSceneState.videoPrompt?.trim()) {
+                        const newPrompt = await regenerateVideoPromptForScene(currentSceneState, visualStyle);
+                        currentSceneState = { ...currentSceneState, videoPrompt: newPrompt };
+                        const newOutline = editedOutline.map(s => s.id === currentSceneState.id ? currentSceneState : s);
+                        setEditedOutline(newOutline);
+                        save(newOutline);
+                    }
+    
+                    const downloadLink = await generateVideoForScene(currentSceneState, visualStyle, signal);
+                    const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
+                    const updatedScene = { ...currentSceneState, videoUrl: finalUrl };
+                    
+                    onVideoSave(updatedScene);
+                    setEditedOutline(prev => prev.map(s => s.id === updatedScene.id ? updatedScene : s));
+                    completedInThisRun.add(scene.id);
+    
+                } catch (error) {
+                    if (error instanceof DOMException && error.name === 'AbortError') break;
+                    
+                    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                    const errorReason = errorMessage.split('Reason: ')[1] || errorMessage;
+    
+                    if (errorReason.includes('Requested entity was not found.')) {
+                        onInvalidKeyError();
+                        setBulkVideoState({ status: 'error', progress: bulkVideoState.progress, error: `API Key is invalid. Please select a valid key.` });
+                    } else {
+                        setBulkVideoState({ status: 'error', progress: bulkVideoState.progress, error: `Failed on Scene ${scene.sceneNumber}: ${errorReason}` });
+                    }
+                    return;
+                }
+            }
+            
+            scenesToProcess = scenesToProcess.filter(scene => !completedInThisRun.has(scene.id));
+            if (signal.aborted) break;
         }
-        
+    
         if (signal.aborted) {
-             setBulkVideoState({ status: 'idle', progress: { current: 0, total: 0 } });
+            setBulkVideoState({ status: 'idle', progress: { current: 0, total: 0 } });
         } else {
             setBulkVideoState(p => ({ ...p, status: 'complete' }));
             setTimeout(() => setBulkVideoState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
