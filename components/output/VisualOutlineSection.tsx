@@ -7,20 +7,41 @@ import { CopyButton } from '../ui/CopyButton';
 
 // Re-usable Icons
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
-const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
-const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
-const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+const VideoIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
+const ImageIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+const PlaceholderImageIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const CheckmarkIcon = () => <svg className="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path className="animate-draw-checkmark" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" style={{ strokeDasharray: 24, strokeDashoffset: 24 }} /></svg>;
 const RegenerateIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg>;
 const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1-1.257-.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>;
-const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+const SearchIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>;
+
+const parseVideoGenerationError = (error: unknown): { userMessage: string; isApiKeyError: boolean } => {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    const reason = errorMessage.split('Reason: ')[1] || errorMessage;
+    const lowerCaseReason = reason.toLowerCase();
+
+    if (lowerCaseReason.includes("requested entity was not found") || lowerCaseReason.includes("api key not valid")) {
+        return {
+            userMessage: "Invalid API Key. Please select a valid, billed API key and retry.",
+            isApiKeyError: true,
+        };
+    }
+    if (lowerCaseReason.includes("quota") || lowerCaseReason.includes("billing")) {
+        return {
+            userMessage: "Quota exceeded or billing issue. Please check your project's billing status and usage limits.",
+            isApiKeyError: true,
+        };
+    }
+    return { userMessage: reason, isApiKeyError: false };
+};
+
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     let content: React.ReactNode = null;
     if (status === 'dirty') content = <span className="text-mint-glow">Unsaved changes...</span>;
-    else if (status === 'saving') content = <span className="text-cyan-lum flex items-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>;
+    else if (status === 'saving') content = <span className="text-cyan-lum flex items-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>;
     else if (status === 'saved') content = <span className="text-green-400 flex items-center gap-2"><CheckmarkIcon />Continuity preserved.</span>;
     else return <div className="h-5"></div>;
     return <div className="h-5 text-sm transition-opacity duration-300">{content}</div>;
@@ -332,17 +353,16 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     
                 } catch (error) {
                     if (error instanceof DOMException && error.name === 'AbortError') break;
-                    
-                    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-                    const errorReason = errorMessage.split('Reason: ')[1] || errorMessage;
-    
-                    if (errorReason.includes('Requested entity was not found.')) {
+
+                    const { userMessage, isApiKeyError } = parseVideoGenerationError(error);
+
+                    if (isApiKeyError) {
                         onInvalidKeyError();
-                        setBulkVideoState({ status: 'error', progress: bulkVideoState.progress, error: `API Key is invalid. Please select a valid key.` });
-                    } else {
-                        setBulkVideoState({ status: 'error', progress: bulkVideoState.progress, error: `Failed on Scene ${scene.sceneNumber}: ${errorReason}` });
                     }
-                    return;
+                    
+                    // Stop bulk generation on any error, displaying a clear message.
+                    setBulkVideoState({ status: 'error', progress: bulkVideoState.progress, error: `Failed on Scene ${scene.sceneNumber}: ${userMessage}` });
+                    return; 
                 }
             }
             
@@ -559,16 +579,23 @@ const SceneCard: React.FC<SceneCardProps> = ({
 
     const handleGenerateVideo = async () => {
         if (isLocked) return;
-        generationController.current = new AbortController(); setVideoGenerationStatus({ status: 'loading' });
+        generationController.current = new AbortController();
+        setVideoGenerationStatus({ status: 'loading' });
         try {
             const downloadLink = await generateVideoForScene(scene, visualStyle, generationController.current.signal);
             const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
-            onVideoSave({ ...scene, videoUrl: finalUrl }); setVideoGenerationStatus({ status: 'idle' });
+            onVideoSave({ ...scene, videoUrl: finalUrl });
+            setVideoGenerationStatus({ status: 'idle' });
         } catch (error) {
-            if (error instanceof DOMException && error.name === 'AbortError') { setVideoGenerationStatus({ status: 'idle' }); return; }
-            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-            if (errorMessage.includes('Requested entity was not found.')) { setVideoGenerationStatus({ status: 'error', error: "Your API Key appears to be invalid. Please select a different one." }); onInvalidKeyError();
-            } else { setVideoGenerationStatus({ status: 'error', error: errorMessage.split('Reason: ')[1] || errorMessage }); }
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                setVideoGenerationStatus({ status: 'idle' });
+                return;
+            }
+            const { userMessage, isApiKeyError } = parseVideoGenerationError(error);
+            setVideoGenerationStatus({ status: 'error', error: userMessage });
+            if (isApiKeyError) {
+                onInvalidKeyError();
+            }
         }
     };
     const handleGenerateImage = async () => {
