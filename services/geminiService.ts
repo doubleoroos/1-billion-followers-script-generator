@@ -76,6 +76,7 @@ You are an expert screenwriter and concept artist creating assets for a film sub
 3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the following fields:
     - **description:** Must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
     - **charactersInScene:** Must briefly describe which characters are present and their key actions or emotional state.
+    - **duration:** Provide a realistic duration estimate for the scene in seconds, formatted as a string (e.g., "15s"). This should reflect the pacing and content of the scene description.
     - **transition:** Must provide a descriptive and cinematic transition to the *next* scene (e.g., 'Match cut on action', 'Slow dissolve to white', 'Iris out', 'Wipe left as character exits frame'). The final scene's transition should be 'Fade to black.'.
 
 **Output Format:**
