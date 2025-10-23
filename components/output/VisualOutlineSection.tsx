@@ -946,6 +946,15 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         placeholder="Describe characters present and their key actions/emotions..."
                     />
                     <EditableField
+                        label="Key Visual Elements"
+                        id={`keyvis-${scene.id}`}
+                        value={scene.keyVisualElements}
+                        field="keyVisualElements"
+                        isTextarea
+                        rows={3}
+                        placeholder="e.g., A single glowing flower, the reflection in a character's eye, a specific architectural detail."
+                    />
+                    <EditableField
                         label="Description"
                         id={`desc-${scene.id}`}
                         value={scene.description}
