@@ -203,7 +203,7 @@ const getThemeBasedImageStages = (theme: RewriteTomorrowTheme, visualStyle: Visu
 const createVideoPrompt = (scene: Scene | Omit<Scene, 'id' | 'videoUrl' | 'videoPrompt'>, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     
-    return `Generate a cinematic, 5-second video clip embodying a **${styleDescription}** visual style. The scene should feel **${scene.pacingEmotion}** and have a palpable **${scene.atmosphere}** atmosphere.
+    return `Generate a cinematic video clip of approximately **${scene.duration}** embodying a **${styleDescription}** visual style. The scene should feel **${scene.pacingEmotion}** and have a palpable **${scene.atmosphere}** atmosphere.
     
 **Scene Narrative:** In a setting described as "${scene.location}", the following unfolds: ${scene.description}.
     
@@ -370,9 +370,10 @@ export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: V
 You are an expert prompt engineer for a text-to-video AI model (like Google Veo). Your task is to take the details of a film scene and write a new, highly-effective, and cinematic prompt for video generation.
 **Scene Details:**
 - **Title:** ${scene.title}, **Location:** ${scene.location}, **Time of Day:** ${scene.timeOfDay}, **Atmosphere:** ${scene.atmosphere}, **Pacing & Emotion:** ${scene.pacingEmotion}, **Characters Present:** ${scene.charactersInScene}, **Key Visual Elements:** ${scene.keyVisualElements}, **Core Scene Description:** ${scene.description}
+- **Target Duration:** ${scene.duration}
 **Visual Style Mandate:** ${styleDescription}
 **Your Instructions:**
-1. Synthesize all details into a single, cohesive, evocative paragraph.
+1. Synthesize all details into a single, cohesive, evocative paragraph that describes a video clip of approximately **${scene.duration}**.
 2. The prompt should be a descriptive, narrative style painting a vivid picture.
 3. Focus on action, mood, and visual detail, incorporating the specified **Visual Style**.
 4. The output should be **only the prompt text itself**, concise but powerful, ideally under 150 words.`;
