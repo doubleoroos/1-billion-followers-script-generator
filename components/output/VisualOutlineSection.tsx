@@ -717,7 +717,15 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         {videoGenerationStatus.status === 'loading' ? (<div className="p-4 text-center text-sm text-gray-300">Generating video...</div>) : scene.videoUrl ? (<video key={scene.videoUrl} src={scene.videoUrl} controls className="w-full h-full object-cover"></video>) : imageGenerationStatus.status === 'loading' ? (<div className="p-4 text-center text-sm text-gray-300">Generating image...</div>) : scene.imageUrl ? (<img src={scene.imageUrl} alt={`Preview for ${scene.title}`} className="w-full h-full object-cover" />) : (<div className="text-center text-gray-400 p-4"><PlaceholderImageIcon /><p className="mt-2 text-sm font-semibold">No Preview</p></div>)}
                     </div>
                     <ImageGenerationControls statusInfo={imageGenerationStatus} onGenerate={handleGenerateImage} hasImage={!!scene.imageUrl} disabled={isLocked} />
-                    <VideoGenerationControls statusInfo={videoGenerationStatus} onGenerate={handleGenerateVideo} onCancel={handleCancelGeneration} isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} hasVideo={!!scene.videoUrl} disabled={isLocked} />
+                    <VideoGenerationControls 
+                        statusInfo={videoGenerationStatus} 
+                        onGenerate={handleGenerateVideo} 
+                        onCancel={handleCancelGeneration} 
+                        isVeoKeySelected={isVeoKeySelected} 
+                        onSelectKey={onSelectKey} 
+                        hasVideo={!!scene.videoUrl} 
+                        disabled={isLocked}
+                    />
                      {scene.videoUrl && (<a href={scene.videoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm w-full"><DownloadIcon /><span>Download Video</span></a>)}
                 </div>
                 <div className="lg:col-span-3 space-y-4">
