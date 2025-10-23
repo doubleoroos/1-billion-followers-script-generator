@@ -74,9 +74,13 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Rewrite Tomorrow Theme</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="enlightenment" current={rewriteTomorrowTheme} onClick={setRewriteTomorrowTheme} tooltip="AI helps unlock the deepest mysteries of the mind and universe.">Enlightenment</OptionButton>
                 </div>
             </div>
@@ -84,9 +88,13 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Narrative Tone</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Ponder the great questions. Explore the depths of meaning and existence.">Philosophical</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Paint a vision of tomorrow. Inspire with a story of optimism and unity.">Hopeful</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="intimate" current={narrativeTone} onClick={setNarrativeTone} tooltip="Share a quiet secret. Draw the viewer close with a personal, reflective voice.">Intimate</OptionButton>
                 </div>
             </div>
@@ -94,10 +102,15 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Visual Style</h3>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="biomorphic" current={visualStyle} onClick={setVisualStyle} tooltip="Draw from nature's blueprint. Create a flowing, interconnected world of organic shapes.">Biomorphic</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="abstract" current={visualStyle} onClick={setVisualStyle} tooltip="Evoke feelings through non-literal forms. Use color, shape, and texture to build an inner landscape.">Abstract</OptionButton>
                 </div>
             </div>
@@ -105,8 +118,11 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-violet-glow to-transparent"></div>
                 <h3 className="font-semibold text-white mb-3 text-lg pl-2">Emotional Arc Intensity</h3>
                 <div className="flex justify-between items-center gap-2">
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
+                    {/* FIX: Added children to OptionButton */}
                     <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
                 </div>
             </div>
