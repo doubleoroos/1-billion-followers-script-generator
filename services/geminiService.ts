@@ -328,15 +328,31 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         characterId: block.type === 'dialogue' && block.characterName ? characterNameToIdMap.get(block.characterName) : undefined,
     }));
     
-    const rawVisualOutline: Omit<Scene, 'id' | 'videoPrompt' | 'sceneNumber'>[] = parsedData.visualOutline || [];
-    const initialVisualOutline: Scene[] = rawVisualOutline.map((sceneData, index) => {
-        return {
-            ...sceneData,
-            id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`,
-            sceneNumber: index + 1,
-            videoPrompt: createVideoPrompt(sceneData as Scene, visualStyle),
-        };
-    });
+    const rawVisualOutline: Omit<Scene, 'id' | 'sceneNumber' | 'videoPrompt' | 'videoUrl' | 'imageUrl'>[] = parsedData.visualOutline || [];
+
+    // Create scene shells with IDs and scene numbers first.
+    const sceneShells: Scene[] = rawVisualOutline.map((sceneData, index) => ({
+      ...(sceneData as any),
+      id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`,
+      sceneNumber: index + 1,
+    }));
+
+    // Concurrently generate a cinematic, high-quality video prompt for each scene.
+    // This makes the initial output much stronger and more useful.
+    const promptGenerationPromises = sceneShells.map(scene =>
+      regenerateVideoPromptForScene(scene, visualStyle)
+        .then(prompt => ({ ...scene, videoPrompt: prompt }))
+        .catch(err => {
+          console.error(`Failed to generate cinematic video prompt for scene "${scene.title}", falling back to basic template.`, err);
+          // Fallback to the simpler, non-generative prompt creator on error
+          return {
+            ...scene,
+            videoPrompt: createVideoPrompt(scene, visualStyle),
+          };
+        })
+    );
+    
+    const initialVisualOutline = await Promise.all(promptGenerationPromises);
 
     // Create plain text versions of script and outline for the BTS prompt
     const scriptTextForBTS = script.map(block => {
