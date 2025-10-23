@@ -203,8 +203,6 @@ const getThemeBasedImageStages = (theme: RewriteTomorrowTheme, visualStyle: Visu
 const createVideoPrompt = (scene: Scene | Omit<Scene, 'id' | 'videoUrl' | 'videoPrompt'>, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     
-    // Construct a more narrative and descriptive prompt for the Veo model.
-    // This guides the AI to produce a more cinematic and emotionally resonant clip.
     return `Generate a cinematic, 5-second video clip embodying a **${styleDescription}** visual style. The scene should feel **${scene.pacingEmotion}** and have a palpable **${scene.atmosphere}** atmosphere.
     
 **Scene Narrative:** In a setting described as "${scene.location}", the following unfolds: ${scene.description}.
@@ -287,129 +285,68 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
       ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: stage.prompt,
-        config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-          aspectRatio: '16:9',
-        },
+        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '16:9' },
       }).then(response => {
         if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
             console.error("Image generation failed for stage:", stage.title, "Response:", response);
             throw new Error(`Image generation failed for "${stage.title}". The model did not return an image, which may be due to safety filters or a temporary model issue.`);
         }
-        return {
-          title: stage.title,
-          imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`
-        };
+        return { title: stage.title, imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}` };
       })
     );
     
-    const [scriptResponse, referenceImages] = await Promise.all([
-      scriptPromise,
-      Promise.all(moodboardImagePromises)
-    ]);
+    const [scriptResponse, referenceImages] = await Promise.all([scriptPromise, Promise.all(moodboardImagePromises)]);
     
     const jsonText = scriptResponse.text.trim();
     const parsedData = JSON.parse(jsonText);
     
-    // Process characters and script
     const rawCharacters: { name: string; description: string; role: string; }[] = parsedData.characters || [];
     const rawScript: { type: 'narration' | 'dialogue', characterName?: string, content: string }[] = parsedData.script || [];
 
     const characters: Character[] = rawCharacters.map(c => ({ 
-        id: `char_${Math.random().toString(36).substring(2, 9)}`, 
-        name: c.name,
-        description: c.description,
-        role: c.role,
+        id: `char_${Math.random().toString(36).substring(2, 9)}`, name: c.name, description: c.description, role: c.role,
     }));
     
     const characterNameToIdMap = new Map(characters.map(c => [c.name, c.id]));
-
     const script: ScriptBlock[] = rawScript.map(block => ({
-        id: `block_${Math.random().toString(36).substring(2, 9)}`,
-        type: block.type,
-        content: block.content,
+        id: `block_${Math.random().toString(36).substring(2, 9)}`, type: block.type, content: block.content,
         characterId: block.type === 'dialogue' && block.characterName ? characterNameToIdMap.get(block.characterName) : undefined,
     }));
     
     const rawVisualOutline: Omit<Scene, 'id' | 'sceneNumber' | 'videoPrompt' | 'videoUrl' | 'imageUrl'>[] = parsedData.visualOutline || [];
-
-    // Create scene shells with IDs and scene numbers first.
     const sceneShells: Scene[] = rawVisualOutline.map((sceneData, index) => ({
-      ...(sceneData as any),
-      id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`,
-      sceneNumber: index + 1,
+      ...(sceneData as any), id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`, sceneNumber: index + 1,
     }));
 
-    // Concurrently generate a cinematic, high-quality video prompt for each scene.
-    // This makes the initial output much stronger and more useful.
     const promptGenerationPromises = sceneShells.map(scene =>
-// FIX: The function `regenerateVideoPromptForScene` was not defined. It has been added to this file.
       regenerateVideoPromptForScene(scene, visualStyle)
         .then(prompt => ({ ...scene, videoPrompt: prompt }))
         .catch(err => {
           console.error(`Failed to generate cinematic video prompt for scene "${scene.title}", falling back to basic template.`, err);
-          // Fallback to the simpler, non-generative prompt creator on error
-          return {
-            ...scene,
-            videoPrompt: createVideoPrompt(scene, visualStyle),
-          };
+          return { ...scene, videoPrompt: createVideoPrompt(scene, visualStyle) };
         })
     );
-    
     const initialVisualOutline = await Promise.all(promptGenerationPromises);
 
-    // Create plain text versions of script and outline for the BTS prompt
     const scriptTextForBTS = script.map(block => {
-      if (block.type === 'narration') {
-        return `(NARRATION)\n${block.content}`;
-      }
       const charName = characters.find(c => c.id === block.characterId)?.name || 'Unknown Character';
-      return `${charName.toUpperCase()}\n${block.content}`;
+      return block.type === 'narration' ? `(NARRATION)\n${block.content}` : `${charName.toUpperCase()}\n${block.content}`;
     }).join('\n\n');
-    
-    // Use initialVisualOutline here to allow parallel execution
     const outlineTextForBTS = formatOutlineForPrompt(initialVisualOutline);
 
-    // --- CONCURRENT GENERATION BLOCK ---
-    // Start generating preview images for each scene
     const sceneImagePromises = initialVisualOutline.map(scene => 
         generateImageForScene(scene, visualStyle).catch(err => {
-            console.error(`Failed to generate preview image for scene "${scene.title}":`, err);
-            return null; // Return null on failure to avoid breaking Promise.all
+            console.error(`Failed to generate preview image for scene "${scene.title}":`, err); return null;
         })
     );
-
-    // Start generating the BTS document
     const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
-    const btsPromise = ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: btsPrompt,
-    });
+    const btsPromise = ai.models.generateContent({ model: "gemini-2.5-flash", contents: btsPrompt });
+    const [sceneImageUrls, btsResponse] = await Promise.all([Promise.all(sceneImagePromises), btsPromise]);
     
-    // Await both concurrent tasks
-    const [sceneImageUrls, btsResponse] = await Promise.all([
-        Promise.all(sceneImagePromises),
-        btsPromise,
-    ]);
-
-    // --- PROCESS RESULTS ---
-    // Combine initial outline with generated image URLs to create the final outline
-    const visualOutline: Scene[] = initialVisualOutline.map((scene, index) => ({
-        ...scene,
-        imageUrl: sceneImageUrls[index] ?? undefined,
-    }));
-    
+    const visualOutline: Scene[] = initialVisualOutline.map((scene, index) => ({ ...scene, imageUrl: sceneImageUrls[index] ?? undefined }));
     const btsDocument = btsResponse.text.trim();
 
-    return {
-      script,
-      characters,
-      visualOutline,
-      referenceImages: referenceImages as ReferenceImage[],
-      btsDocument,
-    };
-
+    return { script, characters, visualOutline, referenceImages: referenceImages as ReferenceImage[], btsDocument };
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     throw new Error("The AI muse hit a block. Perhaps try a different creative direction or check your connection.");
@@ -418,8 +355,6 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
 
 const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
-    // Create a more narrative and descriptive prompt to enhance the quality of the generated image,
-    // ensuring it captures the cinematic essence, emotional tone, and specific visual style.
     return `A cinematic, hyper-detailed film still in a 16:9 aspect ratio, capturing a single, powerful moment from a scene.
     
 **Visual Style:** ${styleDescription}.
@@ -432,41 +367,22 @@ const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): stri
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
   const styleDescription = getVisualStyleDescription(visualStyle);
   const prompt = `
-You are an expert prompt engineer for a text-to-video AI model (like Google Veo).
-Your task is to take the details of a film scene and write a new, highly-effective, and cinematic prompt for video generation.
-
+You are an expert prompt engineer for a text-to-video AI model (like Google Veo). Your task is to take the details of a film scene and write a new, highly-effective, and cinematic prompt for video generation.
 **Scene Details:**
-- **Title:** ${scene.title}
-- **Location:** ${scene.location}
-- **Time of Day:** ${scene.timeOfDay}
-- **Atmosphere:** ${scene.atmosphere}
-- **Pacing & Emotion:** ${scene.pacingEmotion}
-- **Characters Present:** ${scene.charactersInScene}
-- **Key Visual Elements:** ${scene.keyVisualElements}
-- **Core Scene Description:** ${scene.description}
-
+- **Title:** ${scene.title}, **Location:** ${scene.location}, **Time of Day:** ${scene.timeOfDay}, **Atmosphere:** ${scene.atmosphere}, **Pacing & Emotion:** ${scene.pacingEmotion}, **Characters Present:** ${scene.charactersInScene}, **Key Visual Elements:** ${scene.keyVisualElements}, **Core Scene Description:** ${scene.description}
 **Visual Style Mandate:** ${styleDescription}
-
 **Your Instructions:**
-1.  Synthesize all the scene details into a single, cohesive, and evocative paragraph.
-2.  The prompt should be written in a descriptive, narrative style that paints a vivid picture.
-3.  Focus on action, mood, and visual detail.
-4.  Directly incorporate the specified **Visual Style**.
-5.  The output should be **only the prompt text itself**, without any preamble or explanation. The prompt should be concise but powerful, ideally under 150 words.
-`;
+1. Synthesize all details into a single, cohesive, evocative paragraph.
+2. The prompt should be a descriptive, narrative style painting a vivid picture.
+3. Focus on action, mood, and visual detail, incorporating the specified **Visual Style**.
+4. The output should be **only the prompt text itself**, concise but powerful, ideally under 150 words.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
+    const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
     return response.text.trim();
   } catch (error) {
     console.error("Error regenerating video prompt:", error);
-    if (error instanceof Error) {
-        throw new Error(`Failed to regenerate prompt. Reason: ${error.message}`);
-    }
+    if (error instanceof Error) throw new Error(`Failed to regenerate prompt. Reason: ${error.message}`);
     throw new Error("An unknown error occurred during prompt regeneration.");
   }
 };
@@ -475,48 +391,28 @@ export const generateImageForScene = async (scene: Scene, visualStyle: VisualSty
     try {
         const prompt = createImagePromptForScene(scene, visualStyle);
         const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: prompt,
-            config: {
-                numberOfImages: 1,
-                outputMimeType: 'image/jpeg',
-                aspectRatio: '16:9',
-            },
+            model: 'imagen-4.0-generate-001', prompt: prompt,
+            config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '16:9' },
         });
-
         if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
-            throw new Error("Image generation failed. The model did not return an image, which may be due to safety filters or a temporary model issue.");
+            throw new Error("Image generation failed. The model did not return an image.");
         }
-
         return `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
     } catch (error) {
         console.error("Error generating scene image:", error);
-        if (error instanceof Error) {
-            throw new Error(`Failed to generate preview image. Reason: ${error.message}`);
-        }
+        if (error instanceof Error) throw new Error(`Failed to generate preview image. Reason: ${error.message}`);
         throw new Error("An unknown error occurred during image generation.");
     }
 };
 
 export const generateVideoForScene = async (scene: Scene, visualStyle: VisualStyle, signal?: AbortSignal): Promise<string> => {
     try {
-      // Re-initialize to ensure the latest API key is used, as per guidelines for Veo models.
       const aiForVideo = new GoogleGenAI({ apiKey: API_KEY as string });
-  
-      if (!scene.videoPrompt || scene.videoPrompt.trim() === '') {
-        throw new Error("Video prompt is empty. Please provide a prompt before generating the video.");
-      }
+      if (!scene.videoPrompt || scene.videoPrompt.trim() === '') throw new Error("Video prompt is empty.");
       
-      const prompt = scene.videoPrompt;
-  
       let operation = await aiForVideo.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
-        prompt: prompt,
-        config: {
-          numberOfVideos: 1,
-          resolution: '720p',
-          aspectRatio: '16:9'
-        }
+        model: 'veo-3.1-fast-generate-preview', prompt: scene.videoPrompt,
+        config: { numberOfVideos: 1, resolution: '720p', aspectRatio: '16:9' }
       });
   
       while (!operation.done) {
@@ -526,20 +422,16 @@ export const generateVideoForScene = async (scene: Scene, visualStyle: VisualSty
         operation = await aiForVideo.operations.getVideosOperation({ operation: operation });
       }
   
-      if (operation.error) {
-          throw new Error(`Video generation failed: ${operation.error.message}`);
-      }
-  
+      if (operation.error) throw new Error(`Video generation failed: ${operation.error.message}`);
       const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-// FIX: The function was not returning a value. It now returns the download link or throws an error.
-      if (!downloadLink) {
-        throw new Error("Video generation completed, but no download link was provided.");
-      }
+      if (!downloadLink) throw new Error("Video generation completed, but no download link was provided.");
       return downloadLink;
     } catch (error) {
         console.error("Error generating video for scene:", error);
         if (error instanceof Error) {
-            // To provide a more specific error message to the UI
+            if (error.message.includes("Requested entity was not found.")) {
+                throw new Error("Invalid API Key. Reason: Requested entity was not found.");
+            }
             throw new Error(`Video generation failed. Reason: ${error.message}`);
         }
         throw new Error("An unknown error occurred during video generation.");
