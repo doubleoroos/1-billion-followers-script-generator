@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { ScriptBlock, Character } from '../../types';
 import { CopyButton } from '../ui/CopyButton';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
@@ -38,15 +38,28 @@ const AutoSizingTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElem
 
 
 export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters, onSave }) => {
-    const [editedScript, setEditedScript] = useState<ScriptBlock[]>(script);
+    const processedScript = useMemo(() => {
+        const characterIdSet = new Set(characters.map(c => c.id));
+        return script.map(block => {
+            if (block.type === 'dialogue' && (!block.characterId || !characterIdSet.has(block.characterId))) {
+                return { ...block, characterId: 'UNKNOWN_CHARACTER' };
+            }
+            return block;
+        });
+    }, [script, characters]);
+    
+    const [editedScript, setEditedScript] = useState<ScriptBlock[]>(processedScript);
     const { status, save } = useAutosave({ onSave });
 
     useEffect(() => {
-        setEditedScript(script);
-    }, [script]);
+        setEditedScript(processedScript);
+    }, [processedScript]);
 
     const getCharacterName = (characterId?: string) => {
         if (!characterId) return 'NARRATOR';
+        if (characterId === 'UNKNOWN_CHARACTER') {
+            return 'UNKNOWN';
+        }
         return characters.find(c => c.id === characterId)?.name.toUpperCase() || 'UNKNOWN';
     };
 
