@@ -73,7 +73,10 @@ You are an expert screenwriter and concept artist creating assets for a film sub
 
 2.  **Script Generation:** Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. Structure it as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. It must follow a complete narrative arc with a beginning, middle, and end, featuring clear character development, conflict, and resolution, all aligning with the requested **Emotional Arc**.
 
-3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the 'description' field: it must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style. Also, provide a 'charactersInScene' field that briefly describes which characters are present and their key actions or emotional state.
+3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the following fields:
+    - **description:** Must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
+    - **charactersInScene:** Must briefly describe which characters are present and their key actions or emotional state.
+    - **transition:** Must provide a descriptive and cinematic transition to the *next* scene (e.g., 'Match cut on action', 'Slow dissolve to white', 'Iris out', 'Wipe left as character exits frame'). The final scene's transition should be 'Fade to black.'.
 
 **Output Format:**
 Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".

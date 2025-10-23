@@ -79,6 +79,21 @@ const atmosphereOptions = [
     'Nostalgic',
 ];
 
+const transitionOptions = [
+    'Cut to:',
+    'Cross-dissolve to:',
+    'Slow dissolve to:',
+    'Fade in from Black.',
+    'Fade to Black.',
+    'Match cut on action to:',
+    'Jump cut to:',
+    'Smash cut to black.',
+    'Wipe left to:',
+    'Wipe right to:',
+    'Iris out.',
+    'Iris in.',
+];
+
 const DatalistInput: React.FC<{
   label: string;
   id: string;
@@ -699,6 +714,14 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         />
                         <EditableField label="Duration" id={`duration-${scene.id}`} value={scene.duration} field="duration" placeholder="e.g., 10s or 240f" />
                     </div>
+                    <DatalistInput
+                        label="Transition to Next Scene"
+                        id={`trans-${scene.id}`}
+                        value={scene.transition}
+                        onChange={(value) => onFieldChange('transition', value)}
+                        options={transitionOptions}
+                        placeholder="e.g., Match cut on action..."
+                    />
                      <EditableField
                         label="Characters in Scene"
                         id={`chars-${scene.id}`}
