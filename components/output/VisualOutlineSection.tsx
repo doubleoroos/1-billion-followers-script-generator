@@ -6,7 +6,7 @@ import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
 
 // Re-usable Icons
-const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
 const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
@@ -134,6 +134,11 @@ interface BulkGenerationControlsProps {
     refinePromptsState: { status: BulkStatus; error?: string; };
     onRefineAllPrompts: () => void;
     onDismissRefinePromptsError: () => void;
+    
+    refineImagePromptsState: { status: BulkStatus; error?: string; };
+    onRefineAllImagePrompts: () => void;
+    onDismissRefineImagePromptsError: () => void;
+    
     sceneCount: number;
 
     isVeoKeySelected: boolean | null;
@@ -145,10 +150,12 @@ interface BulkGenerationControlsProps {
 const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     masterState, onGenerateAll, onCancelAll, onDismissAllError,
     promptGenState, onRegeneratePrompts, onDismissPromptGenError,
-    refinePromptsState, onRefineAllPrompts, onDismissRefinePromptsError, sceneCount,
+    refinePromptsState, onRefineAllPrompts, onDismissRefinePromptsError,
+    refineImagePromptsState, onRefineAllImagePrompts, onDismissRefineImagePromptsError,
+    sceneCount,
     isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount
 }) => {
-    const isAnySecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running';
+    const isAnySecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running' || refineImagePromptsState.status === 'running';
     const isMasterRunning = masterState.status === 'generating_prompts' || masterState.status === 'generating_videos';
     const missingAssetsCount = Math.max(scenesWithoutPromptsCount, scenesWithoutVideoCount);
     let masterDisabledTooltip = '';
@@ -212,7 +219,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     };
 
     const renderPromptGenUI = () => {
-        const isRunning = promptGenState.status === 'running' || isMasterRunning || refinePromptsState.status === 'running';
+        const isRunning = isAnySecondaryRunning || isMasterRunning;
         const disabled = isRunning || scenesWithoutPromptsCount === 0;
         const tooltip = disabled
             ? scenesWithoutPromptsCount === 0
@@ -265,7 +272,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     };
 
     const renderRefinePromptsUI = () => {
-        const isRunning = refinePromptsState.status === 'running' || isMasterRunning || promptGenState.status === 'running';
+        const isRunning = isAnySecondaryRunning || isMasterRunning;
         const disabled = isRunning || sceneCount === 0;
         const tooltip = disabled
             ? sceneCount === 0
@@ -276,7 +283,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         if (refinePromptsState.status === 'running') {
             return (
                 <div className="w-full h-full text-center p-3 bg-blue-deep/50 rounded-lg border border-violet-glow/20 animate-pulse flex flex-col justify-center">
-                    <p className="font-semibold text-white">Refining All Prompts...</p>
+                    <p className="font-semibold text-white">Refining Video Prompts...</p>
                     <p className="text-sm text-gray-300">This may take a moment.</p>
                 </div>
             );
@@ -285,7 +292,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         if (refinePromptsState.status === 'error') {
             return (
                 <div className="w-full h-full p-3 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
-                    <h5 className="font-bold text-white text-sm">Prompt Refinement Failed</h5>
+                    <h5 className="font-bold text-white text-sm">Video Prompt Refinement Failed</h5>
                     <p className="text-xs text-red-200 my-1 font-mono break-all">{refinePromptsState.error}</p>
                     <button onClick={onDismissRefinePromptsError} className="text-xs bg-gray-600 hover:bg-gray-500 text-white font-semibold py-1 px-3 rounded-md mt-1 self-center">Dismiss</button>
                 </div>
@@ -295,7 +302,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         if (refinePromptsState.status === 'complete') {
             return (
                 <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in flex flex-col justify-center">
-                    <h5 className="font-bold text-white text-sm">Prompts Refined!</h5>
+                    <h5 className="font-bold text-white text-sm">Video Prompts Refined!</h5>
                     <p className="text-xs text-green-200">All prompts have been updated.</p>
                 </div>
             );
@@ -310,9 +317,62 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             >
                 <div className="flex items-center gap-2 text-base">
                     <SparklesIcon />
-                    <span>Refine All Prompts ({sceneCount})</span>
+                    <span>Refine Video Prompts ({sceneCount})</span>
                 </div>
-                <span className="text-xs font-semibold text-gray-400 italic opacity-80 mt-1">Creative Refinement</span>
+                <span className="text-xs font-semibold text-gray-400 italic opacity-80 mt-1">For Video</span>
+            </button>
+        );
+    };
+
+    const renderRefineImagePromptsUI = () => {
+        const isRunning = isAnySecondaryRunning || isMasterRunning;
+        const disabled = isRunning || sceneCount === 0;
+        const tooltip = disabled
+            ? sceneCount === 0
+                ? "There are no scenes to refine."
+                : "Another generation process is running."
+            : "Use AI to rewrite and improve all still image prompts for better cinematic quality.";
+    
+        if (refineImagePromptsState.status === 'running') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-blue-deep/50 rounded-lg border border-violet-glow/20 animate-pulse flex flex-col justify-center">
+                    <p className="font-semibold text-white">Refining Image Prompts...</p>
+                    <p className="text-sm text-gray-300">This may take a moment.</p>
+                </div>
+            );
+        }
+    
+        if (refineImagePromptsState.status === 'error') {
+            return (
+                <div className="w-full h-full p-3 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Image Prompt Refinement Failed</h5>
+                    <p className="text-xs text-red-200 my-1 font-mono break-all">{refineImagePromptsState.error}</p>
+                    <button onClick={onDismissRefineImagePromptsError} className="text-xs bg-gray-600 hover:bg-gray-500 text-white font-semibold py-1 px-3 rounded-md mt-1 self-center">Dismiss</button>
+                </div>
+            );
+        }
+    
+        if (refineImagePromptsState.status === 'complete') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Image Prompts Refined!</h5>
+                    <p className="text-xs text-green-200">All image prompts have been updated.</p>
+                </div>
+            );
+        }
+    
+        return (
+            <button
+                onClick={onRefineAllImagePrompts}
+                disabled={disabled}
+                title={tooltip}
+                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-3 px-5 rounded-lg transition-all text-sm disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed border border-white/10 disabled:border-transparent transform hover:scale-105 active:scale-100"
+            >
+                <div className="flex items-center gap-2 text-base">
+                    <ImageIcon />
+                    <span>Refine Image Prompts ({sceneCount})</span>
+                </div>
+                <span className="text-xs font-semibold text-gray-400 italic opacity-80 mt-1">For Stills</span>
             </button>
         );
     };
@@ -329,7 +389,10 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 </div>
                 <div className="flex-shrink-0 lg:w-2/4 flex flex-col gap-4">
                     {renderPromptGenUI()}
-                    {renderRefinePromptsUI()}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {renderRefinePromptsUI()}
+                        {renderRefineImagePromptsUI()}
+                    </div>
                 </div>
             </div>
         </div>
@@ -424,6 +487,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
 
     const [promptGenState, setPromptGenState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
     const [refinePromptsState, setRefinePromptsState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
+    const [refineImagePromptsState, setRefineImagePromptsState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
      
     useEffect(() => { setEditedOutline(outline); }, [outline]);
 
@@ -642,6 +706,34 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         }
     };
 
+    const handleRefineAllImagePrompts = async () => {
+        setRefineImagePromptsState({ status: 'running' });
+    
+        try {
+            const promises = editedOutline.map(scene => 
+                regenerateImagePromptForScene(scene, visualStyle).then(newPrompt => ({
+                    id: scene.id,
+                    imagePrompt: newPrompt,
+                }))
+            );
+            const results = await Promise.all(promises);
+            const updatesMap = new Map(results.map(r => [r.id, r.imagePrompt]));
+            const newOutline = editedOutline.map(scene => 
+                updatesMap.has(scene.id) ? { ...scene, imagePrompt: updatesMap.get(scene.id)! } : scene
+            );
+    
+            setEditedOutline(newOutline);
+            save(newOutline);
+    
+            setRefineImagePromptsState({ status: 'complete' });
+            setTimeout(() => setRefineImagePromptsState({ status: 'idle' }), 3000);
+    
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during image prompt refinement.";
+            setRefineImagePromptsState({ status: 'error', error: errorMessage });
+        }
+    };
+
 
     const filteredScenes = useMemo(() => {
         const lowercasedFilter = searchTerm.toLowerCase();
@@ -685,6 +777,11 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 refinePromptsState={refinePromptsState}
                 onRefineAllPrompts={handleRefineAllPrompts}
                 onDismissRefinePromptsError={() => setRefinePromptsState({ status: 'idle' })}
+                
+                refineImagePromptsState={refineImagePromptsState}
+                onRefineAllImagePrompts={handleRefineAllImagePrompts}
+                onDismissRefineImagePromptsError={() => setRefineImagePromptsState({ status: 'idle' })}
+                
                 sceneCount={editedOutline.length}
 
                 isVeoKeySelected={isVeoKeySelected}
