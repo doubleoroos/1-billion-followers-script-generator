@@ -418,20 +418,25 @@ You are an expert prompt engineer for a text-to-image AI model (like Google Imag
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
   const styleDescription = getVisualStyleDescription(visualStyle);
   const prompt = `
-You are an expert prompt engineer for a text-to-video AI model (like Google Veo). Your task is to take the details of a film scene and write a new, highly-effective, and cinematic prompt for video generation.
+You are a seasoned Director of Photography and a world-class prompt engineer for a text-to-video AI model (like Google Veo). Your task is to translate a scene's abstract details into a concrete, highly cinematic video prompt.
 
-**Scene Details:**
-- **Title:** ${scene.title}, **Location:** ${scene.location}, **Time of Day:** ${scene.timeOfDay}, **Atmosphere:** ${scene.atmosphere}, **Pacing & Emotion:** ${scene.pacingEmotion}, **Characters Present:** ${scene.charactersInScene}, **Key Visual Elements:** ${scene.keyVisualElements}, **Core Scene Description:** ${scene.description}
+**Scene Brief:**
+- **Scene:** ${scene.title} (${scene.location}, ${scene.timeOfDay})
+- **Mood & Tone:** ${scene.atmosphere}, ${scene.pacingEmotion}
+- **On Screen:** ${scene.charactersInScene}
+- **Core Action:** ${scene.description}
+- **Key Visuals:** ${scene.keyVisualElements}
 - **Target Duration:** ${scene.duration}
 
-**Visual Style Mandate:** ${styleDescription}
+**Mandatory Visual Style:** ${styleDescription}
 
-**Your Instructions:**
-1.  Synthesize all details into a single, cohesive, evocative paragraph that describes a video clip of approximately **${scene.duration}**.
-2.  The prompt should be a descriptive, narrative style painting a vivid picture.
-3.  Focus on action, mood, and visual detail, incorporating the specified **Visual Style**.
-4.  **Crucially, describe specific camera work.** Include details like shot types (e.g., 'extreme close-up', 'sweeping wide shot'), camera movement (e.g., 'slow dolly in', 'handheld tracking shot', 'crane shot ascending'), and lens choices (e.g., 'shallow depth of field', 'lens flare').
-5.  The output should be **only the prompt text itself**, concise but powerful, ideally under 150 words.`;
+**Your Task:**
+Write a new, powerful video prompt (under 150 words) that brings this scene to life.
+1.  **Be a Filmmaker:** Think in terms of shots, not just descriptions.
+2.  **Direct the Camera:** Your prompt **must** include specific and evocative camera work. Go beyond the basics. Instead of "wide shot", describe *why* it's a wide shot (e.g., "A lonely, sweeping wide shot to emphasize the character's isolation"). Mention shot types (close-up, medium), camera movement (dolly, crane, handheld, tracking shot), and lens characteristics (anamorphic lens flare, shallow depth of field, rack focus).
+3.  **Paint with Light & Color:** Weave the visual style and atmosphere into the description of the lighting and color palette.
+4.  **Action & Emotion:** The prompt must clearly articulate the key actions and the emotional core of the scene.
+5.  **Format:** Output **only the prompt text itself**. Do not use markdown or labels. It should be a single, dense paragraph ready for the video model.`;
 
   try {
     const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
