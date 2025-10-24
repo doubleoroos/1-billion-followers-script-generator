@@ -23,10 +23,10 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ textToCopy }) => {
   return (
     <button
       onClick={handleCopy}
-      className={`absolute top-3 right-3 flex items-center gap-2 text-xs font-semibold py-1 px-3 rounded-full transition-all duration-300 border ${
+      className={`btn-3d absolute top-3 right-3 flex items-center gap-2 text-xs font-semibold py-1 px-3 rounded-full border transition-all duration-300 ${
         copied
           ? 'bg-green-500/20 border-green-500/30 text-green-300'
-          : 'bg-gray-700/50 border-white/10 text-gray-300 hover:bg-gray-600'
+          : 'bg-gradient-neutral border-white/10 text-gray-300'
       }`}
     >
       {copied ? <CheckmarkIcon /> : <CopyIcon />}

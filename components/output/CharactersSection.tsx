@@ -80,7 +80,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                         <button onClick={handleCancel} className="text-sm text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full">Cancel</button>
                         <button
                             onClick={handleSave}
-                            className="flex items-center gap-2 bg-mint-glow text-blue-darker font-bold py-2 px-4 rounded-full text-sm transition-transform transform hover:scale-105"
+                            className="btn-3d flex items-center gap-2 bg-gradient-action text-blue-darker font-bold py-2 px-4 rounded-full text-sm border border-white/20"
                         >
                             <SaveIcon />
                             Save
@@ -89,7 +89,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                 ) : (
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-rose-gray font-semibold py-2 px-4 rounded-full text-sm transition-colors border border-white/10"
+                        className="btn-3d flex items-center gap-2 bg-gradient-neutral text-rose-gray font-semibold py-2 px-4 rounded-full text-sm border border-white/10"
                     >
                         <EditIcon />
                         Edit

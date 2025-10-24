@@ -9,6 +9,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .btn-3d {
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 -2px 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(800px) rotateX(5deg);
+      }
+      .btn-3d:hover {
+        transform: perspective(800px) rotateX(2deg) translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+      }
+      .btn-3d:active, .btn-3d.active {
+        transform: perspective(800px) rotateX(1deg) translateY(1px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0,0,0,0.5), inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+      }
+      .btn-3d.disabled, .btn-3d:disabled {
+        transform: perspective(800px) rotateX(0deg) translateY(0);
+        box-shadow: none;
+      }
+    </style>
     <script>
       tailwind.config = {
         theme: {
@@ -28,6 +47,18 @@
               'mint-glow': '#67facc',
               'teal-bright': '#14b8a6',
             },
+            backgroundImage: {
+              'gradient-purple-glow': 'linear-gradient(135deg, #a855f7, #7c3aed)',
+              'gradient-cyan-glow': 'linear-gradient(135deg, #22d3ee, #06b6d4)',
+              'gradient-action': 'linear-gradient(135deg, #67facc, #14b8a6)',
+              'gradient-neutral': 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+              'gradient-active': 'linear-gradient(135deg, #d8b4fe, #a78bfa)',
+              'gradient-dark-panel': 'linear-gradient(180deg, rgba(255,255,255,0.02), transparent)',
+              'gradient-radial-background': 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(20,0,137,0.25), rgba(1, 8, 26, 0))',
+            },
+            boxShadow: {
+              'glass-pressed': 'inset 0 2px 4px rgba(0,0,0,0.5), inset 0 -1px 1px rgba(255, 255, 255, 0.05)',
+            },
             keyframes: {
               'subtle-fade-in': {
                 '0%': { opacity: '0', transform: 'translateY(10px) scale(0.98)' },
@@ -36,10 +67,6 @@
               'fade-in-stagger': {
                 '0%': { opacity: '0', transform: 'translateY(20px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              'glow': {
-                '0%, 100%': { boxShadow: '0 0 15px rgba(103, 250, 204, 0.2), 0 0 25px rgba(103, 250, 204, 0.1)' },
-                '50%': { boxShadow: '0 0 25px rgba(103, 250, 204, 0.4), 0 0 40px rgba(103, 250, 204, 0.2)' },
               },
               'draw-checkmark': {
                 '0%': { strokeDashoffset: 24 },
@@ -58,7 +85,6 @@
             animation: {
               'fade-in': 'subtle-fade-in 0.8s ease-out forwards',
               'fade-in-stagger': 'fade-in-stagger 0.8s ease-out forwards',
-              'glow': 'glow 3s ease-in-out infinite',
               'draw-checkmark': 'draw-checkmark 0.3s ease-out forwards',
               'progress-indeterminate': 'progress-indeterminate 2.5s ease-in-out infinite',
               'pulse-orb': 'pulse-orb 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -78,7 +104,7 @@
 }
 </script>
 </head>
-  <body class="bg-phthalo-deep bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(0,15,137,0.25),rgba(255,255,255,0))]">
+  <body class="bg-phthalo-deep bg-gradient-radial-background">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
