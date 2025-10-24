@@ -32,10 +32,10 @@ const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
       onClick={() => onClick(value)}
       title={tooltip}
       aria-pressed={isActive}
-      className={`btn-3d relative w-full px-4 py-3 text-sm font-semibold rounded-full border ${
+      className={`btn-glass relative w-full px-4 py-3 text-sm font-semibold rounded-full border ${
         isActive
-          ? 'active bg-gradient-active text-white border-violet-glow/50'
-          : 'bg-gradient-neutral text-gray-300 border-white/10'
+          ? 'active bg-violet/80 text-white border-violet'
+          : 'bg-white/5 text-text-secondary border-white/10'
       }`}
     >
       <span className="relative z-10">{children}</span>
@@ -45,8 +45,8 @@ const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
 
 const ControlGroup: React.FC<{title: string, children: React.ReactNode}> = ({ title, children }) => (
     <div className="space-y-3">
-        <h3 className="font-semibold text-white text-lg pl-2">{title}</h3>
-        <div className="bg-black/20 p-4 rounded-2xl border border-white/10 bg-gradient-dark-panel">
+        <h3 className="font-semibold text-text-primary text-lg pl-2">{title}</h3>
+        <div className="bg-black/20 p-4 rounded-2xl border border-white/10">
             {children}
         </div>
     </div>
@@ -75,15 +75,15 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
         <div className="text-center mb-12">
-            <h2 className="text-5xl font-extrabold text-white mb-3 bg-gradient-to-r from-white to-gray-400 text-transparent bg-clip-text">Envision a New Future</h2>
-            <p className="text-gray-300 text-xl">Your choices will guide the AI in generating a complete film concept.</p>
+            <h2 className="text-5xl font-extrabold mb-3 bg-gold-reflection text-transparent bg-clip-text">Envision a New Future</h2>
+            <p className="text-text-secondary text-xl">Your choices will guide the AI in generating a complete film concept.</p>
         </div>
       
-        <div className="bg-black/20 backdrop-blur-2xl p-6 md:p-8 rounded-3xl border border-white/10 flex flex-col space-y-8 shadow-2xl shadow-black/50">
+        <div className="bg-cyan/10 backdrop-blur-2xl p-6 md:p-8 rounded-3xl border border-white/20 flex flex-col space-y-8 shadow-soft">
         
         <ControlGroup title="Step 1: Choose a Core Theme">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                {/* FIX: Added children to OptionButton components to fix missing property errors. */}
+                {/* FIX: Added missing children prop to OptionButton components */}
                 <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
                 <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
                 <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
@@ -96,8 +96,9 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 <ControlGroup title="Step 2: Set the Creative Direction">
                     <div className="space-y-6">
                         <div>
-                            <h4 className="font-medium text-gray-200 mb-2 pl-1">Narrative Tone</h4>
+                            <h4 className="font-medium text-text-primary mb-2 pl-1">Narrative Tone</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                                {/* FIX: Added missing children prop to OptionButton components */}
                                 <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
                                 <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Ponder the great questions. Explore the depths of meaning and existence.">Philosophical</OptionButton>
                                 <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Paint a vision of tomorrow. Inspire with a story of optimism and unity.">Hopeful</OptionButton>
@@ -105,8 +106,9 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                             </div>
                         </div>
                          <div>
-                            <h4 className="font-medium text-gray-200 mb-2 pl-1">Visual Style</h4>
+                            <h4 className="font-medium text-text-primary mb-2 pl-1">Visual Style</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                {/* FIX: Added missing children prop to OptionButton components */}
                                 <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
                                 <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
                                 <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
@@ -115,8 +117,9 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                             </div>
                         </div>
                          <div>
-                            <h4 className="font-medium text-gray-200 mb-2 pl-1">Emotional Arc</h4>
+                            <h4 className="font-medium text-text-primary mb-2 pl-1">Emotional Arc</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {/* FIX: Added missing children prop to OptionButton components */}
                                 <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
                                 <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
                                 <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
@@ -128,7 +131,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
         )}
 
         {error && (
-            <div className="bg-red-900/30 border border-red-600/50 p-4 rounded-xl animate-fade-in text-sm text-red-200">
+            <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl animate-fade-in text-sm text-red-200">
                 <p className="font-semibold mb-1">An Unexpected Plot Twist</p>
                 <p>{error}</p>
             </div>
@@ -138,7 +141,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             <button
                 onClick={onGenerate}
                 disabled={isLoading || !themeSelected}
-                className="btn-3d w-full flex items-center justify-center gap-3 bg-gradient-action text-blue-darker font-bold py-4 px-4 rounded-xl relative border border-white/20 disabled:from-gray-600 disabled:to-gray-700 disabled:text-white disabled:cursor-not-allowed disabled:border-transparent"
+                className="btn-glow w-full flex items-center justify-center gap-3 bg-violet-glow-gradient text-white font-bold py-4 px-4 rounded-xl relative shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
             >
             {isLoading ? (
                 <>

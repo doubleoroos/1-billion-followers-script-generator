@@ -36,15 +36,15 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
     };
 
     return (
-        <div className="bg-black/20 backdrop-blur-lg border border-white/10 rounded-2xl p-6 text-center shadow-lg flex flex-col h-full">
+        <div className="bg-cyan/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 text-center shadow-soft flex flex-col h-full">
             <div className="flex-grow">
                 {isEditing ? (
                     <div className="space-y-4 text-left">
                         <div>
-                            <label htmlFor={`role-${character.id}`} className="block text-sm font-medium text-gray-400 mb-1">Role</label>
+                            <label htmlFor={`role-${character.id}`} className="block text-sm font-medium text-text-secondary mb-1">Role</label>
                             <input
                                 id={`role-${character.id}`} type="text" value={editedRole} onChange={(e) => setEditedRole(e.target.value)}
-                                className="w-full bg-black/30 p-2 rounded-lg text-cyan-lum border border-white/20 focus:border-cyan-lum focus:ring-cyan-lum text-sm font-semibold uppercase tracking-wider"
+                                className="w-full bg-black/30 p-2 rounded-lg text-cyan border border-white/20 focus:border-cyan focus:ring-cyan text-sm font-semibold uppercase tracking-wider"
                                 placeholder="e.g., Protagonist" list={`roles-list-${character.id}`}
                             />
                             <datalist id={`roles-list-${character.id}`}>
@@ -52,35 +52,35 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                             </datalist>
                         </div>
                         <div>
-                            <label htmlFor={`name-${character.id}`} className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                            <label htmlFor={`name-${character.id}`} className="block text-sm font-medium text-text-secondary mb-1">Name</label>
                             <input
                                 id={`name-${character.id}`} type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)}
-                                className="w-full bg-black/30 p-2 rounded-lg text-violet-glow border border-white/20 focus:border-violet-glow focus:ring-violet-glow text-2xl font-bold"
+                                className="w-full bg-black/30 p-2 rounded-lg text-violet border border-white/20 focus:border-violet focus:ring-violet text-2xl font-bold"
                             />
                         </div>
                         <div>
-                            <label htmlFor={`desc-${character.id}`} className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                            <label htmlFor={`desc-${character.id}`} className="block text-sm font-medium text-text-secondary mb-1">Description</label>
                             <textarea
                                 id={`desc-${character.id}`} value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} rows={3}
-                                className="w-full bg-black/30 p-2 rounded-lg text-gray-300 border border-white/20 focus:border-violet-glow focus:ring-violet-glow italic"
+                                className="w-full bg-black/30 p-2 rounded-lg text-text-primary/80 border border-white/20 focus:border-violet focus:ring-violet italic"
                             />
                         </div>
                     </div>
                 ) : (
                     <>
-                        <p className="text-sm font-semibold uppercase tracking-wider text-cyan-lum mb-2">{character.role}</p>
-                        <h3 className="text-2xl font-bold text-violet-glow">{character.name}</h3>
-                        <p className="text-gray-300 italic mt-3 text-base">{character.description}</p>
+                        <p className="text-sm font-semibold uppercase tracking-wider text-cyan mb-2">{character.role}</p>
+                        <h3 className="text-2xl font-bold text-violet">{character.name}</h3>
+                        <p className="text-text-primary/80 italic mt-3 text-base">{character.description}</p>
                     </>
                 )}
             </div>
             <div className="mt-6 flex justify-end gap-2">
                 {isEditing ? (
                     <>
-                        <button onClick={handleCancel} className="text-sm text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full">Cancel</button>
+                        <button onClick={handleCancel} className="text-sm text-text-secondary hover:text-white transition-colors px-4 py-2 rounded-full">Cancel</button>
                         <button
                             onClick={handleSave}
-                            className="btn-3d flex items-center gap-2 bg-gradient-action text-blue-darker font-bold py-2 px-4 rounded-full text-sm border border-white/20"
+                            className="btn-glow flex items-center gap-2 bg-violet-glow-gradient text-white font-bold py-2 px-4 rounded-full text-sm shadow-glow-violet"
                         >
                             <SaveIcon />
                             Save
@@ -89,7 +89,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                 ) : (
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="btn-3d flex items-center gap-2 bg-gradient-neutral text-rose-gray font-semibold py-2 px-4 rounded-full text-sm border border-white/10"
+                        className="btn-glass flex items-center gap-2 bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm border border-white/10"
                     >
                         <EditIcon />
                         Edit

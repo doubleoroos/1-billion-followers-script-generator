@@ -111,7 +111,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-rose-gray font-sans">
+    <div className="min-h-screen bg-transparent text-text-primary font-sans">
       <Header onStartOver={handleStartOver} showStartOver={appState === 'reveal'} />
       <main className="container mx-auto px-4 py-12 md:py-20">
         {renderContent()}
