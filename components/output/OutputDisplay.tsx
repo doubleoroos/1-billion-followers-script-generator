@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import type { GeneratedAssets, ScriptBlock, Scene, Character, VisualStyle, RewriteTomorrowTheme, EmotionalArcIntensity, NarrativeTone } from '../../types';
 import { LogoIcon } from '../icons/LogoIcon';

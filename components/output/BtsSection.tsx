@@ -33,7 +33,7 @@ export const BtsSection: React.FC<BtsSectionProps> = ({ document, onSave }) => {
     };
 
     return (
-         <div className="relative bg-black/20 backdrop-blur-sm border border-white/10 p-6 md:p-10 rounded-2xl max-w-4xl mx-auto text-gray-300 space-y-4 shadow-2xl leading-relaxed">
+         <div className="relative bg-black/20 backdrop-blur-lg border border-white/10 p-8 md:p-12 rounded-2xl max-w-4xl mx-auto text-gray-300 space-y-4 shadow-2xl leading-relaxed">
             <CopyButton textToCopy={editedDoc} />
             <div className="flex justify-end items-center">
                 <SaveStatusIndicator status={status} />
@@ -41,7 +41,7 @@ export const BtsSection: React.FC<BtsSectionProps> = ({ document, onSave }) => {
             <textarea
                 value={editedDoc}
                 onChange={handleChange}
-                className="w-full bg-transparent p-1 -m-1 rounded-md focus:bg-gray-900/50 focus:outline-none focus:ring-1 focus:ring-violet-glow transition-colors duration-200"
+                className="w-full bg-transparent p-1 -m-1 rounded-md focus:bg-black/30 focus:outline-none focus:ring-1 focus:ring-violet-glow transition-colors duration-200"
                 style={{ minHeight: '600px', whiteSpace: 'pre-wrap' }}
                 aria-label="Behind The Scenes Document"
             />

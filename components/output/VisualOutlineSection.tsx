@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, generateStyleGuideImages } from '../../services/geminiService';
@@ -68,7 +69,7 @@ const ApiKeyManager: React.FC<{
 
   if (isVeoKeySelected === null) {
     return (
-      <div className="bg-blue-deep/30 p-4 rounded-lg border border-white/10 text-center animate-fade-in mb-8 flex items-center justify-center gap-2">
+      <div className="bg-black/20 backdrop-blur-lg p-4 rounded-2xl border border-white/10 text-center animate-fade-in mb-8 flex items-center justify-center gap-2">
         <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
         <span className="text-gray-400">Verifying API key status...</span>
       </div>
@@ -76,13 +77,13 @@ const ApiKeyManager: React.FC<{
   }
   
   return (
-    <div className="bg-blue-deep/50 p-6 rounded-lg border border-violet-glow/30 text-center animate-fade-in mb-8">
+    <div className="bg-black/20 backdrop-blur-lg p-6 rounded-2xl border border-violet-glow/30 text-center animate-fade-in mb-8">
       <h4 className="text-lg font-bold text-white mb-2">Enable Video Generation</h4>
       <p className="text-gray-300 text-sm max-w-xl mx-auto mb-3">
           To generate cinematic clips with Google's Veo model, a billed API key is required. This ensures access to the necessary computational resources.
       </p>
       <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-lum hover:underline mb-4 block">Learn more about billing</a>
-      <button onClick={onSelectKey} className="flex items-center justify-center gap-2 mx-auto bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-5 rounded-lg transition-all text-sm">
+      <button onClick={onSelectKey} className="flex items-center justify-center gap-2 mx-auto bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-5 rounded-full transition-all text-sm">
           <KeyIcon /> Select API Key
       </button>
     </div>
@@ -105,7 +106,7 @@ const DatalistInput: React.FC<{
       <label htmlFor={id} className="block text-gray-400 font-semibold mb-1 text-sm">{label}</label>
       <input
         id={id} type="text" value={value} onChange={(e) => onChange(e.target.value)} list={datalistId}
-        className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed"
+        className="w-full bg-white/5 p-2 rounded-lg text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-white/10 transition disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed"
         placeholder={placeholder} disabled={disabled}
       />
       <datalist id={datalistId}>{options.map(option => (<option key={option} value={option} />))}</datalist>
@@ -166,24 +167,24 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             const description = `Processing scene ${masterState.progress.current} of ${masterState.progress.total}...`;
             const progressPercentage = masterState.progress.total > 0 ? (masterState.progress.current / masterState.progress.total) * 100 : 0;
             return (
-                <div className="w-full h-full p-4 bg-blue-deep/50 rounded-lg border border-violet-glow/30 animate-fade-in text-center flex flex-col justify-center">
+                <div className="w-full h-full p-4 bg-blue-deep/50 rounded-2xl border border-violet-glow/30 animate-fade-in text-center flex flex-col justify-center">
                     <h4 className="font-bold text-white">{title}</h4>
                     <p className="text-sm text-gray-300 my-2">{description}</p>
-                    <div className="w-full bg-gray-900/50 rounded-full h-2.5 my-3 overflow-hidden">
+                    <div className="w-full bg-black/30 rounded-full h-2.5 my-3 overflow-hidden">
                         <div className="bg-gradient-to-r from-cyan-lum to-violet-glow h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
                     </div>
-                    <button onClick={onCancelAll} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm self-center">Cancel</button>
+                    <button onClick={onCancelAll} className="bg-white/5 hover:bg-white/10 text-rose-gray font-semibold py-2 px-4 rounded-full text-sm self-center">Cancel</button>
                 </div>
             );
         }
 
         if (masterState.status === 'error') {
             return (
-                 <div className="w-full h-full p-4 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                 <div className="w-full h-full p-4 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h4 className="font-bold text-white">Generation Failed</h4>
                     <p className="text-sm text-red-200 my-2 font-mono break-all">{masterState.error}</p>
                     <div className="flex justify-center gap-4 mt-3">
-                        <button onClick={onDismissAllError} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Dismiss</button>
+                        <button onClick={onDismissAllError} className="bg-white/5 hover:bg-white/10 text-rose-gray font-semibold py-2 px-4 rounded-full text-sm">Dismiss</button>
                     </div>
                 </div>
             );
@@ -191,7 +192,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         
         if (masterState.status === 'complete') {
              return (
-                 <div className="w-full h-full p-4 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in text-center flex flex-col justify-center">
+                 <div className="w-full h-full p-4 bg-green-900/40 rounded-2xl border border-green-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h4 className="font-bold text-white">Full Sequence Generation Complete!</h4>
                     <p className="text-sm text-green-200 my-2">All {masterState.progress.total} scenes processed successfully.</p>
                 </div>
@@ -203,7 +204,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 onClick={onGenerateAll} 
                 disabled={isMasterDisabled}
                 title={masterDisabledTooltip}
-                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-teal-bright to-mint-glow text-blue-darker font-bold py-3 px-5 rounded-lg transition-all text-sm disabled:from-gray-600 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100 border border-white/10 shadow-lg disabled:shadow-none animate-glow disabled:animate-none"
+                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-teal-bright to-mint-glow text-blue-darker font-bold py-3 px-5 rounded-2xl transition-all text-sm disabled:from-gray-600 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100 border border-white/10 shadow-lg disabled:shadow-none animate-glow disabled:animate-none"
             >
                 <div className="flex items-center gap-2 text-base">
                     <VideoIcon />
@@ -225,7 +226,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     
         if (promptGenState.status === 'running') {
             return (
-                <div className="w-full h-full text-center p-3 bg-blue-deep/50 rounded-lg border border-violet-glow/20 animate-pulse flex flex-col justify-center">
+                <div className="w-full h-full text-center p-3 bg-blue-deep/50 rounded-2xl border border-violet-glow/20 animate-pulse flex flex-col justify-center">
                     <p className="font-semibold text-white">Regenerating Prompts...</p>
                     <p className="text-sm text-gray-300">This should be quick.</p>
                 </div>
@@ -234,17 +235,17 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     
         if (promptGenState.status === 'error') {
             return (
-                <div className="w-full h-full p-3 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                <div className="w-full h-full p-3 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h5 className="font-bold text-white text-sm">Prompt Generation Failed</h5>
                     <p className="text-xs text-red-200 my-1 font-mono break-all">{promptGenState.error}</p>
-                    <button onClick={onDismissPromptGenError} className="text-xs bg-gray-600 hover:bg-gray-500 text-white font-semibold py-1 px-3 rounded-md mt-1 self-center">Dismiss</button>
+                    <button onClick={onDismissPromptGenError} className="text-xs bg-white/5 hover:bg-white/10 text-rose-gray font-semibold py-1 px-3 rounded-full mt-1 self-center">Dismiss</button>
                 </div>
             );
         }
     
         if (promptGenState.status === 'complete') {
             return (
-                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in flex flex-col justify-center">
+                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-2xl border border-green-500/50 animate-fade-in flex flex-col justify-center">
                     <h5 className="font-bold text-white text-sm">Prompts Generated!</h5>
                     <p className="text-xs text-green-200">All missing prompts have been created.</p>
                 </div>
@@ -256,7 +257,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 onClick={onRegeneratePrompts}
                 disabled={disabled}
                 title={tooltip}
-                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-3 px-5 rounded-lg transition-all text-sm disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed border border-white/10 disabled:border-transparent transform hover:scale-105 active:scale-100"
+                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-white/10 text-white font-semibold py-3 px-5 rounded-2xl transition-all text-sm disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed border border-white/10 disabled:border-transparent transform hover:scale-105 active:scale-100"
             >
                 <div className="flex items-center gap-2 text-base">
                     <SparklesIcon />
@@ -278,7 +279,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     
         if (refinePromptsState.status === 'running') {
             return (
-                <div className="w-full h-full text-center p-3 bg-blue-deep/50 rounded-lg border border-violet-glow/20 animate-pulse flex flex-col justify-center">
+                <div className="w-full h-full text-center p-3 bg-blue-deep/50 rounded-2xl border border-violet-glow/20 animate-pulse flex flex-col justify-center">
                     <p className="font-semibold text-white">Refining Prompts...</p>
                     <p className="text-sm text-gray-300">This may take a moment.</p>
                 </div>
@@ -287,17 +288,17 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     
         if (refinePromptsState.status === 'error') {
             return (
-                <div className="w-full h-full p-3 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                <div className="w-full h-full p-3 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h5 className="font-bold text-white text-sm">Prompt Refinement Failed</h5>
                     <p className="text-xs text-red-200 my-1 font-mono break-all">{refinePromptsState.error}</p>
-                    <button onClick={onDismissRefinePromptsError} className="text-xs bg-gray-600 hover:bg-gray-500 text-white font-semibold py-1 px-3 rounded-md mt-1 self-center">Dismiss</button>
+                    <button onClick={onDismissRefinePromptsError} className="text-xs bg-white/5 hover:bg-white/10 text-rose-gray font-semibold py-1 px-3 rounded-full mt-1 self-center">Dismiss</button>
                 </div>
             );
         }
     
         if (refinePromptsState.status === 'complete') {
             return (
-                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in flex flex-col justify-center">
+                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-2xl border border-green-500/50 animate-fade-in flex flex-col justify-center">
                     <h5 className="font-bold text-white text-sm">Prompts Refined!</h5>
                     <p className="text-xs text-green-200">All prompts have been updated.</p>
                 </div>
@@ -309,7 +310,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 onClick={onRefineAllPrompts}
                 disabled={disabled}
                 title={tooltip}
-                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-3 px-5 rounded-lg transition-all text-sm disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed border border-white/10 disabled:border-transparent transform hover:scale-105 active:scale-100"
+                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-white/5 hover:bg-white/10 text-white font-semibold py-3 px-5 rounded-2xl transition-all text-sm disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed border border-white/10 disabled:border-transparent transform hover:scale-105 active:scale-100"
             >
                 <div className="flex items-center gap-2 text-base">
                     <SparklesIcon />
@@ -321,9 +322,9 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     };
 
     return (
-        <div className="bg-blue-deep/30 p-4 rounded-lg border border-white/10 text-center animate-fade-in mb-8">
-            <h4 className="text-lg font-bold text-white mb-2">Bulk Asset Generation</h4>
-            <p className="text-gray-300 text-sm max-w-3xl mx-auto mb-4">
+        <div className="bg-black/20 backdrop-blur-lg p-6 rounded-2xl border border-white/10 text-center animate-fade-in mb-8">
+            <h4 className="text-xl font-bold text-white mb-2">Bulk Asset Generation</h4>
+            <p className="text-gray-300 text-sm max-w-3xl mx-auto mb-6">
                 Generate the final film sequence, or use the optional steps to prepare your prompts first. This process can take several minutes.
             </p>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -373,9 +374,9 @@ const VisualStyleGuide: React.FC<{ visualStyle: VisualStyle }> = ({ visualStyle 
       return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-gray-800/20 rounded-lg animate-pulse">
-                <div className="aspect-video bg-gray-700/50 rounded-t-lg"></div>
-                <div className="p-3 space-y-2"><div className="h-3 bg-gray-700/50 rounded w-5/6"></div><div className="h-3 bg-gray-700/50 rounded w-3/4"></div></div>
+            <div key={i} className="bg-black/20 rounded-2xl animate-pulse">
+                <div className="aspect-video bg-white/5 rounded-t-2xl"></div>
+                <div className="p-4 space-y-2"><div className="h-3 bg-white/5 rounded w-5/6"></div><div className="h-3 bg-white/5 rounded w-3/4"></div></div>
             </div>
           ))}
         </div>
@@ -384,7 +385,7 @@ const VisualStyleGuide: React.FC<{ visualStyle: VisualStyle }> = ({ visualStyle 
 
     if (error) {
       return (
-        <div className="bg-red-900/30 border border-red-600/50 p-4 rounded-lg text-center">
+        <div className="bg-red-900/30 border border-red-600/50 p-4 rounded-xl text-center">
           <h5 className="font-semibold text-white">Could not load style guide</h5>
           <p className="text-sm text-red-200 mt-1">{error}</p>
         </div>
@@ -394,9 +395,9 @@ const VisualStyleGuide: React.FC<{ visualStyle: VisualStyle }> = ({ visualStyle 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {guideImages.map(({ url, prompt }, i) => (
-                <div key={i} className="bg-gray-800/20 rounded-lg overflow-hidden border border-white/10">
+                <div key={i} className="bg-black/20 rounded-2xl overflow-hidden border border-white/10">
                     <img src={url} alt={prompt} className="w-full h-auto object-cover aspect-video" />
-                    <p className="text-xs text-gray-400 p-3 italic">"{prompt}"</p>
+                    <p className="text-xs text-gray-400 p-4 italic">"{prompt}"</p>
                 </div>
             ))}
         </div>
@@ -404,9 +405,9 @@ const VisualStyleGuide: React.FC<{ visualStyle: VisualStyle }> = ({ visualStyle 
   };
 
   return (
-    <div className="bg-blue-deep/30 p-4 rounded-lg border border-white/10 text-center animate-fade-in mb-8">
-        <h4 className="text-lg font-bold text-white mb-1">Visual Style Guide: <span className="capitalize text-violet-glow">{visualStyle}</span></h4>
-        <p className="text-gray-300 text-sm max-w-2xl mx-auto mb-4">Reference images to illustrate the selected visual aesthetic.</p>
+    <div className="bg-black/20 backdrop-blur-lg p-6 rounded-2xl border border-white/10 text-center animate-fade-in mb-8">
+        <h4 className="text-xl font-bold text-white mb-1">Visual Style Guide: <span className="capitalize text-violet-glow">{visualStyle}</span></h4>
+        <p className="text-gray-300 text-sm max-w-2xl mx-auto mb-6">Reference images to illustrate the selected visual aesthetic.</p>
         {renderContent()}
     </div>
   );
@@ -660,17 +661,17 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const scenesWithoutVideoCount = useMemo(() => editedOutline.filter(s => !s.videoUrl).length, [editedOutline]);
 
     return (
-        <div className="space-y-8 max-w-5xl mx-auto">
+        <div className="space-y-8 max-w-7xl mx-auto">
             <div className="flex justify-end items-center mb-4 px-1"><SaveStatusIndicator status={status} /></div>
             <VisualStyleGuide visualStyle={visualStyle} />
             <div className="relative mb-6">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon /></div>
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><SearchIcon /></div>
                 <input
                     type="text" placeholder="Search scenes by title, description, or location..." value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-blue-deep/30 border border-white/10 rounded-lg py-3 pl-10 pr-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-glow"
+                    className="w-full bg-black/20 backdrop-blur-lg border border-white/10 rounded-full py-3 pl-12 pr-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-glow"
                 />
-                {searchTerm && (<button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 pr-3 flex items-center" aria-label="Clear search"><ClearIcon /></button>)}
+                {searchTerm && (<button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 pr-4 flex items-center" aria-label="Clear search"><ClearIcon /></button>)}
             </div>
             <ApiKeyManager isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} />
             <BulkGenerationControls
@@ -693,7 +694,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 scenesWithoutPromptsCount={scenesWithoutPromptsCount}
                 scenesWithoutVideoCount={scenesWithoutVideoCount}
             />
-            <div className="space-y-4">
+            <div className="space-y-6">
                  {filteredScenes.length > 0 ? (
                     filteredScenes.map(({ scene, originalIndex }) => (
                         <div
@@ -709,9 +710,9 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                         </div>
                     ))
                  ) : (
-                    <div className="text-center py-12 px-6 bg-black/20 rounded-lg border border-white/10 animate-fade-in">
-                        <h4 className="text-lg font-semibold text-white">No Scenes Found</h4>
-                        <p className="text-gray-400 mt-1">Your search for "{searchTerm}" did not match any scenes.</p>
+                    <div className="text-center py-16 px-6 bg-black/20 backdrop-blur-lg rounded-2xl border border-white/10 animate-fade-in">
+                        <h4 className="text-xl font-semibold text-white">No Scenes Found</h4>
+                        <p className="text-gray-400 mt-2">Your search for "{searchTerm}" did not match any scenes.</p>
                     </div>
                  )}
             </div>
@@ -755,29 +756,27 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
         return () => clearInterval(interval);
     }, [statusInfo.status]);
     
-    // 1. Loading State: Visually distinct loading state with a pulse animation and cancel button.
     if (statusInfo.status === 'loading') {
         return (
-            <div className="flex flex-col items-center gap-2 animate-fade-in w-full p-2 bg-gray-800/20 rounded-lg border border-violet-glow/20">
+            <div className="flex flex-col items-center gap-2 animate-fade-in w-full p-2 bg-black/20 rounded-xl border border-violet-glow/20">
                 <p className="text-sm font-semibold text-gray-300 transition-opacity duration-500">{progressMessage}</p>
-                <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden relative mt-1">
+                <div className="w-full bg-black/30 rounded-full h-1.5 overflow-hidden relative mt-1">
                     <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div>
                 </div>
-                <button onClick={onCancel} className="text-xs bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-full transition-all duration-300 mt-2">
+                <button onClick={onCancel} className="text-xs bg-white/5 hover:bg-white/10 text-rose-gray font-semibold py-1 px-3 rounded-full transition-all duration-300 mt-2">
                     Cancel
                 </button>
             </div>
         );
     }
     
-    // 2. Error State: Clear error message with an icon-driven retry button.
     if (statusInfo.status === 'error') {
       return (
-          <div className="bg-red-900/30 border border-red-600/50 p-3 rounded-lg animate-fade-in w-full text-left">
+          <div className="bg-red-900/30 border border-red-600/50 p-3 rounded-xl animate-fade-in w-full text-left">
               <h5 className="font-semibold text-white text-sm mb-2">Generation Error</h5>
               <p className="text-xs font-mono p-2 bg-black/20 rounded text-red-200/80 mb-3 break-words">{statusInfo.error || 'An unknown error occurred.'}</p>
               <div className="flex justify-end gap-2">
-                <button onClick={onGenerate} className="flex items-center gap-1.5 text-xs bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-md transition-all active:scale-[0.98]">
+                <button onClick={onGenerate} className="flex items-center gap-1.5 text-xs bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-full transition-all active:scale-[0.98]">
                     <RegenerateIcon />
                     Retry
                 </button>
@@ -786,10 +785,9 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
       );
     }
 
-    // 4. API Key Status: Clear, polished display for the key verification process.
     if (isVeoKeySelected === null) {
         return (
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-400 h-10 bg-gray-800/20 rounded-lg">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-400 h-10 bg-black/20 rounded-xl">
                 <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -799,30 +797,26 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
         );
     }
 
-    // Disabled state for prerequisites or missing API key
     if (isVeoKeySelected === false || disabled) {
         const buttonText = hasVideo ? 'Regenerate Video' : 'Generate Video';
         const Icon = hasVideo ? RegenerateIcon : VideoIcon;
         const title = disabled ? "Prerequisites not met. Generate videos for dependent scenes first." : "Please select an API Key above to enable video generation.";
         return (
-            <button disabled title={title} className="flex items-center justify-center gap-2 w-full bg-gray-600/50 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed text-sm">
+            <button disabled title={title} className="flex items-center justify-center gap-2 w-full bg-white/5 text-gray-500 font-bold py-2 px-4 rounded-full cursor-not-allowed text-sm">
                 <Icon /> {buttonText}
             </button>
         );
     }
     
-    // 3. Idle State: Clearly distinguished primary (Generate) and secondary (Regenerate) actions.
-    const baseClasses = "flex items-center justify-center gap-2 w-full font-bold py-2 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] text-sm";
+    const baseClasses = "flex items-center justify-center gap-2 w-full font-bold py-2 px-4 rounded-full transition-all duration-300 active:scale-[0.98] text-sm";
     
     if (hasVideo) {
-        // Secondary action style for "Regenerate"
         return (
-            <button onClick={onGenerate} className={`${baseClasses} bg-gray-700/60 hover:bg-gray-700 border border-white/10 text-white`}>
+            <button onClick={onGenerate} className={`${baseClasses} bg-white/5 hover:bg-white/10 border border-white/10 text-white`}>
                 <RegenerateIcon /> Regenerate Video
             </button>
         );
     } else {
-        // Primary action style for "Generate"
         return (
             <button onClick={onGenerate} className={`${baseClasses} bg-violet-600 hover:bg-violet-500 text-white`}>
                 <VideoIcon /> Generate Video
@@ -834,13 +828,13 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
 interface ImageGenerationControlsProps { statusInfo: { status: 'idle' | 'loading' | 'error', error?: string }; onGenerate: () => void; hasImage: boolean; disabled?: boolean; }
 const ImageGenerationControls: React.FC<ImageGenerationControlsProps> = ({ statusInfo, onGenerate, hasImage, disabled = false }) => {
     if (statusInfo.status === 'loading') {
-        return (<div className="flex flex-col items-center justify-center gap-2 animate-fade-in w-full text-sm"><p className="text-gray-300">Generating Preview...</p><div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden relative"><div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div></div></div>);
+        return (<div className="flex flex-col items-center justify-center gap-2 animate-fade-in w-full text-sm"><p className="text-gray-300">Generating Preview...</p><div className="w-full bg-black/30 rounded-full h-1.5 overflow-hidden relative"><div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div></div></div>);
     }
     if (statusInfo.status === 'error') {
-      return (<div className="bg-red-900/30 border border-red-600/50 p-3 rounded-lg animate-fade-in w-full text-left h-full flex flex-col justify-between"><div><h5 className="font-semibold text-white text-sm mb-1">Image Error</h5><p className="text-xs text-red-200/80 mb-2 break-words">{statusInfo.error || 'An unknown error occurred.'}</p></div><div className="flex justify-end"><button onClick={onGenerate} className="text-xs bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-md transition-all active:scale-[0.98]">Retry</button></div></div>);
+      return (<div className="bg-red-900/30 border border-red-600/50 p-3 rounded-xl animate-fade-in w-full text-left h-full flex flex-col justify-between"><div><h5 className="font-semibold text-white text-sm mb-1">Image Error</h5><p className="text-xs text-red-200/80 mb-2 break-words">{statusInfo.error || 'An unknown error occurred.'}</p></div><div className="flex justify-end"><button onClick={onGenerate} className="text-xs bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-full transition-all active:scale-[0.98]">Retry</button></div></div>);
     }
     const buttonText = hasImage ? 'Regenerate Preview' : 'Generate Preview'; const Icon = hasImage ? RegenerateIcon : ImageIcon;
-    return (<button onClick={onGenerate} disabled={disabled} title={disabled ? "Prerequisites not met." : ""} className="flex items-center justify-center gap-2 w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 active:scale-[0.98] text-sm disabled:bg-gray-600/50 disabled:text-gray-400 disabled:cursor-not-allowed"><Icon /> {buttonText}</button>);
+    return (<button onClick={onGenerate} disabled={disabled} title={disabled ? "Prerequisites not met." : ""} className="flex items-center justify-center gap-2 w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-full transition-all duration-300 active:scale-[0.98] text-sm disabled:bg-white/5 disabled:text-gray-500 disabled:cursor-not-allowed"><Icon /> {buttonText}</button>);
 };
 
 const DependencyManager: React.FC<{ currentScene: Scene; allScenes: Scene[]; onDependenciesChange: (dependencies: string[]) => void; disabled?: boolean; }> = ({ currentScene, allScenes, onDependenciesChange, disabled = false }) => {
@@ -853,7 +847,7 @@ const DependencyManager: React.FC<{ currentScene: Scene; allScenes: Scene[]; onD
     return (
         <div className="space-y-2">
             <div ref={wrapperRef} className="relative">
-                <button onClick={() => setIsOpen(!isOpen)} disabled={disabled} className="w-full text-left bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition flex justify-between items-center disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed">
+                <button onClick={() => setIsOpen(!isOpen)} disabled={disabled} className="w-full text-left bg-white/5 p-2 rounded-lg text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-white/10 transition flex justify-between items-center disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed">
                     <span className="text-sm font-semibold text-gray-400">Manage Prerequisites</span><svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {isOpen && (<div className="absolute z-20 top-full mt-1 w-full bg-gray-900 border border-white/20 rounded-lg shadow-xl max-h-48 overflow-y-auto">{availableScenes.map(scene => (<label key={scene.id} className="flex items-center gap-3 p-2 hover:bg-violet-glow/10 cursor-pointer"><input type="checkbox" checked={dependencies.includes(scene.id)} onChange={() => handleToggleDependency(scene.id)} className="h-4 w-4 rounded bg-gray-700 border-gray-500 text-violet-500 focus:ring-violet-500" /><span className="text-sm text-gray-300"><span className="font-mono text-gray-500 mr-2">{String(scene.sceneNumber).padStart(2, '0')}</span>{scene.title}</span></label>))}</div>)}
@@ -877,7 +871,7 @@ const VideoSettingSelect: React.FC<{
   <div>
     <label htmlFor={id} className="block text-gray-400 font-semibold mb-1 text-sm">{label}</label>
     <select id={id} value={value} onChange={onChange} disabled={disabled}
-      className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed"
+      className="w-full bg-white/5 p-2 rounded-lg text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-white/10 transition disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed"
     >
       {children}
     </select>
@@ -886,7 +880,7 @@ const VideoSettingSelect: React.FC<{
 
 const VideoSettingsControls: React.FC<VideoSettingsControlsProps> = ({ scene, onFieldChange, disabled }) => {
   return (
-    <div className="bg-gray-800/20 p-4 rounded-lg border border-white/10 space-y-3">
+    <div className="bg-black/20 p-4 rounded-xl border border-white/10 space-y-3">
         <h5 className="text-base font-bold text-white mb-2">Video Generation Settings</h5>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
              <VideoSettingSelect label="Model" id={`model-${scene.id}`} value={scene.videoModel || 'veo-3.1-fast-generate-preview'} onChange={(e) => onFieldChange('videoModel', e.target.value)} disabled={disabled}>
@@ -976,25 +970,25 @@ const SceneCard: React.FC<SceneCardProps> = ({
     const handleCancelGeneration = () => { generationController.current?.abort(); };
 
     const EditableField: React.FC<{ label: string; id: string; value: string; field: keyof Scene; isTextarea?: boolean; placeholder?: string; rows?: number; }> = ({ label, id, value, field, isTextarea, placeholder, rows = 4 }) => {
-        const commonClasses = "w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed";
+        const commonClasses = "w-full bg-white/5 p-2 rounded-lg text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-white/10 transition disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed";
         return (<div><label htmlFor={id} className="block text-gray-400 font-semibold mb-1 text-sm">{label}</label>{isTextarea ? (<textarea id={id} value={value} onChange={(e) => onFieldChange(field, e.target.value)} rows={rows} className={`${commonClasses} resize-y`} placeholder={placeholder} disabled={isLocked} />) : (<input id={id} type="text" value={value} onChange={(e) => onFieldChange(field, e.target.value)} className={commonClasses} placeholder={placeholder} disabled={isLocked} />)}</div>);
     };
 
     return (
-        <div className="relative bg-gradient-to-br from-gray-900/20 to-gray-800/10 rounded-xl p-6 transition-all duration-300 border border-white/10 shadow-lg">
+        <div className="relative bg-black/20 backdrop-blur-lg rounded-2xl p-6 transition-all duration-300 border border-white/10 shadow-lg">
             {isLocked && (
-                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-xl text-center p-4">
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl text-center p-4">
                     <LockIcon /><p className="mt-2 font-bold text-white">Scene Locked</p>
                     <p className="text-sm text-gray-300">Waiting for prerequisite scene{unmetDependencies.length > 1 ? 's' : ''}:<span className="font-semibold text-violet-glow ml-1">{unmetDependencies.map(d => `#${d.sceneNumber}`).join(', ')}</span></p>
                 </div>
             )}
-            <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl font-mono font-bold text-violet-glow/60 select-none">{String(scene.sceneNumber).padStart(2, '0')}</span>
-                <input type="text" value={scene.title} onChange={(e) => onFieldChange('title', e.target.value)} aria-label="Scene Title" className="text-xl font-bold text-white bg-transparent focus:bg-gray-900/50 focus:ring-1 focus:ring-violet-glow rounded-md p-1 -m-1 w-full disabled:text-gray-500" disabled={isLocked} />
+            <div className="flex items-center gap-4 mb-6">
+                <span className="text-3xl font-mono font-bold text-violet-glow/60 select-none">{String(scene.sceneNumber).padStart(2, '0')}</span>
+                <input type="text" value={scene.title} onChange={(e) => onFieldChange('title', e.target.value)} aria-label="Scene Title" className="text-2xl font-bold text-white bg-transparent focus:bg-white/5 focus:ring-1 focus:ring-violet-glow rounded-lg p-1 -m-1 w-full disabled:text-gray-500" disabled={isLocked} />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="aspect-video bg-black/20 rounded-lg flex items-center justify-center relative border border-white/10 overflow-hidden">
+                    <div className="aspect-video bg-black/30 rounded-xl flex items-center justify-center relative border border-white/10 overflow-hidden">
                         {scene.videoUrl && (
                             <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-green-900/80 text-white text-xs font-bold py-1 px-2 rounded-full backdrop-blur-sm border border-green-500/50">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
@@ -1014,7 +1008,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         hasVideo={!!scene.videoUrl} 
                         disabled={isLocked}
                     />
-                     {scene.videoUrl && (<a href={scene.videoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm w-full"><DownloadIcon /><span>Download Video</span></a>)}
+                     {scene.videoUrl && (<a href={scene.videoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-semibold py-2 px-4 rounded-full transition-all text-sm w-full"><DownloadIcon /><span>Download Video</span></a>)}
                 </div>
                 <div className="lg:col-span-3 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1024,7 +1018,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         <div>
                             <label htmlFor={`duration-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Duration</label>
                             <div className="relative pb-4">
-                                <input id={`duration-${scene.id}`} type="text" value={scene.duration} onChange={(e) => onFieldChange('duration', e.target.value)} className={`w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border transition disabled:bg-gray-800/20 disabled:text-gray-500 ${isDurationValid ? 'border-transparent hover:border-white/20 focus:border-violet-glow' : 'border-red-500/70 focus:border-red-500'}`} placeholder="e.g., 10s" disabled={isLocked} />
+                                <input id={`duration-${scene.id}`} type="text" value={scene.duration} onChange={(e) => onFieldChange('duration', e.target.value)} className={`w-full bg-white/5 p-2 rounded-lg text-gray-200 border transition disabled:bg-gray-800/20 disabled:text-gray-500 ${isDurationValid ? 'border-transparent hover:border-white/20 focus:border-violet-glow' : 'border-red-500/70 focus:border-red-500'}`} placeholder="e.g., 10s" disabled={isLocked} />
                                 {!isDurationValid && (<p className="absolute left-1 top-full mt-1 text-xs text-red-400 animate-fade-in" role="alert">Format must be a number followed by 's', e.g., '15s'.</p>)}
                             </div>
                         </div>
@@ -1038,19 +1032,14 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         <label htmlFor={`img-prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Image Generation Prompt</label>
                         <div className="relative group">
                             <textarea
-                                id={`img-prompt-${scene.id}`}
-                                value={scene.imagePrompt || ''}
-                                onChange={(e) => onFieldChange('imagePrompt', e.target.value)}
-                                className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition h-28 pr-28 resize-y disabled:bg-gray-800/20 disabled:text-gray-500"
-                                placeholder="A detailed, cinematic prompt for a still image..."
-                                disabled={isLocked}
+                                id={`img-prompt-${scene.id}`} value={scene.imagePrompt || ''} onChange={(e) => onFieldChange('imagePrompt', e.target.value)}
+                                className="w-full bg-white/5 p-2 rounded-lg text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-white/10 transition h-28 pr-28 resize-y disabled:bg-gray-800/20 disabled:text-gray-500"
+                                placeholder="A detailed, cinematic prompt for a still image..." disabled={isLocked}
                             />
                             <div className="absolute top-2 right-2 flex flex-col gap-2">
                                 <button
-                                    onClick={handleRegenerateImagePrompt}
-                                    disabled={isRegeneratingImagePrompt || isLocked}
-                                    title="Refine image prompt with AI"
-                                    className="p-2 rounded-full bg-gray-700/50 hover:bg-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-violet-glow disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onClick={handleRegenerateImagePrompt} disabled={isRegeneratingImagePrompt || isLocked} title="Refine image prompt with AI"
+                                    className="p-2 rounded-full bg-black/20 hover:bg-black/40 transition-all focus:outline-none focus:ring-2 focus:ring-violet-glow disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isRegeneratingImagePrompt 
                                         ? <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 
@@ -1064,9 +1053,9 @@ const SceneCard: React.FC<SceneCardProps> = ({
                     <div>
                         <label htmlFor={`prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Video Generation Prompt</label>
                         <div className="relative group">
-                            <textarea id={`prompt-${scene.id}`} value={scene.videoPrompt || ''} onChange={(e) => onFieldChange('videoPrompt', e.target.value)} className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition h-28 pr-28 resize-y disabled:bg-gray-800/20 disabled:text-gray-500" placeholder="A detailed, cinematic prompt..." disabled={isLocked} />
+                            <textarea id={`prompt-${scene.id}`} value={scene.videoPrompt || ''} onChange={(e) => onFieldChange('videoPrompt', e.target.value)} className="w-full bg-white/5 p-2 rounded-lg text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-white/10 transition h-28 pr-28 resize-y disabled:bg-gray-800/20 disabled:text-gray-500" placeholder="A detailed, cinematic prompt..." disabled={isLocked} />
                             <div className="absolute top-2 right-2 flex flex-col gap-2">
-                                <button onClick={handleRegenerateVideoPrompt} disabled={isRegeneratingVideoPrompt || isLocked} title="Regenerate prompt with AI" className="p-2 rounded-full bg-gray-700/50 hover:bg-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-violet-glow disabled:opacity-50 disabled:cursor-not-allowed">
+                                <button onClick={handleRegenerateVideoPrompt} disabled={isRegeneratingVideoPrompt || isLocked} title="Regenerate prompt with AI" className="p-2 rounded-full bg-black/20 hover:bg-black/40 transition-all focus:outline-none focus:ring-2 focus:ring-violet-glow disabled:opacity-50 disabled:cursor-not-allowed">
                                     {isRegeneratingVideoPrompt ? <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : <SparklesIcon />}
                                 </button>
                                 <CopyButton textToCopy={scene.videoPrompt || ''}/>

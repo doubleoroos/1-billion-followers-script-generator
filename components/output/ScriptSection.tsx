@@ -81,31 +81,31 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
         }).join('\n\n');
     };
     
-    const baseTextAreaClasses = "w-full bg-transparent p-1 -m-1 rounded-md focus:bg-gray-900/50 focus:outline-none focus:ring-1 focus:ring-violet-glow transition-colors duration-200 resize-none overflow-hidden";
+    const baseTextAreaClasses = "w-full bg-transparent p-1 -m-1 rounded-md focus:bg-black/30 focus:outline-none focus:ring-1 focus:ring-violet-glow transition-colors duration-200 resize-none overflow-hidden leading-relaxed";
 
     return (
-        <div className="relative bg-black/20 backdrop-blur-sm border border-white/10 p-6 md:p-10 rounded-2xl max-w-4xl mx-auto font-mono text-gray-300 space-y-6 shadow-2xl">
+        <div className="relative bg-black/20 backdrop-blur-lg border border-white/10 p-8 md:p-12 rounded-2xl max-w-4xl mx-auto font-mono text-gray-200 space-y-8 shadow-2xl">
             <CopyButton textToCopy={scriptToText()} />
-             <div className="flex justify-end items-center -mb-4">
+             <div className="flex justify-end items-center -mb-6">
                 <SaveStatusIndicator status={status} />
             </div>
             {editedScript.map((block) => (
-                <div key={block.id} className="grid grid-cols-4 gap-4">
+                <div key={block.id} className="grid grid-cols-10 gap-6">
                     {block.type === 'narration' ? (
-                        <div className="col-span-4">
+                        <div className="col-span-10 md:col-start-2 md:col-span-8">
                             <AutoSizingTextarea
                                 value={block.content}
                                 onChange={(e) => handleContentChange(block.id, e.target.value)}
-                                className={`${baseTextAreaClasses} italic`}
+                                className={`${baseTextAreaClasses} italic text-gray-400`}
                                 aria-label="Narration content"
                             />
                         </div>
                     ) : (
                        <>
-                            <div className="col-span-1 text-right font-bold text-white pr-4 pt-1">
+                            <div className="col-span-10 sm:col-span-3 text-left sm:text-right font-bold text-white pr-4 pt-1">
                                 <p>{getCharacterName(block.characterId)}</p>
                             </div>
-                            <div className="col-span-3">
+                            <div className="col-span-10 sm:col-span-7">
                                 <AutoSizingTextarea
                                      value={block.content}
                                      onChange={(e) => handleContentChange(block.id, e.target.value)}

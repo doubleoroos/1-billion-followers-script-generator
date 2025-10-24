@@ -47,18 +47,18 @@ const getNarrativeToneDescription = (tone: NarrativeTone): string => {
     }
 }
 
-const createPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
+const createCoreConceptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
     const themeDescription = getThemeDescription(theme);
     const intensityDescription = getIntensityDescription(intensity);
     const styleDescription = getVisualStyleDescription(visualStyle);
     const toneDescription = getNarrativeToneDescription(narrativeTone);
 
     return `
-You are an expert screenwriter and concept artist creating assets for a film submission to the "1 Billion Summit AI Film Award".
+You are an expert storyteller and screenwriter creating the foundational concept for a film submission to the "1 Billion Summit AI Film Award".
 
 **Competition Theme:** "Rewrite Tomorrow - Stories imagining the future with a positive twist."
 **Film Length:** 7 to 10 minutes.
-**Storytelling Mandate:** The film must tell a cohesive and emotionally resonant story with a clear narrative structure (beginning, middle, end), character development, dialogue-driven scenes, and a sense of conflict, tension, and resolution, leading to a clear emotional impact. The story must have internal consistency and logic.
+**Storytelling Mandate:** The film must tell a cohesive and emotionally resonant story with a clear narrative structure, character development, and a sense of conflict, tension, and resolution.
 
 **Your Assigned Focus:**
 - **Core Concept:** ${themeDescription}
@@ -69,27 +69,85 @@ You are an expert screenwriter and concept artist creating assets for a film sub
 - **Emotional Arc:** ${intensityDescription}
 
 **Your Task:**
+Generate the core creative concept for this film.
 
-1.  **Character Generation:** Based on the theme, create 2-4 compelling characters who will drive the story. For each character, provide a name, a brief, one-sentence description of their essence, and a specific role (e.g., 'Protagonist', 'Antagonist', 'Mentor', 'Supporting Character').
-
-2.  **Script Generation:** Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. Structure it as a sequence of blocks. Each block can be either 'narration' or 'dialogue'. For dialogue blocks, assign a character. It must follow a complete narrative arc with a beginning, middle, and end, featuring clear character development, conflict, and resolution, all aligning with the requested **Emotional Arc**.
-
-3.  **Visual Outline Generation:** Create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, provide all required fields. Pay special attention to the following fields:
-    - **description:** Must be a highly evocative paragraph that paints a vivid picture of the scene, detailing the mood, setting, and key actions while embodying the selected visual style.
-    - **charactersInScene:** Must briefly describe which characters are present and their key actions or emotional state.
-    - **duration:** Provide a realistic duration estimate for the scene in seconds, formatted as a string (e.g., "15s"). This should reflect the pacing and content of the scene description.
-    - **transition:** Must provide a descriptive and cinematic transition to the *next* scene (e.g., 'Match cut on action', 'Slow dissolve to white', 'Iris out', 'Wipe left as character exits frame'). The final scene's transition should be 'Fade to black.'.
+1.  **Logline:** Write a compelling, one-sentence summary of the film's central conflict and story.
+2.  **Synopsis:** Write a concise, one-paragraph synopsis that outlines the film's plot from beginning to end, including the main character's journey and the central theme.
+3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide a name, a brief, one-sentence description of their essence, and a specific role (e.g., 'Protagonist', 'Mentor').
 
 **Output Format:**
-Return the output as a JSON object with three keys: "characters", "script", and "visualOutline".
-- "characters" should be an array of objects, where each object has a "name" key, a "description" key, and a "role" key (e.g., [{ "name": "The Architect", "description": "An AI ethicist designing a system for global good.", "role": "Protagonist" }]).
-- "script" should be an array of objects. Each object must have:
-    - a "type" key ('narration' or 'dialogue').
-    - a "content" key with the text for that block.
-    - if the type is 'dialogue', it must also have a "characterName" key matching a name from the characters list.
-- "visualOutline" should be an array of scene objects. Each object must have string keys: "title", "location", "timeOfDay", "duration", "atmosphere", "charactersInScene", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion".
+Return a single, valid JSON object with three keys: "logline", "synopsis", and "characters".
+- "characters" must be an array of objects, each with "name", "description", and "role" keys.
 `;
 }
+
+const createScriptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, narrativeTone: NarrativeTone, logline: string, synopsis: string, characters: Character[]): string => {
+    const intensityDescription = getIntensityDescription(intensity);
+    const toneDescription = getNarrativeToneDescription(narrativeTone);
+    const characterDescriptions = characters.map(c => `- ${c.name} (${c.role}): ${c.description}`).join('\n');
+
+    return `
+You are an expert screenwriter tasked with writing a complete script for a film submission to the "1 Billion Summit AI Film Award".
+
+**Competition Theme:** "Rewrite Tomorrow - Stories imagining the future with a positive twist."
+**Film Length:** 7 to 10 minutes.
+
+**Creative Foundation (already decided):**
+- **Logline:** ${logline}
+- **Synopsis:** ${synopsis}
+- **Characters:**
+${characterDescriptions}
+
+**Creative Direction:**
+- **Narrative Tone:** ${toneDescription}
+- **Emotional Arc:** ${intensityDescription}
+
+**Your Task:**
+Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. 
+- It must follow a complete narrative arc (beginning, middle, end) based on the synopsis.
+- It must feature clear character development, conflict, and resolution, aligning with the requested **Emotional Arc**.
+- Structure the output as a sequence of script blocks. Each block can be either 'narration' or 'dialogue'. 
+- For dialogue blocks, you MUST assign a "characterName" from the provided character list.
+
+**Output Format:**
+Return a single, valid JSON object with a single key: "script".
+- "script" must be an array of objects. Each object must have:
+    - a "type" key ('narration' or 'dialogue').
+    - a "content" key with the text for that block.
+    - if the type is 'dialogue', it must also have a "characterName" key matching a name from the character list.
+`;
+};
+
+const createVisualOutlinePrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, synopsis: string, fullScript: string): string => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    
+    return `
+You are an expert film director and concept artist creating a visual outline for a "1 Billion Summit AI Film Award" submission.
+
+**Competition Theme:** "Rewrite Tomorrow"
+**Film Length:** 7-10 minutes.
+
+**Creative Foundation (already decided):**
+- **Synopsis:** ${synopsis}
+- **Visual Style:** ${styleDescription}
+- **Full Script:**
+---
+${fullScript}
+---
+
+**Your Task:**
+Based on the provided script and synopsis, create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, you must provide all the required fields. Pay special attention to:
+
+- **description:** A highly evocative paragraph painting a vivid picture of the scene, detailing mood, setting, and key actions, fully embodying the selected visual style.
+- **charactersInScene:** A brief description of which characters are present and their key actions or emotional state.
+- **duration:** A realistic duration estimate in seconds, formatted as a string (e.g., "15s").
+- **transition:** A descriptive, cinematic transition to the *next* scene (e.g., 'Match cut on action'). The final scene's transition must be 'Fade to black.'.
+
+**Output Format:**
+Return a single, valid JSON object with a single key: "visualOutline".
+- "visualOutline" must be an array of scene objects. Each object must have string keys for all the following fields: "title", "location", "timeOfDay", "duration", "atmosphere", "charactersInScene", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion".
+`;
+};
 
 const formatOutlineForPrompt = (outline: Scene[]): string => {
   return outline.map((scene, index) => {
@@ -216,73 +274,9 @@ The final shot must be hyper-detailed, emotionally powerful, and suitable for a 
 
 export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
-    const prompt = createPrompt(theme, intensity, visualStyle, narrativeTone);
-    const scriptPromise = ai.models.generateContent({
-      model: "gemini-2.5-pro",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            characters: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: { 
-                  name: { type: Type.STRING },
-                  description: { type: Type.STRING, description: "A brief, one-sentence description of the character's role or essence." },
-                  role: { type: Type.STRING, description: "The character's role in the story (e.g., Protagonist, Antagonist)." }
-                },
-                required: ["name", "description", "role"],
-              },
-            },
-            script: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  type: { type: Type.STRING },
-                  characterName: { type: Type.STRING },
-                  content: { type: Type.STRING },
-                },
-                required: ["type", "content"],
-              },
-            },
-            visualOutline: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  title: { type: Type.STRING },
-                  location: { type: Type.STRING },
-                  timeOfDay: { type: Type.STRING },
-                  duration: { type: Type.STRING, description: "Estimated duration of the scene in seconds (e.g., '15s')."},
-                  atmosphere: { type: Type.STRING },
-                  charactersInScene: { 
-                    type: Type.STRING,
-                    description: "A description of which characters are present in this scene and their key actions or emotional states."
-                  },
-                  description: {
-                    type: Type.STRING,
-                    description: "A highly evocative and detailed paragraph that paints a vivid picture of the scene, embodying the selected visual style. It must detail the mood, setting, and key actions or moments."
-                  },
-                  keyVisualElements: { type: Type.STRING },
-                  visuals: { type: Type.STRING },
-                  transition: { type: Type.STRING },
-                  pacingEmotion: { type: Type.STRING },
-                },
-                required: ["title", "location", "timeOfDay", "duration", "atmosphere", "charactersInScene", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion"]
-              }
-            },
-          },
-          required: ["characters", "script", "visualOutline"],
-        },
-      },
-    });
-
+    // Start moodboard generation in parallel
     const imageStages = getThemeBasedImageStages(theme, visualStyle);
-    const moodboardImagePromises = imageStages.map(stage => 
+    const moodboardImagePromises = imageStages.map(stage =>
       ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: stage.prompt,
@@ -295,26 +289,128 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         return { title: stage.title, imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}` };
       })
     );
-    
-    const [scriptResponse, referenceImages] = await Promise.all([scriptPromise, Promise.all(moodboardImagePromises)]);
-    
-    const jsonText = scriptResponse.text.trim();
-    const parsedData = JSON.parse(jsonText);
-    
-    const rawCharacters: { name: string; description: string; role: string; }[] = parsedData.characters || [];
-    const rawScript: { type: 'narration' | 'dialogue', characterName?: string, content: string }[] = parsedData.script || [];
+    const moodboardPromise = Promise.all(moodboardImagePromises);
 
-    const characters: Character[] = rawCharacters.map(c => ({ 
+    // STEP 1: Generate Core Concept
+    const coreConceptPrompt = createCoreConceptPrompt(theme, intensity, visualStyle, narrativeTone);
+    const coreConceptResponse = await ai.models.generateContent({
+      model: "gemini-2.5-pro",
+      contents: coreConceptPrompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            logline: { type: Type.STRING, description: "A one-sentence summary of the film." },
+            synopsis: { type: Type.STRING, description: "A one-paragraph summary of the story's plot and emotional journey." },
+            characters: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  description: { type: Type.STRING, description: "A brief, one-sentence description of the character's role or essence." },
+                  role: { type: Type.STRING, description: "The character's role in the story (e.g., Protagonist, Antagonist)." }
+                },
+                required: ["name", "description", "role"],
+              },
+            },
+          },
+          required: ["logline", "synopsis", "characters"],
+        },
+      },
+    });
+    const coreConceptData = JSON.parse(coreConceptResponse.text.trim());
+    const { logline, synopsis } = coreConceptData;
+    const rawCharacters: { name: string; description: string; role: string; }[] = coreConceptData.characters || [];
+    const characters: Character[] = rawCharacters.map(c => ({
         id: `char_${Math.random().toString(36).substring(2, 9)}`, name: c.name, description: c.description, role: c.role,
     }));
-    
     const characterNameToIdMap = new Map(characters.map(c => [c.name, c.id]));
+
+    // STEP 2: Generate Script
+    const scriptPrompt = createScriptPrompt(theme, intensity, narrativeTone, logline, synopsis, characters);
+    const scriptResponse = await ai.models.generateContent({
+        model: "gemini-2.5-pro",
+        contents: scriptPrompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    script: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          type: { type: Type.STRING },
+                          characterName: { type: Type.STRING },
+                          content: { type: Type.STRING },
+                        },
+                        required: ["type", "content"],
+                      },
+                    },
+                },
+                required: ["script"],
+            },
+        },
+    });
+    const scriptData = JSON.parse(scriptResponse.text.trim());
+    const rawScript: { type: 'narration' | 'dialogue', characterName?: string, content: string }[] = scriptData.script || [];
     const script: ScriptBlock[] = rawScript.map(block => ({
         id: `block_${Math.random().toString(36).substring(2, 9)}`, type: block.type, content: block.content,
         characterId: block.type === 'dialogue' && block.characterName ? characterNameToIdMap.get(block.characterName) : undefined,
     }));
+    const scriptTextForPrompts = script.map(block => {
+      const charName = characters.find(c => c.id === block.characterId)?.name || 'Unknown Character';
+      return block.type === 'narration' ? `(NARRATION)\n${block.content}` : `${charName.toUpperCase()}\n${block.content}`;
+    }).join('\n\n');
+
+    // STEP 3: Generate Visual Outline
+    const visualOutlinePrompt = createVisualOutlinePrompt(theme, visualStyle, synopsis, scriptTextForPrompts);
+    const visualOutlineResponse = await ai.models.generateContent({
+        model: "gemini-2.5-pro",
+        contents: visualOutlinePrompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    visualOutline: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          title: { type: Type.STRING },
+                          location: { type: Type.STRING },
+                          timeOfDay: { type: Type.STRING },
+                          duration: { type: Type.STRING, description: "Estimated duration of the scene in seconds (e.g., '15s')."},
+                          atmosphere: { type: Type.STRING },
+                          charactersInScene: { 
+                            type: Type.STRING,
+                            description: "A description of which characters are present in this scene and their key actions or emotional states."
+                          },
+                          description: {
+                            type: Type.STRING,
+                            description: "A highly evocative and detailed paragraph that paints a vivid picture of the scene, embodying the selected visual style. It must detail the mood, setting, and key actions or moments."
+                          },
+                          keyVisualElements: { type: Type.STRING },
+                          visuals: { type: Type.STRING },
+                          transition: { type: Type.STRING },
+                          pacingEmotion: { type: Type.STRING },
+                        },
+                        required: ["title", "location", "timeOfDay", "duration", "atmosphere", "charactersInScene", "description", "keyVisualElements", "visuals", "transition", "pacingEmotion"]
+                      }
+                    },
+                },
+                required: ["visualOutline"]
+            },
+        },
+    });
+    const visualOutlineData = JSON.parse(visualOutlineResponse.text.trim());
+    const rawVisualOutline: Omit<Scene, 'id' | 'sceneNumber' | 'videoPrompt' | 'videoUrl' | 'imageUrl'>[] = visualOutlineData.visualOutline || [];
     
-    const rawVisualOutline: Omit<Scene, 'id' | 'sceneNumber' | 'videoPrompt' | 'videoUrl' | 'imageUrl'>[] = parsedData.visualOutline || [];
+    // STEP 4: Post-process outline (generate prompts and initial images)
     const sceneShells: Scene[] = rawVisualOutline.map((sceneData, index) => ({
       ...(sceneData as any), id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`, sceneNumber: index + 1,
     }));
@@ -334,25 +430,24 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         .then(prompt => ({ ...scene, imagePrompt: prompt }))
         .catch(err => {
           console.error(`Failed to generate initial image prompt for scene "${scene.title}"`, err);
-          return scene; // Return scene without imagePrompt, so it can fallback
+          return scene; 
         })
     );
     const outlineWithImagePrompts = await Promise.all(imagePromptGenerationPromises);
 
-    const scriptTextForBTS = script.map(block => {
-      const charName = characters.find(c => c.id === block.characterId)?.name || 'Unknown Character';
-      return block.type === 'narration' ? `(NARRATION)\n${block.content}` : `${charName.toUpperCase()}\n${block.content}`;
-    }).join('\n\n');
     const outlineTextForBTS = formatOutlineForPrompt(outlineWithImagePrompts);
-
+    const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForPrompts, outlineTextForBTS);
+    
+    // Run final image previews and BTS doc generation in parallel
     const sceneImagePromises = outlineWithImagePrompts.map(scene => 
         generateImageForScene(scene, visualStyle).catch(err => {
             console.error(`Failed to generate preview image for scene "${scene.title}":`, err); return null;
         })
     );
-    const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForBTS, outlineTextForBTS);
     const btsPromise = ai.models.generateContent({ model: "gemini-2.5-flash", contents: btsPrompt });
-    const [sceneImageUrls, btsResponse] = await Promise.all([Promise.all(sceneImagePromises), btsPromise]);
+    
+    // Await all parallel promises
+    const [referenceImages, sceneImageUrls, btsResponse] = await Promise.all([moodboardPromise, Promise.all(sceneImagePromises), btsPromise]);
     
     const visualOutline: Scene[] = outlineWithImagePrompts.map((scene, index) => ({ ...scene, imageUrl: sceneImageUrls[index] ?? undefined }));
     const btsDocument = btsResponse.text.trim();
@@ -360,13 +455,14 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     return { script, characters, visualOutline, referenceImages: referenceImages as ReferenceImage[], btsDocument };
   } catch (error) {
     console.error("Error calling Gemini API:", error);
+    if (error instanceof Error && error.message.includes('JSON')) {
+        throw new Error("The AI's response was not in the expected format. Please try again.");
+    }
     throw new Error("The AI muse hit a block. Perhaps try a different creative direction or check your connection.");
   }
 };
 
 const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): string => {
-    // If a specific, user-editable image prompt exists, use it directly.
-    // The regeneration process is expected to have already incorporated the visual style.
     if (scene.imagePrompt && scene.imagePrompt.trim() !== '') {
         return scene.imagePrompt;
     }
