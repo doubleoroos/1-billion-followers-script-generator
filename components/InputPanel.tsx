@@ -16,25 +16,16 @@ interface InputPanelProps {
   error: string | null;
 }
 
-// FIX: Refactored props to a separate interface to resolve a potential TS parsing issue.
 interface OptionButtonProps<T extends string> {
   value: T;
-  // FIX: Changed `current` from `T` to `string` to allow a union type (e.g., RewriteTomorrowTheme)
-  // to be passed while `value` is a specific member of that union (e.g., "abundance").
-  // This resolves a type inference failure that was causing misleading errors about the `children` prop.
   current: string;
   onClick: (value: T) => void;
   children: React.ReactNode;
   tooltip: string;
 }
 
-const OptionButton = <T extends string>({
-  value,
-  current,
-  onClick,
-  children,
-  tooltip,
-}: OptionButtonProps<T>) => {
+const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
+  const { value, current, onClick, children, tooltip } = props;
   const isActive = value === current;
   return (
     <button
