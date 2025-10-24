@@ -417,6 +417,13 @@ You are an expert prompt engineer for a text-to-image AI model (like Google Imag
 
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
   const styleDescription = getVisualStyleDescription(visualStyle);
+  
+  let specialInstructions = '';
+  if (scene.title.toLowerCase().includes('the architects of tomorrow')) {
+      specialInstructions = `
+**Special Cinematic Instruction for this Scene:** The camera work must be particularly sophisticated. You must incorporate a **slow dolly zoom** to create a sense of unease or revelation, and utilize a **shallow depth of field** to isolate key subjects, focusing the viewer's attention on their expressions and the gravity of the moment.`;
+  }
+
   const prompt = `
 You are a seasoned Director of Photography and a world-class prompt engineer for a text-to-video AI model (like Google Veo). Your task is to translate a scene's abstract details into a concrete, highly cinematic video prompt.
 
@@ -429,6 +436,7 @@ You are a seasoned Director of Photography and a world-class prompt engineer for
 - **Target Duration:** ${scene.duration}
 
 **Mandatory Visual Style:** ${styleDescription}
+${specialInstructions}
 
 **Your Task:**
 Write a new, powerful video prompt (under 150 words) that brings this scene to life.
