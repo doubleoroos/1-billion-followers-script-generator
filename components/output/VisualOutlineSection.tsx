@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { Scene, VisualStyle } from '../../types';
-import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, generateStyleGuideImages } from '../../services/geminiService';
+import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, generateStyleGuideImages } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
@@ -644,8 +644,10 @@ const SceneCard: React.FC<SceneCardProps> = ({
     const [videoGenerationStatus, setVideoGenerationStatus] = useState<{ status: 'idle' | 'loading' | 'error', error?: string }>({ status: 'idle' });
     const [imageGenerationStatus, setImageGenerationStatus] = useState<{ status: 'idle' | 'loading' | 'error', error?: string }>({ status: 'idle' });
     const generationController = useRef<AbortController | null>(null);
-    const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
-    const [promptError, setPromptError] = useState<string | null>(null);
+    const [isRegeneratingVideoPrompt, setIsRegeneratingVideoPrompt] = useState(false);
+    const [videoPromptError, setVideoPromptError] = useState<string | null>(null);
+    const [isRegeneratingImagePrompt, setIsRegeneratingImagePrompt] = useState(false);
+    const [imagePromptError, setImagePromptError] = useState<string | null>(null);
     const [isDurationValid, setIsDurationValid] = useState(true);
 
     const unmetDependencies = useMemo(() => (scene.dependsOn ?? []).filter(depId => !completedSceneIds.has(depId)).map(depId => allScenes.find(s => s.id === depId)).filter((s): s is Scene => !!s), [scene.dependsOn, allScenes, completedSceneIds]);
@@ -680,11 +682,27 @@ const SceneCard: React.FC<SceneCardProps> = ({
         try { const imageUrl = await generateImageForScene(scene, visualStyle); onVideoSave({ ...scene, imageUrl }); setImageGenerationStatus({ status: 'idle' });
         } catch (error) { const errorMessage = error instanceof Error ? error.message : "An unknown error occurred."; setImageGenerationStatus({ status: 'error', error: errorMessage.split('Reason: ')[1] || errorMessage });}
     };
-    const handleRegeneratePrompt = async () => {
-        if (isLocked) return; setIsRegeneratingPrompt(true); setPromptError(null);
+    const handleRegenerateVideoPrompt = async () => {
+        if (isLocked) return; setIsRegeneratingVideoPrompt(true); setVideoPromptError(null);
         try { const newPrompt = await regenerateVideoPromptForScene(scene, visualStyle); onFieldChange('videoPrompt', newPrompt);
-        } catch (error) { console.error("Failed to regenerate prompt:", error); const errorMessage = error instanceof Error ? error.message : "Failed to regenerate prompt."; setPromptError(errorMessage); setTimeout(() => setPromptError(null), 5000);
-        } finally { setIsRegeneratingPrompt(false); }
+        } catch (error) { console.error("Failed to regenerate prompt:", error); const errorMessage = error instanceof Error ? error.message : "Failed to regenerate prompt."; setVideoPromptError(errorMessage); setTimeout(() => setVideoPromptError(null), 5000);
+        } finally { setIsRegeneratingVideoPrompt(false); }
+    };
+     const handleRegenerateImagePrompt = async () => {
+        if (isLocked) return;
+        setIsRegeneratingImagePrompt(true);
+        setImagePromptError(null);
+        try {
+            const newPrompt = await regenerateImagePromptForScene(scene, visualStyle);
+            onFieldChange('imagePrompt', newPrompt);
+        } catch (error) {
+            console.error("Failed to regenerate image prompt:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to regenerate prompt.";
+            setImagePromptError(errorMessage);
+            setTimeout(() => setImagePromptError(null), 5000);
+        } finally {
+            setIsRegeneratingImagePrompt(false);
+        }
     };
     const handleCancelGeneration = () => { generationController.current?.abort(); };
 
@@ -747,17 +765,44 @@ const SceneCard: React.FC<SceneCardProps> = ({
                     <EditableField label="Description" id={`desc-${scene.id}`} value={scene.description} field="description" isTextarea rows={4} placeholder="*Describe the scene's mood, setting...*" />
                     <DependencyManager currentScene={scene} allScenes={allScenes} onDependenciesChange={(deps) => onFieldChange('dependsOn', deps)} disabled={isLocked} />
                     <div>
+                        <label htmlFor={`img-prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Image Generation Prompt</label>
+                        <div className="relative group">
+                            <textarea
+                                id={`img-prompt-${scene.id}`}
+                                value={scene.imagePrompt || ''}
+                                onChange={(e) => onFieldChange('imagePrompt', e.target.value)}
+                                className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition h-28 pr-28 resize-y disabled:bg-gray-800/20 disabled:text-gray-500"
+                                placeholder="A detailed, cinematic prompt for a still image..."
+                                disabled={isLocked}
+                            />
+                            <div className="absolute top-2 right-2 flex flex-col gap-2">
+                                <button
+                                    onClick={handleRegenerateImagePrompt}
+                                    disabled={isRegeneratingImagePrompt || isLocked}
+                                    title="Refine image prompt with AI"
+                                    className="p-2 rounded-full bg-gray-700/50 hover:bg-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-violet-glow disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isRegeneratingImagePrompt 
+                                        ? <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 
+                                        : <SparklesIcon />}
+                                </button>
+                                <CopyButton textToCopy={scene.imagePrompt || ''}/>
+                            </div>
+                        </div>
+                        {imagePromptError && (<p className="text-xs text-red-400 mt-1 animate-fade-in">{imagePromptError}</p>)}
+                    </div>
+                    <div>
                         <label htmlFor={`prompt-${scene.id}`} className="block text-gray-400 font-semibold mb-1 text-sm">Video Generation Prompt</label>
                         <div className="relative group">
                             <textarea id={`prompt-${scene.id}`} value={scene.videoPrompt || ''} onChange={(e) => onFieldChange('videoPrompt', e.target.value)} className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition h-28 pr-28 resize-y disabled:bg-gray-800/20 disabled:text-gray-500" placeholder="A detailed, cinematic prompt..." disabled={isLocked} />
                             <div className="absolute top-2 right-2 flex flex-col gap-2">
-                                <button onClick={handleRegeneratePrompt} disabled={isRegeneratingPrompt || isLocked} title="Regenerate prompt with AI" className="p-2 rounded-full bg-gray-700/50 hover:bg-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-violet-glow disabled:opacity-50 disabled:cursor-not-allowed">
-                                    {isRegeneratingPrompt ? <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : <SparklesIcon />}
+                                <button onClick={handleRegenerateVideoPrompt} disabled={isRegeneratingVideoPrompt || isLocked} title="Regenerate prompt with AI" className="p-2 rounded-full bg-gray-700/50 hover:bg-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-violet-glow disabled:opacity-50 disabled:cursor-not-allowed">
+                                    {isRegeneratingVideoPrompt ? <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : <SparklesIcon />}
                                 </button>
                                 <CopyButton textToCopy={scene.videoPrompt || ''}/>
                             </div>
                         </div>
-                        {promptError && (<p className="text-xs text-red-400 mt-1 animate-fade-in">{promptError}</p>)}
+                        {videoPromptError && (<p className="text-xs text-red-400 mt-1 animate-fade-in">{videoPromptError}</p>)}
                     </div>
                 </div>
             </div>

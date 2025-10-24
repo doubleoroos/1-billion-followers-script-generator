@@ -328,13 +328,23 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     );
     const initialVisualOutline = await Promise.all(promptGenerationPromises);
 
+    const imagePromptGenerationPromises = initialVisualOutline.map(scene =>
+      regenerateImagePromptForScene(scene, visualStyle)
+        .then(prompt => ({ ...scene, imagePrompt: prompt }))
+        .catch(err => {
+          console.error(`Failed to generate initial image prompt for scene "${scene.title}"`, err);
+          return scene; // Return scene without imagePrompt, so it can fallback
+        })
+    );
+    const outlineWithImagePrompts = await Promise.all(imagePromptGenerationPromises);
+
     const scriptTextForBTS = script.map(block => {
       const charName = characters.find(c => c.id === block.characterId)?.name || 'Unknown Character';
       return block.type === 'narration' ? `(NARRATION)\n${block.content}` : `${charName.toUpperCase()}\n${block.content}`;
     }).join('\n\n');
-    const outlineTextForBTS = formatOutlineForPrompt(initialVisualOutline);
+    const outlineTextForBTS = formatOutlineForPrompt(outlineWithImagePrompts);
 
-    const sceneImagePromises = initialVisualOutline.map(scene => 
+    const sceneImagePromises = outlineWithImagePrompts.map(scene => 
         generateImageForScene(scene, visualStyle).catch(err => {
             console.error(`Failed to generate preview image for scene "${scene.title}":`, err); return null;
         })
@@ -343,7 +353,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const btsPromise = ai.models.generateContent({ model: "gemini-2.5-flash", contents: btsPrompt });
     const [sceneImageUrls, btsResponse] = await Promise.all([Promise.all(sceneImagePromises), btsPromise]);
     
-    const visualOutline: Scene[] = initialVisualOutline.map((scene, index) => ({ ...scene, imageUrl: sceneImageUrls[index] ?? undefined }));
+    const visualOutline: Scene[] = outlineWithImagePrompts.map((scene, index) => ({ ...scene, imageUrl: sceneImageUrls[index] ?? undefined }));
     const btsDocument = btsResponse.text.trim();
 
     return { script, characters, visualOutline, referenceImages: referenceImages as ReferenceImage[], btsDocument };
@@ -354,6 +364,12 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
 };
 
 const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): string => {
+    // If a specific, user-editable image prompt exists, use it directly.
+    // The regeneration process is expected to have already incorporated the visual style.
+    if (scene.imagePrompt && scene.imagePrompt.trim() !== '') {
+        return scene.imagePrompt;
+    }
+    
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `A cinematic, hyper-detailed film still in a 16:9 aspect ratio, capturing a single, powerful moment from a scene.
     
@@ -363,6 +379,40 @@ const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): stri
     
 **Core Moment to Capture:** ${scene.description} The key visual elements to emphasize are: **${scene.keyVisualElements}**.`;
 };
+
+export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+  const styleDescription = getVisualStyleDescription(visualStyle);
+  const prompt = `
+You are an expert prompt engineer for a text-to-image AI model (like Google Imagen). Your task is to take the details of a film scene and write a new, highly-effective, and visually descriptive prompt for generating a single, cinematic still image.
+
+**Scene Details:**
+- **Title:** ${scene.title}
+- **Atmosphere:** ${scene.atmosphere}
+- **Pacing & Emotion:** ${scene.pacingEmotion}
+- **Characters Present:** ${scene.charactersInScene}
+- **Key Visual Elements:** ${scene.keyVisualElements}
+- **Core Scene Description:** ${scene.description}
+
+**Visual Style Mandate:** ${styleDescription}
+
+**Your Instructions:**
+1.  Synthesize all details into a single, cohesive, evocative paragraph.
+2.  The prompt must be a rich, descriptive narrative that paints a vivid picture for an image generator.
+3.  Focus on concrete visual details: lighting, composition, color, texture, character expression, and environment.
+4.  Incorporate the specified **Visual Style** directly into your description.
+5.  The output must be **only the prompt text itself**, concise but powerful, ideally under 100 words. Do not include markdown or labels.
+`;
+
+  try {
+    const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
+    return response.text.trim();
+  } catch (error) {
+    console.error("Error regenerating image prompt:", error);
+    if (error instanceof Error) throw new Error(`Failed to regenerate prompt. Reason: ${error.message}`);
+    throw new Error("An unknown error occurred during prompt regeneration.");
+  }
+};
+
 
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
   const styleDescription = getVisualStyleDescription(visualStyle);

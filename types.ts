@@ -41,6 +41,7 @@ export interface Scene {
   videoUrl?: string;
   videoPrompt?: string;
   imageUrl?: string;
+  imagePrompt?: string;
   dependsOn?: string[];
 }
 
