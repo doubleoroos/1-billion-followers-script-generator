@@ -390,6 +390,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             const reorderedOutline = [...editedOutline];
             const draggedItemContent = reorderedOutline.splice(dragItem.current, 1)[0];
             reorderedOutline.splice(dragOverItem.current, 0, draggedItemContent);
+            // After reordering, map through the new array and update scene numbers to ensure they are sequential.
             const finalOutline = reorderedOutline.map((scene, index) => ({ ...scene, sceneNumber: index + 1 }));
             setEditedOutline(finalOutline);
             save(finalOutline);
