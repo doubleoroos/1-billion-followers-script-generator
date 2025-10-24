@@ -474,14 +474,19 @@ export const generateImageForScene = async (scene: Scene, visualStyle: VisualSty
     }
 };
 
-export const generateVideoForScene = async (scene: Scene, visualStyle: VisualStyle, signal?: AbortSignal): Promise<string> => {
+export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal): Promise<string> => {
     try {
       const aiForVideo = new GoogleGenAI({ apiKey: API_KEY as string });
       if (!scene.videoPrompt || scene.videoPrompt.trim() === '') throw new Error("Video prompt is empty.");
       
       let operation = await aiForVideo.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview', prompt: scene.videoPrompt,
-        config: { numberOfVideos: 1, resolution: '720p', aspectRatio: '16:9' }
+        model: scene.videoModel || 'veo-3.1-fast-generate-preview',
+        prompt: scene.videoPrompt,
+        config: {
+            numberOfVideos: 1,
+            resolution: scene.resolution || '720p',
+            aspectRatio: scene.aspectRatio || '16:9'
+        }
       });
   
       while (!operation.done) {

@@ -43,6 +43,9 @@ export interface Scene {
   imageUrl?: string;
   imagePrompt?: string;
   dependsOn?: string[];
+  videoModel?: 'veo-3.1-fast-generate-preview' | 'veo-3.1-generate-preview';
+  resolution?: '720p' | '1080p';
+  aspectRatio?: '16:9' | '9:16';
 }
 
 export interface GeneratedAssets {

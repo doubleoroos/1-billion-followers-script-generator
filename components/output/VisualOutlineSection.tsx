@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, generateStyleGuideImages } from '../../services/geminiService';
@@ -501,7 +502,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     
                 try {
                     let currentSceneState = currentOutline.find(s => s.id === scene.id)!;
-                    const downloadLink = await generateVideoForScene(currentSceneState, visualStyle, signal);
+                    const downloadLink = await generateVideoForScene(currentSceneState, signal);
                     const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
                     const updatedScene = { ...currentSceneState, videoUrl: finalUrl };
                     
@@ -728,16 +729,41 @@ interface VideoGenerationControlsProps {
   isVeoKeySelected: boolean | null; onSelectKey: () => Promise<void>; hasVideo: boolean; disabled?: boolean;
 }
 
+const videoGenerationMessages = [
+    "Preparing the digital film set...",
+    "The AI director is calling 'action'...",
+    "This can take a few minutes, good things take time.",
+    "Rendering cinematic atoms...",
+    "Polishing pixels into a masterpiece...",
+    "Please wait, generating your scene...",
+];
+
 const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statusInfo, onGenerate, onCancel, isVeoKeySelected, onSelectKey, hasVideo, disabled = false }) => {
+    const [progressMessage, setProgressMessage] = useState(videoGenerationMessages[0]);
+
+    useEffect(() => {
+        let interval: number;
+        if (statusInfo.status === 'loading') {
+            interval = window.setInterval(() => {
+                setProgressMessage(prev => {
+                    const currentIndex = videoGenerationMessages.indexOf(prev);
+                    const nextIndex = (currentIndex + 1) % videoGenerationMessages.length;
+                    return videoGenerationMessages[nextIndex];
+                });
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [statusInfo.status]);
+    
     // 1. Loading State: Visually distinct loading state with a pulse animation and cancel button.
     if (statusInfo.status === 'loading') {
         return (
-            <div className="flex flex-col items-center gap-2 animate-fade-in w-full p-2 bg-gray-800/20 rounded-lg border border-violet-glow/20 animate-pulse">
-                <p className="text-sm font-semibold text-gray-300">Generating Video...</p>
-                <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden relative">
+            <div className="flex flex-col items-center gap-2 animate-fade-in w-full p-2 bg-gray-800/20 rounded-lg border border-violet-glow/20">
+                <p className="text-sm font-semibold text-gray-300 transition-opacity duration-500">{progressMessage}</p>
+                <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden relative mt-1">
                     <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 h-full w-1/2 rounded-full animate-progress-indeterminate"></div>
                 </div>
-                <button onClick={onCancel} className="text-xs bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-full transition-all duration-300 mt-1">
+                <button onClick={onCancel} className="text-xs bg-gray-600/80 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-full transition-all duration-300 mt-2">
                     Cancel
                 </button>
             </div>
@@ -837,6 +863,50 @@ const DependencyManager: React.FC<{ currentScene: Scene; allScenes: Scene[]; onD
     );
 };
 
+interface VideoSettingsControlsProps {
+  scene: Scene;
+  onFieldChange: (field: keyof Scene, value: any) => void;
+  disabled: boolean;
+}
+
+const VideoSettingSelect: React.FC<{
+  label: string; id: string; value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  disabled: boolean; children: React.ReactNode;
+}> = ({ label, id, value, onChange, disabled, children }) => (
+  <div>
+    <label htmlFor={id} className="block text-gray-400 font-semibold mb-1 text-sm">{label}</label>
+    <select id={id} value={value} onChange={onChange} disabled={disabled}
+      className="w-full bg-gray-900/40 p-2 rounded-md text-gray-200 border border-transparent hover:border-white/20 focus:border-violet-glow focus:bg-gray-900/80 transition disabled:bg-gray-800/20 disabled:text-gray-500 disabled:cursor-not-allowed"
+    >
+      {children}
+    </select>
+  </div>
+);
+
+const VideoSettingsControls: React.FC<VideoSettingsControlsProps> = ({ scene, onFieldChange, disabled }) => {
+  return (
+    <div className="bg-gray-800/20 p-4 rounded-lg border border-white/10 space-y-3">
+        <h5 className="text-base font-bold text-white mb-2">Video Generation Settings</h5>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <VideoSettingSelect label="Model" id={`model-${scene.id}`} value={scene.videoModel || 'veo-3.1-fast-generate-preview'} onChange={(e) => onFieldChange('videoModel', e.target.value)} disabled={disabled}>
+                <option value="veo-3.1-fast-generate-preview">Veo Fast</option>
+                <option value="veo-3.1-generate-preview">Veo HD</option>
+            </VideoSettingSelect>
+            <VideoSettingSelect label="Resolution" id={`resolution-${scene.id}`} value={scene.resolution || '720p'} onChange={(e) => onFieldChange('resolution', e.target.value)} disabled={disabled}>
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+            </VideoSettingSelect>
+            <VideoSettingSelect label="Aspect Ratio" id={`aspect-${scene.id}`} value={scene.aspectRatio || '16:9'} onChange={(e) => onFieldChange('aspectRatio', e.target.value)} disabled={disabled}>
+                <option value="16:9">16:9 (Landscape)</option>
+                <option value="9:16">9:16 (Portrait)</option>
+            </VideoSettingSelect>
+        </div>
+    </div>
+  );
+};
+
+
 const SceneCard: React.FC<SceneCardProps> = ({ 
   scene, onFieldChange, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError, allScenes, completedSceneIds
 }) => {
@@ -860,7 +930,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
         generationController.current = new AbortController();
         setVideoGenerationStatus({ status: 'loading' });
         try {
-            const downloadLink = await generateVideoForScene(scene, visualStyle, generationController.current.signal);
+            const downloadLink = await generateVideoForScene(scene, generationController.current.signal);
             const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
             onVideoSave({ ...scene, videoUrl: finalUrl });
             setVideoGenerationStatus({ status: 'idle' });
@@ -933,6 +1003,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
                         )}
                         {videoGenerationStatus.status === 'loading' ? (<div className="p-4 text-center text-sm text-gray-300">Generating video...</div>) : scene.videoUrl ? (<video key={scene.videoUrl} src={scene.videoUrl} controls className="w-full h-full object-cover"></video>) : imageGenerationStatus.status === 'loading' ? (<div className="p-4 text-center text-sm text-gray-300">Generating image...</div>) : scene.imageUrl ? (<img src={scene.imageUrl} alt={`Preview for ${scene.title}`} className="w-full h-full object-cover" />) : (<div className="text-center text-gray-400 p-4"><PlaceholderImageIcon /><p className="mt-2 text-sm font-semibold">No Preview</p></div>)}
                     </div>
+                    <VideoSettingsControls scene={scene} onFieldChange={onFieldChange} disabled={isLocked} />
                     <ImageGenerationControls statusInfo={imageGenerationStatus} onGenerate={handleGenerateImage} hasImage={!!scene.imageUrl} disabled={isLocked} />
                     <VideoGenerationControls 
                         statusInfo={videoGenerationStatus} 
