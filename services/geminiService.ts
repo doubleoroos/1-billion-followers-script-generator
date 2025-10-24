@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -418,15 +419,19 @@ export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: V
   const styleDescription = getVisualStyleDescription(visualStyle);
   const prompt = `
 You are an expert prompt engineer for a text-to-video AI model (like Google Veo). Your task is to take the details of a film scene and write a new, highly-effective, and cinematic prompt for video generation.
+
 **Scene Details:**
 - **Title:** ${scene.title}, **Location:** ${scene.location}, **Time of Day:** ${scene.timeOfDay}, **Atmosphere:** ${scene.atmosphere}, **Pacing & Emotion:** ${scene.pacingEmotion}, **Characters Present:** ${scene.charactersInScene}, **Key Visual Elements:** ${scene.keyVisualElements}, **Core Scene Description:** ${scene.description}
 - **Target Duration:** ${scene.duration}
+
 **Visual Style Mandate:** ${styleDescription}
+
 **Your Instructions:**
-1. Synthesize all details into a single, cohesive, evocative paragraph that describes a video clip of approximately **${scene.duration}**.
-2. The prompt should be a descriptive, narrative style painting a vivid picture.
-3. Focus on action, mood, and visual detail, incorporating the specified **Visual Style**.
-4. The output should be **only the prompt text itself**, concise but powerful, ideally under 150 words.`;
+1.  Synthesize all details into a single, cohesive, evocative paragraph that describes a video clip of approximately **${scene.duration}**.
+2.  The prompt should be a descriptive, narrative style painting a vivid picture.
+3.  Focus on action, mood, and visual detail, incorporating the specified **Visual Style**.
+4.  **Crucially, describe specific camera work.** Include details like shot types (e.g., 'extreme close-up', 'sweeping wide shot'), camera movement (e.g., 'slow dolly in', 'handheld tracking shot', 'crane shot ascending'), and lens choices (e.g., 'shallow depth of field', 'lens flare').
+5.  The output should be **only the prompt text itself**, concise but powerful, ideally under 150 words.`;
 
   try {
     const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
