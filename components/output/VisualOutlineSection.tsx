@@ -126,6 +126,11 @@ interface BulkGenerationControlsProps {
     onGenerateAll: () => void;
     onCancelAll: () => void;
     onDismissAllError: () => void;
+    
+    promptGenState: { status: BulkStatus; error?: string; };
+    onRegeneratePrompts: () => void;
+    onDismissPromptGenError: () => void;
+
     isVeoKeySelected: boolean | null;
     scenesWithoutPromptsCount: number;
     scenesWithoutVideoCount: number;
@@ -133,15 +138,16 @@ interface BulkGenerationControlsProps {
 
 
 const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
-    masterState, onGenerateAll, onCancelAll, onDismissAllError, isVeoKeySelected,
-    scenesWithoutPromptsCount, scenesWithoutVideoCount
+    masterState, onGenerateAll, onCancelAll, onDismissAllError,
+    promptGenState, onRegeneratePrompts, onDismissPromptGenError,
+    isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount
 }) => {
     const isMasterRunning = masterState.status === 'generating_prompts' || masterState.status === 'generating_videos';
     const missingAssetsCount = Math.max(scenesWithoutPromptsCount, scenesWithoutVideoCount);
     let masterDisabledTooltip = '';
     if (isVeoKeySelected === false) masterDisabledTooltip = 'Please select an API key to enable generation.';
     else if (missingAssetsCount === 0) masterDisabledTooltip = 'All scenes have generated videos.';
-    const isMasterDisabled = !isVeoKeySelected || missingAssetsCount === 0 || isMasterRunning;
+    const isMasterDisabled = !isVeoKeySelected || missingAssetsCount === 0 || isMasterRunning || promptGenState.status === 'running';
     
     const renderMasterUI = () => {
         if (isMasterRunning) {
@@ -150,20 +156,20 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             const description = `Processing scene ${masterState.progress.current} of ${masterState.progress.total}...`;
             const progressPercentage = masterState.progress.total > 0 ? (masterState.progress.current / masterState.progress.total) * 100 : 0;
             return (
-                <div className="w-full p-4 bg-blue-deep/50 rounded-lg border border-violet-glow/30 animate-fade-in text-center">
+                <div className="w-full h-full p-4 bg-blue-deep/50 rounded-lg border border-violet-glow/30 animate-fade-in text-center flex flex-col justify-center">
                     <h4 className="font-bold text-white">{title}</h4>
                     <p className="text-sm text-gray-300 my-2">{description}</p>
                     <div className="w-full bg-gray-900/50 rounded-full h-2.5 my-3 overflow-hidden">
                         <div className="bg-gradient-to-r from-cyan-lum to-violet-glow h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
                     </div>
-                    <button onClick={onCancelAll} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button onClick={onCancelAll} className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm self-center">Cancel</button>
                 </div>
             );
         }
 
         if (masterState.status === 'error') {
             return (
-                 <div className="w-full p-4 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center">
+                 <div className="w-full h-full p-4 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h4 className="font-bold text-white">Generation Failed</h4>
                     <p className="text-sm text-red-200 my-2 font-mono break-all">{masterState.error}</p>
                     <div className="flex justify-center gap-4 mt-3">
@@ -175,7 +181,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         
         if (masterState.status === 'complete') {
              return (
-                 <div className="w-full p-4 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in text-center">
+                 <div className="w-full h-full p-4 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h4 className="font-bold text-white">Full Sequence Generation Complete!</h4>
                     <p className="text-sm text-green-200 my-2">All {masterState.progress.total} scenes processed successfully.</p>
                 </div>
@@ -187,22 +193,83 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 onClick={onGenerateAll} 
                 disabled={isMasterDisabled}
                 title={masterDisabledTooltip}
-                className="w-full flex items-center justify-center gap-3 bg-gradient-to-br from-teal-bright to-mint-glow text-blue-darker font-bold py-3 px-5 rounded-lg transition-all text-sm disabled:from-gray-600 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100 border border-white/10 shadow-lg disabled:shadow-none animate-glow disabled:animate-none"
+                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-teal-bright to-mint-glow text-blue-darker font-bold py-3 px-5 rounded-lg transition-all text-sm disabled:from-gray-600 disabled:to-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100 border border-white/10 shadow-lg disabled:shadow-none animate-glow disabled:animate-none"
             >
-                <VideoIcon />
-                Generate Full Film Sequence ({missingAssetsCount})
+                <div className="flex items-center gap-2 text-base">
+                    <VideoIcon />
+                    <span>Generate Full Film Sequence ({missingAssetsCount})</span>
+                </div>
+                <span className="text-xs font-semibold text-teal-900/80 italic opacity-80 mt-1">Primary Workflow</span>
             </button>
         );
-    }
+    };
+
+    const renderPromptGenUI = () => {
+        const isRunning = promptGenState.status === 'running' || isMasterRunning;
+        const disabled = isRunning || scenesWithoutPromptsCount === 0;
+        const tooltip = disabled
+            ? scenesWithoutPromptsCount === 0
+                ? "All scenes that need a video already have a generated prompt."
+                : "Another generation process is running."
+            : "Use AI to write detailed video prompts for all scenes missing one.";
+    
+        if (promptGenState.status === 'running') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-blue-deep/50 rounded-lg border border-violet-glow/20 animate-pulse flex flex-col justify-center">
+                    <p className="font-semibold text-white">Regenerating Prompts...</p>
+                    <p className="text-sm text-gray-300">This should be quick.</p>
+                </div>
+            );
+        }
+    
+        if (promptGenState.status === 'error') {
+            return (
+                <div className="w-full h-full p-3 bg-red-900/40 rounded-lg border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Prompt Generation Failed</h5>
+                    <p className="text-xs text-red-200 my-1 font-mono break-all">{promptGenState.error}</p>
+                    <button onClick={onDismissPromptGenError} className="text-xs bg-gray-600 hover:bg-gray-500 text-white font-semibold py-1 px-3 rounded-md mt-1 self-center">Dismiss</button>
+                </div>
+            );
+        }
+    
+        if (promptGenState.status === 'complete') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-lg border border-green-500/50 animate-fade-in flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Prompts Generated!</h5>
+                    <p className="text-xs text-green-200">All missing prompts have been created.</p>
+                </div>
+            );
+        }
+    
+        return (
+            <button
+                onClick={onRegeneratePrompts}
+                disabled={disabled}
+                title={tooltip}
+                className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gray-700/50 hover:bg-gray-600 text-white font-semibold py-3 px-5 rounded-lg transition-all text-sm disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed border border-white/10 disabled:border-transparent transform hover:scale-105 active:scale-100"
+            >
+                <div className="flex items-center gap-2 text-base">
+                    <SparklesIcon />
+                    <span>Regenerate Prompts ({scenesWithoutPromptsCount})</span>
+                </div>
+                <span className="text-xs font-semibold text-gray-400 italic opacity-80 mt-1">Optional First Step</span>
+            </button>
+        );
+    };
 
     return (
         <div className="bg-blue-deep/30 p-4 rounded-lg border border-white/10 text-center animate-fade-in mb-8">
             <h4 className="text-lg font-bold text-white mb-2">Bulk Asset Generation</h4>
             <p className="text-gray-300 text-sm max-w-2xl mx-auto mb-4">
-                Use the primary button to generate all missing assets in sequence. This is the recommended workflow and can take several minutes.
+                Generate all assets in a single sequence, or regenerate missing prompts first to review them before creating videos. This can take several minutes.
             </p>
-            <div className="flex justify-center items-stretch gap-4">
-                {renderMasterUI()}
+            <div className="flex flex-col md:flex-row justify-center items-stretch gap-4">
+                <div className="flex-grow md:w-3/5">
+                    {renderMasterUI()}
+                </div>
+                <div className="flex-shrink-0 md:w-2/5">
+                    {renderPromptGenUI()}
+                </div>
             </div>
         </div>
     );
@@ -293,6 +360,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     
     const [masterBulkState, setMasterBulkState] = useState<MasterBulkState>({ status: 'idle', progress: { current: 0, total: 0 } });
     const masterAbortController = useRef<AbortController | null>(null);
+
+    const [promptGenState, setPromptGenState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
      
     useEffect(() => { setEditedOutline(outline); }, [outline]);
 
@@ -448,6 +517,40 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             setTimeout(() => setMasterBulkState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
         }
     };
+    
+    const handleBulkRegeneratePrompts = async () => {
+        setPromptGenState({ status: 'running' });
+    
+        const scenesToUpdate = editedOutline.filter(s => !s.videoUrl && (!s.videoPrompt || s.videoPrompt.trim() === ''));
+        if (scenesToUpdate.length === 0) {
+            setPromptGenState({ status: 'complete' });
+            setTimeout(() => setPromptGenState({ status: 'idle' }), 3000);
+            return;
+        }
+    
+        try {
+            const promises = scenesToUpdate.map(scene => 
+                regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
+                    id: scene.id, videoPrompt: newPrompt,
+                }))
+            );
+            const results = await Promise.all(promises);
+            const updatesMap = new Map(results.map(r => [r.id, r.videoPrompt]));
+            const newOutline = editedOutline.map(scene => 
+                updatesMap.has(scene.id) ? { ...scene, videoPrompt: updatesMap.get(scene.id)! } : scene
+            );
+    
+            setEditedOutline(newOutline);
+            save(newOutline);
+    
+            setPromptGenState({ status: 'complete' });
+            setTimeout(() => setPromptGenState({ status: 'idle' }), 3000);
+    
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            setPromptGenState({ status: 'error', error: errorMessage });
+        }
+    };
 
 
     const filteredScenes = useMemo(() => {
@@ -484,6 +587,9 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 onGenerateAll={handleGenerateAll}
                 onCancelAll={() => masterAbortController.current?.abort()}
                 onDismissAllError={() => setMasterBulkState({ status: 'idle', progress: { current: 0, total: 0 }})}
+                promptGenState={promptGenState}
+                onRegeneratePrompts={handleBulkRegeneratePrompts}
+                onDismissPromptGenError={() => setPromptGenState({ status: 'idle' })}
                 isVeoKeySelected={isVeoKeySelected}
                 scenesWithoutPromptsCount={scenesWithoutPromptsCount}
                 scenesWithoutVideoCount={scenesWithoutVideoCount}
