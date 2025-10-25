@@ -10,6 +10,25 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
+/**
+ * Processes a list of items in batches to avoid overwhelming an API with too many concurrent requests.
+ * @param items The array of items to process.
+ * @param processItem An async function that processes a single item.
+ * @param batchSize The number of items to process in parallel in each batch.
+ * @returns A promise that resolves to an array of results from processing all items.
+ */
+async function processInBatches<T, R>(items: T[], processItem: (item: T) => Promise<R>, batchSize: number): Promise<R[]> {
+    const results: R[] = [];
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchPromises = batch.map(processItem);
+        // Wait for the current batch to complete before starting the next one.
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+    }
+    return results;
+}
+
 const getThemeDescription = (theme: RewriteTomorrowTheme): string => {
     switch (theme) {
         case 'abundance': return "The film explores a post-scarcity future where AI and automated systems have eliminated poverty and resource conflict, allowing humanity to flourish in a world of shared prosperity and boundless opportunity.";
@@ -274,9 +293,9 @@ The final shot must be hyper-detailed, emotionally powerful, and suitable for a 
 
 export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
-    // Start moodboard generation in parallel
+    // Start moodboard generation in controlled batches
     const imageStages = getThemeBasedImageStages(theme, visualStyle);
-    const moodboardImagePromises = imageStages.map(stage =>
+    const moodboardPromise = processInBatches(imageStages, stage =>
       ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: stage.prompt,
@@ -287,9 +306,9 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
             throw new Error(`Image generation failed for "${stage.title}". The model did not return an image, which may be due to safety filters or a temporary model issue.`);
         }
         return { title: stage.title, imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}` };
-      })
+      }),
+      2 // Batch size 2
     );
-    const moodboardPromise = Promise.all(moodboardImagePromises);
 
     // STEP 1: Generate Core Concept
     const coreConceptPrompt = createCoreConceptPrompt(theme, intensity, visualStyle, narrativeTone);
@@ -438,16 +457,17 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const outlineTextForBTS = formatOutlineForPrompt(outlineWithImagePrompts);
     const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForPrompts, outlineTextForBTS);
     
-    // Run final image previews and BTS doc generation in parallel
-    const sceneImagePromises = outlineWithImagePrompts.map(scene => 
+    // Run final image previews (in batches) and BTS doc generation in parallel
+    const sceneImagesPromise = processInBatches(outlineWithImagePrompts, scene => 
         generateImageForScene(scene, visualStyle).catch(err => {
             console.error(`Failed to generate preview image for scene "${scene.title}":`, err); return null;
-        })
+        }),
+        3 // Batch size 3
     );
     const btsPromise = ai.models.generateContent({ model: "gemini-2.5-flash", contents: btsPrompt });
     
     // Await all parallel promises
-    const [referenceImages, sceneImageUrls, btsResponse] = await Promise.all([moodboardPromise, Promise.all(sceneImagePromises), btsPromise]);
+    const [referenceImages, sceneImageUrls, btsResponse] = await Promise.all([moodboardPromise, sceneImagesPromise, btsPromise]);
     
     const visualOutline: Scene[] = outlineWithImagePrompts.map((scene, index) => ({ ...scene, imageUrl: sceneImageUrls[index] ?? undefined }));
     const btsDocument = btsResponse.text.trim();
@@ -455,8 +475,13 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     return { script, characters, visualOutline, referenceImages: referenceImages as ReferenceImage[], btsDocument };
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    if (error instanceof Error && error.message.includes('JSON')) {
-        throw new Error("The AI's response was not in the expected format. Please try again.");
+    if (error instanceof Error) {
+        if (error.message.includes('JSON')) {
+            throw new Error("The AI's response was not in the expected format. Please try again.");
+        }
+        if (error.message.toLowerCase().includes('quota')) {
+            throw new Error("API quota exceeded. You have reached the request limit for image generation. Please try again in a few minutes, or try generating a new concept.");
+        }
     }
     throw new Error("The AI muse hit a block. Perhaps try a different creative direction or check your connection.");
   }
@@ -653,7 +678,7 @@ export const generateStyleGuideImages = async (visualStyle: VisualStyle): Promis
     if (prompts.length === 0) return [];
     
     try {
-        const imagePromises = prompts.map(prompt => 
+        const processImage = (prompt: string) => 
             ai.models.generateImages({
                 model: 'imagen-4.0-generate-001',
                 prompt: prompt,
@@ -666,14 +691,18 @@ export const generateStyleGuideImages = async (visualStyle: VisualStyle): Promis
                     url: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`,
                     prompt: prompt.split(' The style is strictly')[0] // Return the core prompt for the caption
                 };
-            })
-        );
+            });
         
-        return await Promise.all(imagePromises);
+        return await processInBatches(prompts, processImage, 2); // Batch size of 2
 
     } catch (error) {
         console.error("Error generating style guide images:", error);
-        if (error instanceof Error) throw new Error(`Failed to generate style guide. Reason: ${error.message}`);
+        if (error instanceof Error) {
+            if (error.message.toLowerCase().includes('quota')) {
+                throw new Error("API quota limit reached. Please try again in a minute.");
+            }
+            throw new Error(`Failed to generate style guide. Reason: ${error.message}`);
+        }
         throw new Error("An unknown error occurred during style guide image generation.");
     }
 }
