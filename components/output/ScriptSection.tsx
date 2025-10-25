@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import type { ScriptBlock, Character } from '../../types';
 import { CopyButton } from '../ui/CopyButton';
