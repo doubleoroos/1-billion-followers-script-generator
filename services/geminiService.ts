@@ -10,14 +10,17 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * Processes a list of items in batches to avoid overwhelming an API with too many concurrent requests.
  * @param items The array of items to process.
  * @param processItem An async function that processes a single item.
  * @param batchSize The number of items to process in parallel in each batch.
+ * @param batchDelay The delay in milliseconds between each batch execution.
  * @returns A promise that resolves to an array of results from processing all items.
  */
-async function processInBatches<T, R>(items: T[], processItem: (item: T) => Promise<R>, batchSize: number): Promise<R[]> {
+export async function processInBatches<T, R>(items: T[], processItem: (item: T) => Promise<R>, batchSize: number, batchDelay: number = 0): Promise<R[]> {
     const results: R[] = [];
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
@@ -25,6 +28,11 @@ async function processInBatches<T, R>(items: T[], processItem: (item: T) => Prom
         // Wait for the current batch to complete before starting the next one.
         const batchResults = await Promise.all(batchPromises);
         results.push(...batchResults);
+        
+        // If this is not the last batch, wait before processing the next one
+        if (i + batchSize < items.length && batchDelay > 0) {
+            await delay(batchDelay);
+        }
     }
     return results;
 }
@@ -157,7 +165,7 @@ ${fullScript}
 **Your Task:**
 Based on the provided script and synopsis, create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, you must provide all the required fields. Pay special attention to:
 
-- **description:** A highly evocative paragraph painting a vivid picture of the scene, detailing mood, setting, and key actions, fully embodying the selected visual style.
+- **description:** A highly evocative and detailed paragraph (at least 3-4 sentences long) that paints a vivid picture of the scene. This description MUST deeply embody the selected visual style. Focus on concrete visual elements: describe the lighting (e.g., is it harsh, soft, volumetric?), the color palette, the composition of the shot, and the overall atmosphere and mood. Describe what the viewer sees and feels.
 - **charactersInScene:** A brief description of which characters are present and their key actions or emotional state.
 - **duration:** A realistic duration estimate in seconds, formatted as a string (e.g., "15s").
 - **transition:** A descriptive, cinematic transition to the *next* scene (e.g., 'Match cut on action'). The final scene's transition must be 'Fade to black.'.
@@ -307,7 +315,8 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         }
         return { title: stage.title, imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}` };
       }),
-      2 // Batch size 2
+      1, // Batch size 1
+      1000 // 1 second delay
     );
 
     // STEP 1: Generate Core Concept
@@ -411,7 +420,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
                           },
                           description: {
                             type: Type.STRING,
-                            description: "A highly evocative and detailed paragraph that paints a vivid picture of the scene, embodying the selected visual style. It must detail the mood, setting, and key actions or moments."
+                            description: "A highly evocative and detailed paragraph (at least 3-4 sentences long) that paints a vivid picture of the scene, deeply embodying the selected visual style by focusing on concrete visual elements, lighting, mood, and atmosphere."
                           },
                           keyVisualElements: { type: Type.STRING },
                           visuals: { type: Type.STRING },
@@ -462,7 +471,8 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         generateImageForScene(scene, visualStyle).catch(err => {
             console.error(`Failed to generate preview image for scene "${scene.title}":`, err); return null;
         }),
-        3 // Batch size 3
+        1, // Batch size 1
+        1000 // 1 second delay
     );
     const btsPromise = ai.models.generateContent({ model: "gemini-2.5-flash", contents: btsPrompt });
     
@@ -693,7 +703,7 @@ export const generateStyleGuideImages = async (visualStyle: VisualStyle): Promis
                 };
             });
         
-        return await processInBatches(prompts, processImage, 2); // Batch size of 2
+        return await processInBatches(prompts, processImage, 1, 1000); // Batch size of 1 with 1s delay
 
     } catch (error) {
         console.error("Error generating style guide images:", error);

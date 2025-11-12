@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 
 export const StoryboardSection: React.FC<{ id: string, title: string; children: React.ReactNode, style?: React.CSSProperties }> = ({ id, title, children, style }) => (
@@ -77,7 +76,7 @@ export const OutputNav: React.FC = () => {
                 {navItems.map(item => (
                     <a 
                         key={item.id}
-                        ref={el => itemRefs.current[item.id] = el}
+                        ref={el => { itemRefs.current[item.id] = el; }}
                         href={`#${item.id}`} 
                         onClick={(e) => {
                             e.preventDefault();

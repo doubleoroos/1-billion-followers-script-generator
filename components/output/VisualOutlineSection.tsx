@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { Scene, VisualStyle } from '../../types';
-import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, generateStyleGuideImages } from '../../services/geminiService';
+import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, generateStyleGuideImages, processInBatches } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
@@ -269,12 +268,12 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
 
     const renderRefinePromptsUI = () => {
         const isRunning = isAnySecondaryRunning || isMasterRunning;
-        const disabled = isRunning || sceneCount === 0;
+        const disabled = isRunning || scenesWithoutVideoCount === 0;
         const tooltip = disabled
-            ? sceneCount === 0
-                ? "There are no scenes to refine."
+            ? scenesWithoutVideoCount === 0
+                ? "All scenes already have a generated video; no prompts to refine."
                 : "Another generation process is running."
-            : "Use AI to rewrite and improve all video prompts for better cinematic quality.";
+            : "Use AI to rewrite and improve video prompts for all scenes that do not have a generated video.";
     
         if (refinePromptsState.status === 'running') {
             return (
@@ -313,7 +312,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             >
                 <div className="flex items-center gap-2 text-base">
                     <SparklesIcon />
-                    <span>Refine All Video Prompts ({sceneCount})</span>
+                    <span>Refine All Video Prompts ({scenesWithoutVideoCount})</span>
                 </div>
                 <span className="text-xs font-semibold text-text-secondary italic opacity-80 mt-1">Optional Enhancement</span>
             </button>
@@ -592,12 +591,16 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         }
     
         try {
-            const promises = scenesToUpdate.map(scene => 
-                regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
-                    id: scene.id, videoPrompt: newPrompt,
-                }))
+            const results = await processInBatches(
+                scenesToUpdate,
+                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
+                    id: scene.id,
+                    videoPrompt: newPrompt,
+                })),
+                1, // Batch size
+                500 // Delay in ms
             );
-            const results = await Promise.all(promises);
+            
             const updatesMap = new Map(results.map(r => [r.id, r.videoPrompt]));
             const newOutline = editedOutline.map(scene => 
                 updatesMap.has(scene.id) ? { ...scene, videoPrompt: updatesMap.get(scene.id)! } : scene
@@ -618,14 +621,24 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleRefineAllPrompts = async () => {
         setRefinePromptsState({ status: 'running' });
     
+        const scenesToRefine = editedOutline.filter(s => !s.videoUrl);
+
+        if (scenesToRefine.length === 0) {
+            setRefinePromptsState({ status: 'complete' });
+            setTimeout(() => setRefinePromptsState({ status: 'idle' }), 3000);
+            return;
+        }
+
         try {
-            const promises = editedOutline.map(scene => 
-                regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
+            const results = await processInBatches(
+                scenesToRefine,
+                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
                     id: scene.id,
                     videoPrompt: newPrompt,
-                }))
+                })),
+                1, // Batch size
+                500 // Delay in ms
             );
-            const results = await Promise.all(promises);
             const updatesMap = new Map(results.map(r => [r.id, r.videoPrompt]));
             const newOutline = editedOutline.map(scene => 
                 updatesMap.has(scene.id) ? { ...scene, videoPrompt: updatesMap.get(scene.id)! } : scene
