@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -301,7 +300,7 @@ The final shot must be hyper-detailed, emotionally powerful, and suitable for a 
 
 export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
-    // Start moodboard generation in controlled batches
+    // Start moodboard generation with graceful error handling for each image
     const imageStages = getThemeBasedImageStages(theme, visualStyle);
     const moodboardPromise = processInBatches(imageStages, stage =>
       ai.models.generateImages({
@@ -310,10 +309,13 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '16:9' },
       }).then(response => {
         if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
-            console.error("Image generation failed for stage:", stage.title, "Response:", response);
-            throw new Error(`Image generation failed for "${stage.title}". The model did not return an image, which may be due to safety filters or a temporary model issue.`);
+            console.warn(`Image generation returned no image for moodboard stage: "${stage.title}"`);
+            return null;
         }
         return { title: stage.title, imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}` };
+      }).catch(error => {
+        console.error(`Moodboard image generation failed for stage "${stage.title}":`, error);
+        return null;
       }),
       1, // Batch size 1
       1000 // 1 second delay
@@ -443,7 +445,25 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
       ...(sceneData as any), id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`, sceneNumber: index + 1,
     }));
 
-    const promptGenerationPromises = sceneShells.map(scene =>
+    // STEP 4.1: Optimize Video Settings
+    const scenesWithOptimizedSettings: Scene[] = await processInBatches(
+      sceneShells,
+      scene => optimizeVideoSettingsForScene(scene, visualStyle)
+          .then(settings => ({ ...scene, ...settings }))
+          .catch(err => {
+              console.error(`Failed to optimize settings for scene "${scene.title}", using defaults.`, err);
+              return {
+                  ...scene,
+                  videoModel: 'veo-3.1-fast-generate-preview',
+                  resolution: '720p',
+                  aspectRatio: '16:9',
+                  videoSettingsReasoning: 'AI optimization failed; using default settings.'
+              };
+          }),
+      1, 500
+    );
+
+    const promptGenerationPromises = scenesWithOptimizedSettings.map(scene =>
       regenerateVideoPromptForScene(scene, visualStyle)
         .then(prompt => ({ ...scene, videoPrompt: prompt }))
         .catch(err => {
@@ -466,31 +486,46 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const outlineTextForBTS = formatOutlineForPrompt(outlineWithImagePrompts);
     const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForPrompts, outlineTextForBTS);
     
-    // Run final image previews (in batches) and BTS doc generation in parallel
-    const sceneImagesPromise = processInBatches(outlineWithImagePrompts, scene => 
-        generateImageForScene(scene, visualStyle).catch(err => {
+    // Select a few key scenes for preview images to avoid hitting rate limits
+    const keySceneIndices = [
+        0,
+        Math.floor(outlineWithImagePrompts.length / 2),
+        outlineWithImagePrompts.length - 1
+    ];
+    const uniqueKeySceneIndices = [...new Set(keySceneIndices)];
+    const keyScenesToImage = uniqueKeySceneIndices.map(i => outlineWithImagePrompts[i]).filter(Boolean);
+
+    // Run final image previews and BTS doc generation in parallel
+    const sceneImagesPromise = processInBatches(keyScenesToImage, scene => 
+        generateImageForScene(scene, visualStyle).then(imageUrl => ({
+            sceneId: scene.id,
+            imageUrl
+        })).catch(err => {
             console.error(`Failed to generate preview image for scene "${scene.title}":`, err); return null;
         }),
         1, // Batch size 1
         1000 // 1 second delay
     );
+
     const btsPromise = ai.models.generateContent({ model: "gemini-2.5-flash", contents: btsPrompt });
     
     // Await all parallel promises
-    const [referenceImages, sceneImageUrls, btsResponse] = await Promise.all([moodboardPromise, sceneImagesPromise, btsPromise]);
+    const [moodboardResults, sceneImageResults, btsResponse] = await Promise.all([moodboardPromise, sceneImagesPromise, btsPromise]);
     
-    const visualOutline: Scene[] = outlineWithImagePrompts.map((scene, index) => ({ ...scene, imageUrl: sceneImageUrls[index] ?? undefined }));
+    // Assemble results gracefully
+    const referenceImages = moodboardResults.filter((r): r is ReferenceImage => r !== null);
+    // FIX: Add a type guard to the filter to ensure TypeScript correctly infers the type of `r`. This resolves the 'unknown' type error for `r.imageUrl`.
+    const sceneImageMap = new Map(sceneImageResults.filter((r): r is { sceneId: string; imageUrl: string } => r !== null).map(r => [r.sceneId, r.imageUrl]));
+
+    const visualOutline: Scene[] = outlineWithImagePrompts.map((scene) => ({ ...scene, imageUrl: sceneImageMap.get(scene.id) }));
     const btsDocument = btsResponse.text.trim();
 
-    return { script, characters, visualOutline, referenceImages: referenceImages as ReferenceImage[], btsDocument };
+    return { script, characters, visualOutline, referenceImages, btsDocument };
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     if (error instanceof Error) {
         if (error.message.includes('JSON')) {
             throw new Error("The AI's response was not in the expected format. Please try again.");
-        }
-        if (error.message.toLowerCase().includes('quota')) {
-            throw new Error("API quota exceeded. You have reached the request limit for image generation. Please try again in a few minutes, or try generating a new concept.");
         }
     }
     throw new Error("The AI muse hit a block. Perhaps try a different creative direction or check your connection.");
@@ -642,6 +677,69 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
         throw new Error("An unknown error occurred during video generation.");
     }
 };
+
+export const optimizeVideoSettingsForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<Pick<Scene, 'videoModel' | 'resolution' | 'aspectRatio' | 'videoSettingsReasoning'>> => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    const prompt = `
+You are an expert VFX Supervisor and Film Director tasked with optimizing video generation settings for a single scene. Your goal is to choose the best parameters to achieve the most impactful and visually stunning result, based on the scene's content and the film's overall style.
+
+**Film's Overall Visual Style:** ${styleDescription}
+
+**Scene Details:**
+- **Title:** ${scene.title}
+- **Location/Time:** ${scene.location}, ${scene.timeOfDay}
+- **Atmosphere:** ${scene.atmosphere}
+- **Pacing/Emotion:** ${scene.pacingEmotion}
+- **Description:** ${scene.description}
+- **Key Visual Elements:** ${scene.keyVisualElements}
+
+**Your Task:**
+Analyze the scene details and choose the optimal settings for generation. Provide a brief justification for your choices.
+
+**Available Settings:**
+- **Model:**
+    - 'veo-3.1-fast-generate-preview': Faster generation, good for action or less detailed scenes.
+    - 'veo-3.1-generate-preview': Slower, higher quality, better for epic, detailed, or emotionally significant moments.
+- **Resolution:**
+    - '720p': Standard HD.
+    - '1080p': Full HD, for scenes requiring high detail and clarity.
+- **Aspect Ratio:**
+    - '16:9': Standard widescreen (landscape).
+    - '9:16': Vertical (portrait), good for social media style shots.
+
+**Output Format:**
+Return a single, valid JSON object with four keys: "videoModel", "resolution", "aspectRatio", and "reasoning".
+- "reasoning" should be a concise, one-sentence explanation for your combined choices.
+`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    videoModel: { type: Type.STRING, description: "Either 'veo-3.1-fast-generate-preview' or 'veo-3.1-generate-preview'." },
+                    resolution: { type: Type.STRING, description: "Either '720p' or '1080p'." },
+                    aspectRatio: { type: Type.STRING, description: "Either '16:9' or '9:16'." },
+                    reasoning: { type: Type.STRING, description: "A one-sentence justification for the chosen settings." },
+                },
+                required: ["videoModel", "resolution", "aspectRatio", "reasoning"],
+            },
+        },
+    });
+
+    const data = JSON.parse(response.text.trim());
+    // FIX: Cast string values from the API response to the specific literal types required by the Scene type.
+    return {
+      videoModel: data.videoModel as Required<Scene>['videoModel'],
+      resolution: data.resolution as Required<Scene>['resolution'],
+      aspectRatio: data.aspectRatio as Required<Scene>['aspectRatio'],
+      videoSettingsReasoning: data.reasoning,
+    };
+};
+
 
 const getStyleGuidePrompts = (style: VisualStyle): string[] => {
     const styleDescription = getVisualStyleDescription(style);

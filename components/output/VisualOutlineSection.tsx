@@ -16,6 +16,7 @@ const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-secondary hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>;
+const InfoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 
 const parseVideoGenerationError = (error: unknown): { userMessage: string; isApiKeyError: boolean } => {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -593,7 +594,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         try {
             const results = await processInBatches(
                 scenesToUpdate,
-                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
+                // FIX: Explicitly type `scene` as Scene to fix type inference issue.
+                (scene: Scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
                     id: scene.id,
                     videoPrompt: newPrompt,
                 })),
@@ -632,7 +634,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         try {
             const results = await processInBatches(
                 scenesToRefine,
-                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
+                // FIX: Explicitly type `scene` as Scene to fix type inference issue.
+                (scene: Scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
                     id: scene.id,
                     videoPrompt: newPrompt,
                 })),
@@ -890,7 +893,17 @@ const VideoSettingSelect: React.FC<{
 const VideoSettingsControls: React.FC<VideoSettingsControlsProps> = ({ scene, onFieldChange, disabled }) => {
   return (
     <div className="bg-black/20 p-4 rounded-xl border border-white/10 space-y-3">
-        <h5 className="text-base font-bold text-text-primary mb-2">Video Generation Settings</h5>
+        <div className="flex items-center gap-2">
+            <h5 className="text-base font-bold text-text-primary">Video Generation Settings</h5>
+            {scene.videoSettingsReasoning && (
+                <div className="relative group flex items-center" aria-label="AI Rationale">
+                    <InfoIcon />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-[#1A2D42] border border-white/20 text-text-primary text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg" role="tooltip">
+                        <span className="font-bold text-cyan block mb-1">AI Rationale:</span> {scene.videoSettingsReasoning}
+                    </div>
+                </div>
+            )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
              <VideoSettingSelect label="Model" id={`model-${scene.id}`} value={scene.videoModel || 'veo-3.1-fast-generate-preview'} onChange={(e) => onFieldChange('videoModel', e.target.value)} disabled={disabled}>
                 <option value="veo-3.1-fast-generate-preview">Veo Fast</option>

@@ -45,6 +45,7 @@ export interface Scene {
   videoModel?: 'veo-3.1-fast-generate-preview' | 'veo-3.1-generate-preview';
   resolution?: '720p' | '1080p';
   aspectRatio?: '16:9' | '9:16';
+  videoSettingsReasoning?: string;
 }
 
 export interface GeneratedAssets {

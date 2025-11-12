@@ -83,6 +83,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
         
         <ControlGroup title="Step 1: Choose a Core Theme">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {/* FIX: Added children to OptionButton components */}
                 <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
                 <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
                 <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
@@ -97,6 +98,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                         <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Narrative Tone</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                                {/* FIX: Added children to OptionButton components */}
                                 <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
                                 <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Ponder the great questions. Explore the depths of meaning and existence.">Philosophical</OptionButton>
                                 <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Paint a vision of tomorrow. Inspire with a story of optimism and unity.">Hopeful</OptionButton>
@@ -106,6 +108,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                          <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Visual Style</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                {/* FIX: Added children to OptionButton components */}
                                 <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
                                 <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
                                 <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
@@ -116,6 +119,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                          <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Emotional Arc</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {/* FIX: Added children to OptionButton components */}
                                 <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
                                 <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
                                 <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
