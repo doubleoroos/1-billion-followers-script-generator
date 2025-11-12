@@ -440,6 +440,13 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const visualOutlineData = JSON.parse(visualOutlineResponse.text.trim());
     const rawVisualOutline: Omit<Scene, 'id' | 'sceneNumber' | 'videoPrompt' | 'videoUrl' | 'imageUrl'>[] = visualOutlineData.visualOutline || [];
     
+    // Enhance the description for "The Cornucopia Engine" scene if it exists.
+    const cornucopiaEngineIndex = rawVisualOutline.findIndex(scene => scene.title === 'The Cornucopia Engine');
+    if (cornucopiaEngineIndex !== -1) {
+        rawVisualOutline[cornucopiaEngineIndex].description = "The last rays of the golden hour bathe the city square in a warm, ethereal glow. Citizens, their faces upturned in serene awe, gaze at the Cornucopia Engine. It's not a machine, but a colossal, crystalline heart of the city, pulsing with a gentle, internal luminescence. Shimmering, iridescent streams of energy flow from it, weaving through the biomorphic architecture like a living circulatory system, connecting to every home. The scene is one of profound peace and shared prosperity, captured with a slow, majestic camera pan that emphasizes the grand scale and the intimate human connection.";
+        rawVisualOutline[cornucopiaEngineIndex].atmosphere = "Golden Hour, Awe, Profound Peace";
+    }
+    
     // STEP 4: Post-process outline (generate prompts and initial images)
     const sceneShells: Scene[] = rawVisualOutline.map((sceneData, index) => ({
       ...(sceneData as any), id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`, sceneNumber: index + 1,
@@ -515,7 +522,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     // Assemble results gracefully
     const referenceImages = moodboardResults.filter((r): r is ReferenceImage => r !== null);
     // FIX: Add a type guard to the filter to ensure TypeScript correctly infers the type of `r`. This resolves the 'unknown' type error for `r.imageUrl`.
-    const sceneImageMap = new Map(sceneImageResults.filter((r): r is { sceneId: string; imageUrl: string } => r !== null).map(r => [r.sceneId, r.imageUrl]));
+    const sceneImageMap = new Map<string, string>(sceneImageResults.filter((r): r is { sceneId: string; imageUrl: string } => r !== null).map(r => [r.sceneId, r.imageUrl]));
 
     const visualOutline: Scene[] = outlineWithImagePrompts.map((scene) => ({ ...scene, imageUrl: sceneImageMap.get(scene.id) }));
     const btsDocument = btsResponse.text.trim();
