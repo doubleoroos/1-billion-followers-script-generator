@@ -82,10 +82,10 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
         }).join('\n\n');
     };
     
-    const baseTextAreaClasses = "w-full bg-transparent p-1 -m-1 rounded-md focus:bg-black/30 focus:outline-none focus:ring-1 focus:ring-violet transition-colors duration-200 resize-none overflow-hidden leading-relaxed";
+    const baseTextAreaClasses = "w-full bg-transparent p-1 -m-1 rounded-md focus:bg-black/30 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors duration-200 resize-none overflow-hidden leading-relaxed";
 
     return (
-        <div className="relative bg-cyan/10 backdrop-blur-xl border border-white/20 p-8 md:p-12 rounded-2xl max-w-4xl mx-auto font-mono text-text-primary/90 space-y-8 shadow-soft">
+        <div className="relative panel-glass p-8 md:p-12 rounded-2xl max-w-4xl mx-auto font-mono text-text-primary/90 space-y-8">
             <CopyButton textToCopy={scriptToText()} />
              <div className="flex justify-end items-center -mb-6">
                 <SaveStatusIndicator status={status} />
@@ -103,7 +103,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                         </div>
                     ) : (
                        <>
-                            <div className="col-span-10 sm:col-span-3 text-left sm:text-right font-bold text-text-primary pr-4 pt-1">
+                            <div className="col-span-10 sm:col-span-3 text-left sm:text-right font-bold text-violet-300 pr-4 pt-1">
                                 <p>{getCharacterName(block.characterId)}</p>
                             </div>
                             <div className="col-span-10 sm:col-span-7">

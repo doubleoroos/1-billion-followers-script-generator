@@ -32,11 +32,12 @@ const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
       onClick={() => onClick(value)}
       title={tooltip}
       aria-pressed={isActive}
-      className={`btn-glass relative w-full px-4 py-3 text-sm font-semibold rounded-full border ${
-        isActive
-          ? 'active bg-violet/80 text-white border-violet'
-          : 'bg-white/5 text-text-secondary border-white/10'
-      }`}
+      className={`relative w-full px-4 py-3 text-sm font-semibold rounded-full border transition-all duration-300 group
+        ${
+          isActive
+            ? 'bg-violet-500/20 border-violet-400 text-white shadow-[0_0_15px_rgba(167,139,250,0.4)]'
+            : 'bg-white/5 text-text-secondary border-transparent hover:border-white/20 hover:text-white'
+        }`}
     >
       <span className="relative z-10">{children}</span>
     </button>
@@ -46,7 +47,7 @@ const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
 const ControlGroup: React.FC<{title: string, children: React.ReactNode}> = ({ title, children }) => (
     <div className="space-y-3">
         <h3 className="font-semibold text-text-primary text-lg pl-2">{title}</h3>
-        <div className="bg-black/20 p-4 rounded-2xl border border-white/10">
+        <div className="bg-slate-900/40 p-4 rounded-2xl border border-white/10">
             {children}
         </div>
     </div>
@@ -79,11 +80,11 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             <p className="text-text-secondary text-xl">Your choices will guide the AI in generating a complete film concept.</p>
         </div>
       
-        <div className="bg-cyan/10 backdrop-blur-2xl p-6 md:p-8 rounded-3xl border border-white/20 flex flex-col space-y-8 shadow-soft">
+        <div className="panel-glass p-6 md:p-8 rounded-3xl flex flex-col space-y-8">
         
         <ControlGroup title="Step 1: Choose a Core Theme">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                {/* FIX: Added children to OptionButton components */}
+                {/* FIX: Added children to OptionButton components to provide button text. */}
                 <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
                 <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
                 <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
@@ -98,7 +99,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                         <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Narrative Tone</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                                {/* FIX: Added children to OptionButton components */}
+                                {/* FIX: Added children to OptionButton components to provide button text. */}
                                 <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
                                 <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Ponder the great questions. Explore the depths of meaning and existence.">Philosophical</OptionButton>
                                 <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Paint a vision of tomorrow. Inspire with a story of optimism and unity.">Hopeful</OptionButton>
@@ -108,7 +109,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                          <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Visual Style</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                {/* FIX: Added children to OptionButton components */}
+                                {/* FIX: Added children to OptionButton components to provide button text. */}
                                 <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
                                 <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
                                 <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
@@ -119,7 +120,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                          <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Emotional Arc</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {/* FIX: Added children to OptionButton components */}
+                                {/* FIX: Added children to OptionButton components to provide button text. */}
                                 <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
                                 <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
                                 <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
@@ -141,7 +142,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             <button
                 onClick={onGenerate}
                 disabled={isLoading || !themeSelected}
-                className="btn-glow w-full flex items-center justify-center gap-3 bg-violet-glow-gradient text-white font-bold py-4 px-4 rounded-xl relative shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
+                className="btn-glow w-full flex items-center justify-center gap-3 bg-primary-action-gradient text-white font-bold py-4 px-4 rounded-xl relative shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
             >
             {isLoading ? (
                 <>

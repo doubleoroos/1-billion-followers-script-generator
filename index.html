@@ -13,36 +13,82 @@
       body {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        background-color: #020617; /* slate-950 */
+        overflow: hidden;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-image: radial-gradient(ellipse 80% 80% at 50% -20%,rgba(120,119,198,0.3),rgba(255,255,255,0));
+        z-index: 0;
+      }
+       body::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACNSURBVHgB7dAxAQAwEASh+j92ysgM4A7Mv2YJAAAAAAAAAAAAAABAJ2Zg0j5/A5b3gAAAAAAAAAAAAAAAAMBNgkkAAAAAAAAAAAAAAADApwkmAAAAAAAAAAAAAADAZwkmAAAAAAAAAAAAAACAPwkmAAAAAAAAAAAAAADAVwkmAAAAAAAAAAAAAADAVwkmAAAAAAAAAAAAAADAVQkmAAAAAAAAAAAAAADAZwkmAAAAAAAAAAAAAADANwkmAAAAAAAAAAAAAADANwkmAAAAAAAAAAAAAACAD5dKAXcve0e/AAAAAElFTkSuQmCC');
+        opacity: 0.04;
+        z-index: 0;
+        pointer-events: none;
+      }
+      #root {
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
       .btn-glow {
+        position: relative;
         transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+      }
+      .btn-glow::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: inherit;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+        z-index: 1;
+        transition: opacity 0.2s ease-out;
       }
       .btn-glow:hover {
         transform: translateY(-2px);
-        box-shadow: 0 0 25px 2px rgba(179, 155, 255, 0.5);
+        box-shadow: 0 0 30px 4px rgba(192, 132, 252, 0.4), 0 0 10px 0 rgba(255,255,255,0.1) inset;
       }
+      .btn-glow:hover::before { opacity: 0.5; }
       .btn-glow:active, .btn-glow.active {
         transform: translateY(1px);
-        box-shadow: 0 0 10px 0px rgba(179, 155, 255, 0.3);
+        box-shadow: 0 0 15px 2px rgba(192, 132, 252, 0.3), 0 0 5px 0 rgba(255,255,255,0.1) inset;
       }
       .btn-glow.disabled, .btn-glow:disabled {
         transform: translateY(0);
         box-shadow: none;
-        background: #6b7280;
+        background: #4b5563; /* gray-600 */
         cursor: not-allowed;
       }
       .btn-glass {
+        position: relative;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
       }
       .btn-glass:hover {
-        background-color: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
       }
       .btn-glass:active, .btn-glass.active {
-        background-color: rgba(179, 155, 255, 0.8);
-        border-color: rgba(179, 155, 255, 1);
-        color: white;
+        background-color: rgba(192, 132, 252, 0.15); /* violet-400/15 */
+        border-color: rgba(192, 132, 252, 0.8);
       }
+
+      .panel-glass {
+        background: rgba(30, 41, 59, 0.6); /* slate-800/60 */
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
     </style>
     <script>
       tailwind.config = {
@@ -56,21 +102,46 @@
               'azure': '#2A7DD4',
               'cyan': '#A7D9FF',
               'gold': '#F5E6B0',
-              'violet': '#B39BFF',
+              'violet': {
+                'DEFAULT': '#B39BFF',
+                '300': '#CDB7FF',
+                '400': '#B39BFF',
+                '500': '#A374FF',
+                '600': '#9353FF',
+              },
+              'slate': {
+                '800': '#1e293b',
+                '900': '#0f172a',
+                '950': '#020617',
+              },
+              'fuchsia': {
+                '500': '#d946ef',
+                '600': '#c026d3',
+              },
+              'indigo': {
+                '500': '#6366f1',
+                '600': '#4f46e5',
+              },
               'text-primary': 'rgba(255, 255, 255, 0.95)',
-              'text-secondary': 'rgba(167, 217, 255, 0.85)',
+              'text-secondary': 'rgba(167, 217, 255, 0.75)',
             },
             backgroundImage: {
               'gold-reflection': 'linear-gradient(180deg, #FFFFFF 50%, #F5E6B0 120%)',
-              'violet-glow-gradient': 'linear-gradient(135deg, #B39BFF, #8f7de0)',
+              'violet-glow-gradient': 'linear-gradient(135deg, #a855f7, #6366f1)',
               'cyan-glow-gradient': 'linear-gradient(135deg, #A7D9FF, #85c6f0)',
+              'aurora-gradient': 'radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 1) 0px, transparent 0%), radial-gradient(at 97% 21%, hsla(125, 98%, 72%, 1) 0px, transparent 50%), radial-gradient(at 82% 23%, hsla(340, 98%, 71%, 1) 0px, transparent 50%), radial-gradient(at 27% 91%, hsla(140, 98%, 61%, 1) 0px, transparent 50%), radial-gradient(at 95% 98%, hsla(343, 98%, 73%, 1) 0px, transparent 50%), radial-gradient(at 32% 46%, hsla(303, 98%, 70%, 1) 0px, transparent 50%)',
+              'primary-action-gradient': 'linear-gradient(120deg, #c026d3, #7c3aed, #4f46e5)',
               'glass-edge': 'linear-gradient(to top, rgba(255,255,255,0.2), transparent)',
             },
             boxShadow: {
-              'soft': '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
-              'glow-violet': '0 0 20px 0px rgba(179, 155, 255, 0.4)',
+              'soft': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+              'glow-violet': '0 0 25px 4px rgba(192, 132, 252, 0.4)',
             },
             keyframes: {
+              'aurora': {
+                'from': { backgroundPosition: '50% 50%, 50% 50%' },
+                'to': { backgroundPosition: '350% 50%, 350% 50%' },
+              },
               'subtle-fade-in': {
                 '0%': { opacity: '0', transform: 'translateY(10px) scale(0.98)' },
                 '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
@@ -94,6 +165,7 @@
               }
             },
             animation: {
+              'aurora': 'aurora 60s linear infinite',
               'fade-in': 'subtle-fade-in 0.8s ease-out forwards',
               'fade-in-stagger': 'fade-in-stagger 0.8s ease-out forwards',
               'draw-checkmark': 'draw-checkmark 0.3s ease-out forwards',
@@ -115,12 +187,12 @@
 }
 </script>
 </head>
-  <body class="bg-gray-900">
-    <div class="fixed inset-0 z-[-1] bg-[#0B1A2B]">
-      <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(42,125,212,0.4),rgba(255,255,255,0))]"></div>
-      <div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-[#0B1A2B] to-transparent"></div>
+  <body class="bg-slate-950">
+     <div class="fixed top-0 left-0 -z-10 h-full w-full">
+      <div class="absolute top-0 z-[-2] h-screen w-screen bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div>
+      <div class="absolute h-full w-full bg-aurora-gradient opacity-10 [background-size:300%_300%] animate-aurora"></div>
     </div>
-    <div id="root"></div>
+    <div id="root" class="relative z-10"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
