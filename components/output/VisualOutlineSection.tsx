@@ -512,11 +512,9 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             <p className="text-text-secondary text-sm max-w-3xl mx-auto mb-6">
                 Generate the final film, or use the utility actions to prepare your prompts and previews first. This process can take several minutes.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderMasterUI()}
                 {renderVideoGenUI()}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderPromptGenUI()}
                 {renderRefinePromptsUI()}
                 {renderPreviewGenUI()}
@@ -710,7 +708,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                     onVideoSave(updatedScene);
                     
                     currentOutline = currentOutline.map(s => s.id === updatedScene.id ? updatedScene : s);
-                    setEditedOutline(currentOutline);
                     completedInThisRun.add(scene.id);
     
                 } catch (error) {
