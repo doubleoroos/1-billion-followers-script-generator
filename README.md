@@ -102,6 +102,146 @@ The result: a **7–10 minute short film blueprint**, ready for final editing an
 
 Rewrite Tomorrow Film Generator showcases the future of filmmaking:
 a **human–AI partnership** where vision and technology merge to accelerate storytelling, democratize production, and empower filmmakers to imagine better futures.
+## 🛠 Installation
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/doubleoroos/1-billion-followers-script-generator.git
+cd 1-billion-followers-script-generator
+
+Helemaal goed — hier zijn **alle drie de uitbreidingen**, volledig GitHub-klaar en in jouw professionele stijl.
+
+Ik voeg toe:
+1️⃣ **Badge Header**
+2️⃣ **Installation Section**
+3️⃣ **Screenshot Gallery + alt descriptions**
+
+Alle onderdelen zijn direct copy-paste klaar voor je README.md.
+
+---
+
+# ✅ **1. Badge Header (GitHub Shields)**
+
+```markdown
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status">
+  <img src="https://img.shields.io/badge/license-Proprietary-lightgrey.svg" alt="License">
+  <img src="https://img.shields.io/badge/powered%20by-Gemini-%230056d2.svg" alt="Gemini Badge">
+  <img src="https://img.shields.io/badge/AI%20Film%20Award-1%20Billion%20Summit-orange.svg" alt="1 Billion Badge">
+</p>
+```
+
+---
+
+# ✅ **2. Installation Section**
+
+````markdown
+## 🛠 Installation
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/doubleoroos/1-billion-followers-script-generator.git
+cd 1-billion-followers-script-generator
+````
+
+### 2. Install Dependencies
+
+#### For Node.js environments:
+
+```bash
+npm install
+```
+
+#### For Python environments:
+
+```bash
+pip install -r requirements.txt
+```
+
+#### For Flutter environments:
+
+```bash
+flutter pub get
+```
+
+### 3. Environment Configuration
+
+Create a `.env` file in the project root:
+
+```
+GEMINI_API_KEY=your_api_key_here
+VEO_API_KEY=your_api_key_here
+IMAGEN_API_KEY=your_api_key_here
+```
+
+### 4. Run the App
+
+#### Node:
+
+```bash
+npm run dev
+```
+
+#### Python:
+
+```bash
+python main.py
+```
+
+#### Flutter:
+
+```bash
+flutter run
+```
+
+The app will launch in your local environment and load the full **Rewrite Tomorrow Film Generator** UI, including script generation, storyboard editor, and video rendering tools.
+
+````
+
+---
+
+# ✅ **3. Screenshot Gallery + ALT Text**
+
+*(Je kunt je eigen screenshots toevoegen zodra je wilt — ik schrijf alvast de structuur + alt-descriptions.)*
+
+```markdown
+## 🖼️ Screenshots
+
+### 1. Home Screen — Creative Input Flow
+![Home Screen](docs/screenshots/home.png)
+*Alt: Main landing screen of Rewrite Tomorrow Film Generator showing Theme, Tone, Visual Style, and Emotional Arc selection panels.*
+
+---
+
+### 2. Script Generation Interface
+![Script Page](docs/screenshots/script.png)
+*Alt: Script editor with AI-generated dialogue, narration panels, and editable text fields.*
+
+---
+
+### 3. Storyboard Overview
+![Storyboard Overview](docs/screenshots/storyboard.png)
+*Alt: Scene-by-scene visual outline including thumbnails, transitions, location notes, and timing details.*
+
+---
+
+### 4. Prompt Editing Suite
+![Prompt Editor](docs/screenshots/prompts.png)
+*Alt: Editable image/video prompt panel with AI suggestions and refinements.*
+
+---
+
+### 5. Video Generation (Veo)
+![Video Generation](docs/screenshots/video.png)
+*Alt: Video rendering page showing Veo-generated cinematic scene previews with progress indicators.*
+
+---
+
+### 6. Full Film Assembly
+![Full Film](docs/screenshots/fullfilm.png)
+*Alt: Final film builder interface displaying all generated scenes sequenced into a full-length short film.*
+
 
 
 <div align="center">
