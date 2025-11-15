@@ -136,6 +136,11 @@ interface BulkGenerationControlsProps {
     onCancelAll: () => void;
     onDismissAllError: () => void;
     
+    videoGenState: MasterBulkState;
+    onGenerateVideosOnly: () => void;
+    onCancelVideosOnly: () => void;
+    onDismissVideoGenError: () => void;
+
     promptGenState: { status: BulkStatus; error?: string; };
     onRegeneratePrompts: () => void;
     onDismissPromptGenError: () => void;
@@ -144,32 +149,35 @@ interface BulkGenerationControlsProps {
     onRefineAllPrompts: () => void;
     onDismissRefinePromptsError: () => void;
     
-    sceneCount: number;
-
     isVeoKeySelected: boolean | null;
     scenesWithoutPromptsCount: number;
     scenesWithoutVideoCount: number;
+    scenesReadyForVideoCount: number;
 }
 
 
 const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     masterState, onGenerateAll, onCancelAll, onDismissAllError,
+    videoGenState, onGenerateVideosOnly, onCancelVideosOnly, onDismissVideoGenError,
     promptGenState, onRegeneratePrompts, onDismissPromptGenError,
     refinePromptsState, onRefineAllPrompts, onDismissRefinePromptsError,
-    sceneCount,
-    isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount
+    isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount, scenesReadyForVideoCount
 }) => {
     const playSound = useSound();
     
-    const isAnySecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running';
     const isMasterRunning = masterState.status === 'generating_prompts' || masterState.status === 'generating_videos';
-    const missingAssetsCount = Math.max(scenesWithoutPromptsCount, scenesWithoutVideoCount);
-    let masterDisabledTooltip = '';
-    if (isVeoKeySelected === false) masterDisabledTooltip = 'Please select an API key to enable generation.';
-    else if (missingAssetsCount === 0) masterDisabledTooltip = 'All scenes have generated videos.';
-    const isMasterDisabled = !isVeoKeySelected || missingAssetsCount === 0 || isMasterRunning || isAnySecondaryRunning;
-    
+    const isVideoGenRunning = videoGenState.status === 'generating_videos';
+    const isSecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running';
+    const isAnyProcessRunning = isMasterRunning || isVideoGenRunning || isSecondaryRunning;
+
     const renderMasterUI = () => {
+        const missingAssetsCount = Math.max(scenesWithoutPromptsCount, scenesWithoutVideoCount);
+        let disabledTooltip = '';
+        if (isVeoKeySelected === false) disabledTooltip = 'Please select an API key to enable generation.';
+        else if (missingAssetsCount === 0) disabledTooltip = 'All scenes have generated videos.';
+        else if (isAnyProcessRunning) disabledTooltip = 'Another generation process is running.';
+        const isDisabled = !isVeoKeySelected || missingAssetsCount === 0 || isAnyProcessRunning;
+
         if (isMasterRunning) {
             const isGeneratingPrompts = masterState.status === 'generating_prompts';
             const title = isGeneratingPrompts ? 'Phase 1: Regenerating Prompts' : 'Phase 2: Generating Videos';
@@ -211,8 +219,8 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         return (
             <button 
                 onClick={() => { playSound(); onGenerateAll(); }}
-                disabled={isMasterDisabled}
-                title={masterDisabledTooltip}
+                disabled={isDisabled}
+                title={disabledTooltip}
                 className="btn-glow w-full h-full flex flex-col items-center justify-center gap-1 bg-primary-action-gradient text-white font-bold py-3 px-5 rounded-2xl text-sm shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
             >
                 <div className="flex items-center gap-2 text-base">
@@ -224,9 +232,65 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         );
     };
 
+    const renderVideoGenUI = () => {
+        let disabledTooltip = '';
+        if (isVeoKeySelected === false) disabledTooltip = 'Please select an API key to enable generation.';
+        else if (scenesReadyForVideoCount === 0) disabledTooltip = 'All scenes with prompts already have videos.';
+        else if (isAnyProcessRunning) disabledTooltip = 'Another generation process is running.';
+        const isDisabled = !isVeoKeySelected || scenesReadyForVideoCount === 0 || isAnyProcessRunning;
+
+        if (isVideoGenRunning) {
+            const description = `Processing scene ${videoGenState.progress.current} of ${videoGenState.progress.total}...`;
+            const progressPercentage = videoGenState.progress.total > 0 ? (videoGenState.progress.current / videoGenState.progress.total) * 100 : 0;
+            return (
+                <div className="w-full h-full p-4 bg-indigo-500/20 rounded-2xl border border-violet-500/30 animate-fade-in text-center flex flex-col justify-center">
+                    <h4 className="font-bold text-text-primary">Generating Videos</h4>
+                    <p className="text-sm text-text-secondary my-2">{description}</p>
+                    <div className="w-full bg-black/30 rounded-full h-2.5 my-3 overflow-hidden">
+                        <div className="bg-violet-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                    </div>
+                    <button onClick={() => { playSound(); onCancelVideosOnly(); }} className="btn-glass bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm self-center border border-white/10">Cancel</button>
+                </div>
+            );
+        }
+
+        if (videoGenState.status === 'error') {
+            return (
+                 <div className="w-full h-full p-4 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                    <h4 className="font-bold text-white">Video Generation Failed</h4>
+                    <p className="text-sm text-red-200 my-2 font-mono break-all">{videoGenState.error}</p>
+                    <button onClick={() => { playSound(); onDismissVideoGenError(); }} className="btn-glass bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm border border-white/10">Dismiss</button>
+                </div>
+            );
+        }
+        
+        if (videoGenState.status === 'complete') {
+             return (
+                 <div className="w-full h-full p-4 bg-green-900/40 rounded-2xl border border-green-500/50 animate-fade-in text-center flex flex-col justify-center">
+                    <h4 className="font-bold text-white">Video Generation Complete!</h4>
+                    <p className="text-sm text-green-200 my-2">All {videoGenState.progress.total} videos created.</p>
+                </div>
+            );
+        }
+
+        return (
+            <button 
+                onClick={() => { playSound(); onGenerateVideosOnly(); }}
+                disabled={isDisabled}
+                title={disabledTooltip}
+                className="btn-glow w-full h-full flex flex-col items-center justify-center gap-1 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-5 rounded-2xl text-sm shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
+            >
+                <div className="flex items-center gap-2 text-base">
+                    <VideoIcon />
+                    <span>Generate All Videos ({scenesReadyForVideoCount})</span>
+                </div>
+                <span className="text-xs font-semibold text-white/80 italic opacity-80 mt-1">Video-Only Workflow</span>
+            </button>
+        );
+    };
+
     const renderPromptGenUI = () => {
-        const isRunning = isAnySecondaryRunning || isMasterRunning;
-        const disabled = isRunning || scenesWithoutPromptsCount === 0;
+        const disabled = isAnyProcessRunning || scenesWithoutPromptsCount === 0;
         const tooltip = disabled
             ? scenesWithoutPromptsCount === 0
                 ? "All scenes that need a video already have a generated prompt."
@@ -278,8 +342,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     };
 
     const renderRefinePromptsUI = () => {
-        const isRunning = isAnySecondaryRunning || isMasterRunning;
-        const disabled = isRunning || scenesWithoutVideoCount === 0;
+        const disabled = isAnyProcessRunning || scenesWithoutVideoCount === 0;
         const tooltip = disabled
             ? scenesWithoutVideoCount === 0
                 ? "All scenes already have a generated video; no prompts to refine."
@@ -336,12 +399,11 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             <p className="text-text-secondary text-sm max-w-3xl mx-auto mb-6">
                 Generate the final film sequence, or use the optional steps to prepare your prompts first. This process can take several minutes.
             </p>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderMasterUI()}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {renderPromptGenUI()}
-                    {renderRefinePromptsUI()}
-                </div>
+                {renderVideoGenUI()}
+                {renderPromptGenUI()}
+                {renderRefinePromptsUI()}
             </div>
         </div>
     );
@@ -429,9 +491,13 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const [editedOutline, setEditedOutline] = useState<Scene[]>(outline);
     const { status, save } = useAutosave({ onSave });
     const [searchTerm, setSearchTerm] = useState('');
+    const playSound = useSound();
     
     const [masterBulkState, setMasterBulkState] = useState<MasterBulkState>({ status: 'idle', progress: { current: 0, total: 0 } });
     const masterAbortController = useRef<AbortController | null>(null);
+
+    const [videoGenState, setVideoGenState] = useState<MasterBulkState>({ status: 'idle', progress: { current: 0, total: 0 } });
+    const videoGenAbortController = useRef<AbortController | null>(null);
 
     const [promptGenState, setPromptGenState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
     const [refinePromptsState, setRefinePromptsState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
@@ -450,6 +516,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         dragItem.current = index;
+        playSound('drag');
         setTimeout(() => e.currentTarget.classList.add('opacity-40', 'scale-[0.98]'), 0);
     };
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -460,6 +527,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.currentTarget.classList.remove('bg-violet-500/10');
         if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+            playSound('drop');
             const reorderedOutline = [...editedOutline];
             const draggedItemContent = reorderedOutline.splice(dragItem.current, 1)[0];
             reorderedOutline.splice(dragOverItem.current, 0, draggedItemContent);
@@ -477,10 +545,12 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
 
     const runBulkVideoGeneration = async (
       signal: AbortSignal, 
-      setState: (state: MasterBulkState) => void,
+      setState: React.Dispatch<React.SetStateAction<MasterBulkState>>,
       initialOutline: Scene[]
     ): Promise<void> => {
         let currentOutline = initialOutline;
+        // The process targets scenes that are missing a video, regardless of prompt status.
+        // The generateVideoForScene service will throw an error if a prompt is missing, which is caught below.
         let scenesToProcess = currentOutline.filter(scene => !scene.videoUrl);
         const totalScenesToProcess = scenesToProcess.length;
         if (totalScenesToProcess === 0) return Promise.resolve();
@@ -508,7 +578,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 if (signal.aborted) throw new DOMException('Aborted by user', 'AbortError');
                 
                 totalGeneratedCount++;
-                setState({ status: 'generating_videos', progress: { current: totalGeneratedCount, total: totalScenesToProcess } });
+                setState(p => ({ ...p, status: 'generating_videos', progress: { current: totalGeneratedCount, total: totalScenesToProcess } }));
     
                 try {
                     let currentSceneState = currentOutline.find(s => s.id === scene.id)!;
@@ -533,6 +603,26 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 }
             }
             scenesToProcess = scenesToProcess.filter(scene => !completedInThisRun.has(scene.id));
+        }
+    };
+
+    const handleGenerateVideosOnly = async () => {
+        videoGenAbortController.current = new AbortController();
+        const signal = videoGenAbortController.current.signal;
+        setVideoGenState({ status: 'generating_videos', progress: { current: 0, total: 0 } });
+        try {
+            await runBulkVideoGeneration(signal, setVideoGenState, editedOutline);
+            if (!signal.aborted) {
+                setVideoGenState(p => ({ ...p, status: 'complete', progress: { current: p.progress.total, total: p.progress.total } }));
+                setTimeout(() => setVideoGenState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
+            }
+        } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                setVideoGenState({ status: 'idle', progress: { current: 0, total: 0 } });
+            } else {
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                setVideoGenState(p => ({ status: 'error', progress: p.progress, error: errorMessage }));
+            }
         }
     };
 
@@ -604,8 +694,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         try {
             const results = await processInBatches(
                 scenesToUpdate,
-                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
-                    id: scene.id,
+                (s) => regenerateVideoPromptForScene(s, visualStyle).then(newPrompt => ({
+                    id: s.id,
                     videoPrompt: newPrompt,
                 })),
                 1, // Batch size
@@ -643,8 +733,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         try {
             const results = await processInBatches(
                 scenesToRefine,
-                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
-                    id: scene.id,
+                (s) => regenerateVideoPromptForScene(s, visualStyle).then(newPrompt => ({
+                    id: s.id,
                     videoPrompt: newPrompt,
                 })),
                 1, // Batch size
@@ -682,6 +772,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const completedSceneIds = useMemo(() => new Set(editedOutline.filter(s => !!s.videoUrl).map(s => s.id)), [editedOutline]);
     const scenesWithoutPromptsCount = useMemo(() => editedOutline.filter(s => !s.videoUrl && (!s.videoPrompt || s.videoPrompt.trim() === '')).length, [editedOutline]);
     const scenesWithoutVideoCount = useMemo(() => editedOutline.filter(s => !s.videoUrl).length, [editedOutline]);
+    const scenesReadyForVideoCount = useMemo(() => editedOutline.filter(s => s.videoPrompt && !s.videoUrl).length, [editedOutline]);
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
@@ -703,6 +794,11 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 onCancelAll={() => masterAbortController.current?.abort()}
                 onDismissAllError={() => setMasterBulkState({ status: 'idle', progress: { current: 0, total: 0 }})}
                 
+                videoGenState={videoGenState}
+                onGenerateVideosOnly={handleGenerateVideosOnly}
+                onCancelVideosOnly={() => videoGenAbortController.current?.abort()}
+                onDismissVideoGenError={() => setVideoGenState({ status: 'idle', progress: { current: 0, total: 0 }})}
+
                 promptGenState={promptGenState}
                 onRegeneratePrompts={handleBulkRegeneratePrompts}
                 onDismissPromptGenError={() => setPromptGenState({ status: 'idle' })}
@@ -711,11 +807,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 onRefineAllPrompts={handleRefineAllPrompts}
                 onDismissRefinePromptsError={() => setRefinePromptsState({ status: 'idle' })}
                 
-                sceneCount={editedOutline.length}
-
                 isVeoKeySelected={isVeoKeySelected}
                 scenesWithoutPromptsCount={scenesWithoutPromptsCount}
                 scenesWithoutVideoCount={scenesWithoutVideoCount}
+                scenesReadyForVideoCount={scenesReadyForVideoCount}
             />
             <div className="space-y-6">
                  {filteredScenes.length > 0 ? (
