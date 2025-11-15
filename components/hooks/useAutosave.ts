@@ -1,14 +1,16 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export type SaveStatus = 'clean' | 'dirty' | 'saving' | 'saved';
 
-export function useAutosave<T>({ onSave, delay = 1500 }: { onSave: (data: T) => void, delay?: number }) {
+export function useAutosave<T>({ onSave, onSuccess, delay = 1500 }: { onSave: (data: T) => void, onSuccess?: () => void, delay?: number }) {
     const [status, setStatus] = useState<SaveStatus>('clean');
     const timeoutRef = useRef<number | null>(null);
     const dataRef = useRef<T | undefined>(undefined);
     const onSaveRef = useRef(onSave);
+    const onSuccessRef = useRef(onSuccess);
     onSaveRef.current = onSave;
+    onSuccessRef.current = onSuccess;
+
 
     const save = useCallback((newData: T) => {
         dataRef.current = newData;
@@ -20,6 +22,9 @@ export function useAutosave<T>({ onSave, delay = 1500 }: { onSave: (data: T) => 
                 try {
                     onSaveRef.current(dataRef.current);
                     setStatus('saved');
+                    if (onSuccessRef.current) {
+                        onSuccessRef.current();
+                    }
                 } catch (error) {
                     console.error("Autosave failed:", error);
                     setStatus('dirty');

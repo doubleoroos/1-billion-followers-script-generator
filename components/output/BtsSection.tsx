@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { CopyButton } from '../ui/CopyButton';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
+import { useSound } from '../hooks/useSound';
 
 interface BtsSectionProps {
     document: string;
@@ -22,7 +22,8 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
 
 export const BtsSection: React.FC<BtsSectionProps> = ({ document, onSave }) => {
     const [editedDoc, setEditedDoc] = useState(document);
-    const { status, save } = useAutosave({ onSave });
+    const playSound = useSound();
+    const { status, save } = useAutosave({ onSave, onSuccess: () => playSound('success') });
     
     useEffect(() => {
         setEditedDoc(document);

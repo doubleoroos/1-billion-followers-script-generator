@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import type { ScriptBlock, Character } from '../../types';
 import { CopyButton } from '../ui/CopyButton';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
+import { useSound } from '../hooks/useSound';
 
 interface ScriptSectionProps {
     script: ScriptBlock[];
@@ -39,6 +39,7 @@ const AutoSizingTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElem
 
 
 export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters, onSave }) => {
+    const playSound = useSound();
     const processedScript = useMemo(() => {
         const characterIdSet = new Set(characters.map(c => c.id));
         return script.map(block => {
@@ -50,7 +51,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
     }, [script, characters]);
     
     const [editedScript, setEditedScript] = useState<ScriptBlock[]>(processedScript);
-    const { status, save } = useAutosave({ onSave });
+    const { status, save } = useAutosave({ onSave, onSuccess: () => playSound('success') });
 
     useEffect(() => {
         setEditedScript(processedScript);

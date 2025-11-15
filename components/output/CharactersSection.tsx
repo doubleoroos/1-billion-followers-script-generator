@@ -38,7 +38,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
     };
     
     const handleSaveClick = () => {
-        playSound();
+        playSound('success');
         handleSave();
     };
 
