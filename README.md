@@ -11,7 +11,7 @@
 **AI-powered film creation toolkit for the 1 Billion Summit AI Film Award**
 
 Rewrite Tomorrow Film Generator is an intelligent, end-to-end **AI co-pilot for filmmakers**.
-It transforms high-level creative ideas into a complete, production-ready film package — including a script, storyboard, moodboard, and AI-generated video clips — all aligned with the *Rewrite Tomorrow* theme of positive future narratives.
+It transforms high-level creative ideas into a complete, production-ready film package, including a script, storyboard, moodboard, and AI-generated video clips, all aligned with the *Rewrite Tomorrow* theme of positive future narratives.
 
 Built specifically for submissions to the **1 Billion Summit AI Film Award**, the app uses the full power of Google’s Gemini model family (Gemini Pro, Imagen, Veo) to deliver a seamless, professional pre-production pipeline.
 
