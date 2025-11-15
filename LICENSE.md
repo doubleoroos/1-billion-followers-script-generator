@@ -1,5 +1,3 @@
-# **LICENSE.md**
-
 ## **All Rights Reserved**
 
 **Copyright © 2025
