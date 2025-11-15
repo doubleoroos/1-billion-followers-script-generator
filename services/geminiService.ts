@@ -173,7 +173,7 @@ Based on the provided script and synopsis, create a detailed, scene-by-scene vis
 - **description:** A highly evocative and detailed paragraph (at least 3-4 sentences long) that paints a vivid picture of the scene. This description MUST deeply embody the selected visual style. Focus on concrete visual elements: describe the lighting (e.g., is it harsh, soft, volumetric?), the color palette, the composition of the shot, and the overall atmosphere and mood. Describe what the viewer sees and feels.
 - **charactersInScene:** A brief description of which characters are present and their key actions or emotional state.
 - **duration:** A realistic duration estimate in seconds, formatted as a string (e.g., "15s").
-- **transition:** A descriptive, cinematic transition to the *next* scene (e.g., 'Match cut on action'). The final scene's transition must be 'Fade to black.'.
+- **transition:** A highly descriptive, creative, and cinematic transition to the *next* scene that matches the film's visual style and pacing (e.g., 'A jarring match cut on the closing door to a slamming book', 'A slow, melancholic dissolve as the rain begins to fall'). The final scene's transition MUST be 'Fade to black.'.
 
 **Output Format:**
 Return a single, valid JSON object with a single key: "visualOutline".
@@ -825,3 +825,66 @@ export const generateStyleGuideImages = async (visualStyle: VisualStyle): Promis
         throw new Error("An unknown error occurred during style guide image generation.");
     }
 }
+
+export const refineSceneTransitions = async (outline: Scene[], visualStyle: VisualStyle): Promise<{ id: string; transition: string; }[]> => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
+    
+    // Create a simplified version of the outline for the prompt to save tokens and focus the model
+    const simplifiedOutline = outline.map(scene => ({
+        id: scene.id,
+        sceneNumber: scene.sceneNumber,
+        title: scene.title,
+        description: scene.description.substring(0, 200) + '...', // Truncate for brevity
+        currentTransition: scene.transition
+    }));
+
+    const prompt = `
+You are an expert film editor and screenwriter with a deep understanding of cinematic language. Your task is to review a sequence of scenes and rewrite the transition descriptions to be more evocative, creative, and thematically resonant.
+
+**Film's Visual Style:** ${styleDescription}
+
+**Scene Outline (Current State):**
+${JSON.stringify(simplifiedOutline, null, 2)}
+
+**Your Instructions:**
+1.  For each scene, analyze its content (title, description) and its place in the sequence.
+2.  Rewrite the 'transition' to create a powerful, seamless, and artistic connection to the *next* scene.
+3.  The new transition should reflect the film's **Visual Style** and the emotional tone of the sequence.
+4.  Think beyond simple cuts. Use techniques like match cuts, dissolves, graphic matches, sound bridges, wipes, etc., but describe them poetically.
+5.  **Crucially, the transition for the VERY LAST scene in the list MUST be 'Fade to black.'.** Do not change this.
+6.  You must return a transition for every single scene ID provided in the input.
+
+**Output Format:**
+Return a single, valid JSON object with a single key: "transitions".
+- "transitions" must be an array of objects.
+- Each object must have two string keys: "id" (matching the scene ID from the input) and "transition" (the new, improved transition text).
+`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    transitions: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                id: { type: Type.STRING },
+                                transition: { type: Type.STRING },
+                            },
+                            required: ["id", "transition"],
+                        },
+                    },
+                },
+                required: ["transitions"],
+            },
+        },
+    });
+
+    const data = JSON.parse(response.text.trim());
+    return data.transitions;
+};

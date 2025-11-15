@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { Scene, VisualStyle } from '../../types';
-import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, generateStyleGuideImages, processInBatches } from '../../services/geminiService';
+import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, generateStyleGuideImages, processInBatches, refineSceneTransitions } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
@@ -148,11 +148,20 @@ interface BulkGenerationControlsProps {
     refinePromptsState: { status: BulkStatus; error?: string; };
     onRefineAllPrompts: () => void;
     onDismissRefinePromptsError: () => void;
+
+    refineTransitionsState: { status: BulkStatus; error?: string; };
+    onRefineAllTransitions: () => void;
+    onDismissRefineTransitionsError: () => void;
+
+    previewGenState: { status: BulkStatus; error?: string; };
+    onGenerateAllPreviews: () => void;
+    onDismissPreviewGenError: () => void;
     
     isVeoKeySelected: boolean | null;
     scenesWithoutPromptsCount: number;
     scenesWithoutVideoCount: number;
     scenesReadyForVideoCount: number;
+    scenesWithoutImageCount: number;
 }
 
 
@@ -161,13 +170,15 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     videoGenState, onGenerateVideosOnly, onCancelVideosOnly, onDismissVideoGenError,
     promptGenState, onRegeneratePrompts, onDismissPromptGenError,
     refinePromptsState, onRefineAllPrompts, onDismissRefinePromptsError,
-    isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount, scenesReadyForVideoCount
+    refineTransitionsState, onRefineAllTransitions, onDismissRefineTransitionsError,
+    previewGenState, onGenerateAllPreviews, onDismissPreviewGenError,
+    isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount, scenesReadyForVideoCount, scenesWithoutImageCount
 }) => {
     const playSound = useSound();
     
     const isMasterRunning = masterState.status === 'generating_prompts' || masterState.status === 'generating_videos';
     const isVideoGenRunning = videoGenState.status === 'generating_videos';
-    const isSecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running';
+    const isSecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running' || previewGenState.status === 'running' || refineTransitionsState.status === 'running';
     const isAnyProcessRunning = isMasterRunning || isVideoGenRunning || isSecondaryRunning;
 
     const renderMasterUI = () => {
@@ -225,7 +236,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             >
                 <div className="flex items-center gap-2 text-base">
                     <VideoIcon />
-                    <span>Generate Full Film Sequence ({missingAssetsCount})</span>
+                    <span>Generate Full Film ({missingAssetsCount})</span>
                 </div>
                 <span className="text-xs font-semibold text-white/80 italic opacity-80 mt-1">Primary Workflow</span>
             </button>
@@ -300,7 +311,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         if (promptGenState.status === 'running') {
             return (
                 <div className="w-full h-full text-center p-3 bg-indigo-500/20 rounded-2xl border border-violet-500/20 animate-pulse flex flex-col justify-center">
-                    <p className="font-semibold text-text-primary">Regenerating Prompts...</p>
+                    <p className="font-semibold text-text-primary">Generating Prompts...</p>
                     <p className="text-sm text-text-secondary">This should be quick.</p>
                 </div>
             );
@@ -336,7 +347,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                     <SparklesIcon />
                     <span>Generate Missing Prompts ({scenesWithoutPromptsCount})</span>
                 </div>
-                <span className="text-xs font-semibold text-text-secondary italic opacity-80 mt-1">Optional First Step</span>
+                <span className="text-xs font-semibold text-text-secondary italic opacity-80 mt-1">Utility Action</span>
             </button>
         );
     };
@@ -386,9 +397,111 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             >
                 <div className="flex items-center gap-2 text-base">
                     <SparklesIcon />
-                    <span>Refine All Video Prompts ({scenesWithoutVideoCount})</span>
+                    <span>Refine All Prompts ({scenesWithoutVideoCount})</span>
                 </div>
-                <span className="text-xs font-semibold text-text-secondary italic opacity-80 mt-1">Optional Enhancement</span>
+                 <span className="text-xs font-semibold text-text-secondary italic opacity-80 mt-1">Utility Action</span>
+            </button>
+        );
+    };
+    
+    const renderPreviewGenUI = () => {
+        const disabled = isAnyProcessRunning || scenesWithoutImageCount === 0;
+        const tooltip = disabled
+            ? scenesWithoutImageCount === 0
+                ? "All scenes that need a preview already have one."
+                : "Another generation process is running."
+            : "Generate a static preview image for every scene missing one.";
+    
+        if (previewGenState.status === 'running') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 animate-pulse flex flex-col justify-center">
+                    <p className="font-semibold text-text-primary">Generating Previews...</p>
+                    <p className="text-sm text-text-secondary">Populating storyboard...</p>
+                </div>
+            );
+        }
+    
+        if (previewGenState.status === 'error') {
+            return (
+                <div className="w-full h-full p-3 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Preview Generation Failed</h5>
+                    <p className="text-xs text-red-200 my-1 font-mono break-all">{previewGenState.error}</p>
+                    <button onClick={() => { playSound(); onDismissPreviewGenError(); }} className="text-xs btn-glass bg-white/5 font-semibold py-1 px-3 rounded-full mt-1 self-center border border-white/10">Dismiss</button>
+                </div>
+            );
+        }
+    
+        if (previewGenState.status === 'complete') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-2xl border border-green-500/50 animate-fade-in flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Previews Generated!</h5>
+                    <p className="text-xs text-green-200">All missing previews have been created.</p>
+                </div>
+            );
+        }
+    
+        return (
+            <button
+                onClick={() => { playSound(); onGenerateAllPreviews(); }}
+                disabled={disabled}
+                title={tooltip}
+                className="btn-glass w-full h-full flex flex-col items-center justify-center gap-1 text-text-primary font-semibold py-3 px-5 rounded-2xl text-sm disabled:bg-white/5 disabled:text-text-secondary/50 disabled:cursor-not-allowed"
+            >
+                <div className="flex items-center gap-2 text-base">
+                    <ImageIcon />
+                    <span>Generate All Previews ({scenesWithoutImageCount})</span>
+                </div>
+                 <span className="text-xs font-semibold text-text-secondary italic opacity-80 mt-1">Utility Action</span>
+            </button>
+        );
+    };
+
+    const renderRefineTransitionsUI = () => {
+        const disabled = isAnyProcessRunning;
+        const tooltip = disabled
+            ? "Another generation process is running."
+            : "Use AI to improve the cinematic transitions between all scenes.";
+    
+        if (refineTransitionsState.status === 'running') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-indigo-500/20 rounded-2xl border border-violet-500/20 animate-pulse flex flex-col justify-center">
+                    <p className="font-semibold text-text-primary">Refining Transitions...</p>
+                    <p className="text-sm text-text-secondary">Polishing the film's flow.</p>
+                </div>
+            );
+        }
+    
+        if (refineTransitionsState.status === 'error') {
+            return (
+                <div className="w-full h-full p-3 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Transition Refinement Failed</h5>
+                    <p className="text-xs text-red-200 my-1 font-mono break-all">{refineTransitionsState.error}</p>
+                    <button onClick={() => { playSound(); onDismissRefineTransitionsError(); }} className="text-xs btn-glass bg-white/5 font-semibold py-1 px-3 rounded-full mt-1 self-center border border-white/10">Dismiss</button>
+                </div>
+            );
+        }
+    
+        if (refineTransitionsState.status === 'complete') {
+            return (
+                <div className="w-full h-full text-center p-3 bg-green-900/40 rounded-2xl border border-green-500/50 animate-fade-in flex flex-col justify-center">
+                    <h5 className="font-bold text-white text-sm">Transitions Refined!</h5>
+                    <p className="text-xs text-green-200">Scene flow has been enhanced.</p>
+                </div>
+            );
+        }
+    
+        return (
+            <button
+                onClick={() => { playSound(); onRefineAllTransitions(); }}
+                disabled={disabled}
+                title={tooltip}
+                className="btn-glass w-full h-full flex flex-col items-center justify-center gap-1 text-text-primary font-semibold py-3 px-5 rounded-2xl text-sm disabled:bg-white/5 disabled:text-text-secondary/50 disabled:cursor-not-allowed"
+            >
+                <div className="flex items-center gap-2 text-base">
+                    <SparklesIcon />
+                    <span>Refine All Transitions</span>
+                </div>
+                 <span className="text-xs font-semibold text-text-secondary italic opacity-80 mt-1">Utility Action</span>
             </button>
         );
     };
@@ -397,13 +510,17 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
         <div className="panel-glass p-6 rounded-2xl text-center animate-fade-in mb-8">
             <h4 className="text-xl font-bold text-text-primary mb-2">Bulk Asset Generation</h4>
             <p className="text-text-secondary text-sm max-w-3xl mx-auto mb-6">
-                Generate the final film sequence, or use the optional steps to prepare your prompts first. This process can take several minutes.
+                Generate the final film, or use the utility actions to prepare your prompts and previews first. This process can take several minutes.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {renderMasterUI()}
                 {renderVideoGenUI()}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderPromptGenUI()}
                 {renderRefinePromptsUI()}
+                {renderPreviewGenUI()}
+                {renderRefineTransitionsUI()}
             </div>
         </div>
     );
@@ -501,6 +618,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
 
     const [promptGenState, setPromptGenState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
     const [refinePromptsState, setRefinePromptsState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
+    const [refineTransitionsState, setRefineTransitionsState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
+    const [previewGenState, setPreviewGenState] = useState<{status: BulkStatus, error?: string}>({status: 'idle'});
      
     useEffect(() => { setEditedOutline(outline); }, [outline]);
 
@@ -543,34 +662,33 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         dragOverItem.current = null;
     };
 
-    const runBulkVideoGeneration = async (
-      signal: AbortSignal, 
-      setState: React.Dispatch<React.SetStateAction<MasterBulkState>>,
-      initialOutline: Scene[]
-    ): Promise<void> => {
-        let currentOutline = initialOutline;
-        // The process targets scenes that are missing a video, regardless of prompt status.
-        // The generateVideoForScene service will throw an error if a prompt is missing, which is caught below.
-        let scenesToProcess = currentOutline.filter(scene => !scene.videoUrl);
+    const executeVideoGenerationQueue = async (
+        signal: AbortSignal,
+        setState: React.Dispatch<React.SetStateAction<MasterBulkState>>,
+        allScenes: Scene[],
+        scenesToProcess: Scene[]
+    ) => {
         const totalScenesToProcess = scenesToProcess.length;
         if (totalScenesToProcess === 0) return Promise.resolve();
     
         setState({ status: 'generating_videos', progress: { current: 0, total: totalScenesToProcess } });
     
-        let completedInThisRun = new Set<string>(currentOutline.filter(s => !!s.videoUrl).map(s => s.id));
+        let completedInThisRun = new Set<string>(allScenes.filter(s => !!s.videoUrl).map(s => s.id));
+        let currentScenesToProcess = [...scenesToProcess];
         let totalGeneratedCount = 0;
-        let lastLoopSceneCount = scenesToProcess.length + 1;
+        let lastLoopSceneCount = currentScenesToProcess.length + 1;
+        let currentOutline = [...allScenes];
     
-        while (scenesToProcess.length > 0) {
+        while (currentScenesToProcess.length > 0) {
             if (signal.aborted) throw new DOMException('Aborted by user', 'AbortError');
     
-            if (scenesToProcess.length === lastLoopSceneCount) {
-                const remainingSceneNumbers = scenesToProcess.map(s => `#${s.sceneNumber}`).join(', ');
+            if (currentScenesToProcess.length === lastLoopSceneCount) {
+                const remainingSceneNumbers = currentScenesToProcess.map(s => `#${s.sceneNumber}`).join(', ');
                 throw new Error(`Deadlock detected. Check for circular dependencies among scenes: ${remainingSceneNumbers}`);
             }
-            lastLoopSceneCount = scenesToProcess.length;
+            lastLoopSceneCount = currentScenesToProcess.length;
     
-            const generatableScenes = scenesToProcess.filter(scene =>
+            const generatableScenes = currentScenesToProcess.filter(scene =>
                 (scene.dependsOn ?? []).every(depId => completedInThisRun.has(depId))
             );
     
@@ -582,15 +700,17 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     
                 try {
                     let currentSceneState = currentOutline.find(s => s.id === scene.id)!;
+                    if (!currentSceneState.videoPrompt || currentSceneState.videoPrompt.trim() === '') {
+                        throw new Error(`Prompt is missing for Scene ${currentSceneState.sceneNumber}. Please generate prompts first.`);
+                    }
                     const downloadLink = await generateVideoForScene(currentSceneState, signal);
                     const finalUrl = `${downloadLink}&key=${process.env.API_KEY}`;
                     const updatedScene = { ...currentSceneState, videoUrl: finalUrl };
                     
-                    onVideoSave(updatedScene); // Propagate single update up
+                    onVideoSave(updatedScene);
                     
-                    // Update local state for this loop
                     currentOutline = currentOutline.map(s => s.id === updatedScene.id ? updatedScene : s);
-                    setEditedOutline(currentOutline); // Update UI state
+                    setEditedOutline(currentOutline);
                     completedInThisRun.add(scene.id);
     
                 } catch (error) {
@@ -602,16 +722,19 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                     throw new Error(`Failed on Scene ${scene.sceneNumber}: ${userMessage}`);
                 }
             }
-            scenesToProcess = scenesToProcess.filter(scene => !completedInThisRun.has(scene.id));
+            currentScenesToProcess = currentScenesToProcess.filter(scene => !completedInThisRun.has(scene.id));
         }
     };
-
+    
     const handleGenerateVideosOnly = async () => {
         videoGenAbortController.current = new AbortController();
         const signal = videoGenAbortController.current.signal;
-        setVideoGenState({ status: 'generating_videos', progress: { current: 0, total: 0 } });
+        const scenesToProcess = editedOutline.filter(s => s.videoPrompt && !s.videoUrl);
+    
+        setVideoGenState({ status: 'generating_videos', progress: { current: 0, total: scenesToProcess.length } });
+    
         try {
-            await runBulkVideoGeneration(signal, setVideoGenState, editedOutline);
+            await executeVideoGenerationQueue(signal, setVideoGenState, editedOutline, scenesToProcess);
             if (!signal.aborted) {
                 setVideoGenState(p => ({ ...p, status: 'complete', progress: { current: p.progress.total, total: p.progress.total } }));
                 setTimeout(() => setVideoGenState({ status: 'idle', progress: { current: 0, total: 0 } }), 5000);
@@ -649,7 +772,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 save(updatedOutlineForVideoGen);
 
                 // Phase 2: Generate videos
-                await runBulkVideoGeneration(signal, setMasterBulkState, updatedOutlineForVideoGen);
+                const scenesToProcessForVideo = updatedOutlineForVideoGen.filter(scene => !scene.videoUrl);
+                await executeVideoGenerationQueue(signal, setMasterBulkState, updatedOutlineForVideoGen, scenesToProcessForVideo);
 
             } catch (error) {
                  if (error instanceof DOMException && error.name === 'AbortError') {
@@ -663,7 +787,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         } else {
             // No prompts to generate, go straight to video
             try {
-                 await runBulkVideoGeneration(signal, setMasterBulkState, editedOutline);
+                const scenesToProcess = editedOutline.filter(scene => !scene.videoUrl);
+                await executeVideoGenerationQueue(signal, setMasterBulkState, editedOutline, scenesToProcess);
             } catch (error) {
                  if (error instanceof DOMException && error.name === 'AbortError') {
                     setMasterBulkState({ status: 'idle', progress: { current: 0, total: 0 } });
@@ -756,6 +881,66 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             setRefinePromptsState({ status: 'error', error: errorMessage });
         }
     };
+    
+    const handleGenerateAllPreviews = async () => {
+        setPreviewGenState({ status: 'running' });
+    
+        const scenesToUpdate = editedOutline.filter(s => !s.imageUrl);
+        if (scenesToUpdate.length === 0) {
+            setPreviewGenState({ status: 'complete' });
+            setTimeout(() => setPreviewGenState({ status: 'idle' }), 3000);
+            return;
+        }
+    
+        try {
+            const results = await processInBatches(
+                scenesToUpdate,
+                (s) => generateImageForScene(s, visualStyle).then(newUrl => ({
+                    id: s.id,
+                    imageUrl: newUrl,
+                })),
+                1, 500
+            );
+            
+            const updatesMap = new Map(results.map(r => [r.id, r.imageUrl]));
+            const newOutline = editedOutline.map(scene => 
+                updatesMap.has(scene.id) ? { ...scene, imageUrl: updatesMap.get(scene.id)! } : scene
+            );
+    
+            setEditedOutline(newOutline);
+            save(newOutline);
+    
+            setPreviewGenState({ status: 'complete' });
+            setTimeout(() => setPreviewGenState({ status: 'idle' }), 3000);
+    
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            setPreviewGenState({ status: 'error', error: errorMessage });
+        }
+    };
+
+    const handleRefineAllTransitions = async () => {
+        setRefineTransitionsState({ status: 'running' });
+    
+        try {
+            const results = await refineSceneTransitions(editedOutline, visualStyle);
+            
+            const updatesMap = new Map(results.map(r => [r.id, r.transition]));
+            const newOutline = editedOutline.map(scene => 
+                updatesMap.has(scene.id) ? { ...scene, transition: updatesMap.get(scene.id)! } : scene
+            );
+    
+            setEditedOutline(newOutline);
+            save(newOutline);
+    
+            setRefineTransitionsState({ status: 'complete' });
+            setTimeout(() => setRefineTransitionsState({ status: 'idle' }), 3000);
+    
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during transition refinement.";
+            setRefineTransitionsState({ status: 'error', error: errorMessage });
+        }
+    };
 
 
     const filteredScenes = useMemo(() => {
@@ -773,6 +958,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const scenesWithoutPromptsCount = useMemo(() => editedOutline.filter(s => !s.videoUrl && (!s.videoPrompt || s.videoPrompt.trim() === '')).length, [editedOutline]);
     const scenesWithoutVideoCount = useMemo(() => editedOutline.filter(s => !s.videoUrl).length, [editedOutline]);
     const scenesReadyForVideoCount = useMemo(() => editedOutline.filter(s => s.videoPrompt && !s.videoUrl).length, [editedOutline]);
+    const scenesWithoutImageCount = useMemo(() => editedOutline.filter(s => !s.imageUrl).length, [editedOutline]);
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
@@ -807,10 +993,19 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 onRefineAllPrompts={handleRefineAllPrompts}
                 onDismissRefinePromptsError={() => setRefinePromptsState({ status: 'idle' })}
                 
+                refineTransitionsState={refineTransitionsState}
+                onRefineAllTransitions={handleRefineAllTransitions}
+                onDismissRefineTransitionsError={() => setRefineTransitionsState({ status: 'idle' })}
+
+                previewGenState={previewGenState}
+                onGenerateAllPreviews={handleGenerateAllPreviews}
+                onDismissPreviewGenError={() => setPreviewGenState({ status: 'idle' })}
+
                 isVeoKeySelected={isVeoKeySelected}
                 scenesWithoutPromptsCount={scenesWithoutPromptsCount}
                 scenesWithoutVideoCount={scenesWithoutVideoCount}
                 scenesReadyForVideoCount={scenesReadyForVideoCount}
+                scenesWithoutImageCount={scenesWithoutImageCount}
             />
             <div className="space-y-6">
                  {filteredScenes.length > 0 ? (
