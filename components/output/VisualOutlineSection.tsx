@@ -594,7 +594,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleBulkRegeneratePrompts = async () => {
         setPromptGenState({ status: 'running' });
     
-        const scenesToUpdate = editedOutline.filter(scene => !scene.videoUrl && (!scene.videoPrompt || scene.videoPrompt.trim() === ''));
+        const scenesToUpdate = editedOutline.filter(s => !s.videoUrl && (!s.videoPrompt || s.videoPrompt.trim() === ''));
         if (scenesToUpdate.length === 0) {
             setPromptGenState({ status: 'complete' });
             setTimeout(() => setPromptGenState({ status: 'idle' }), 3000);
@@ -632,7 +632,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleRefineAllPrompts = async () => {
         setRefinePromptsState({ status: 'running' });
     
-        const scenesToRefine = editedOutline.filter(scene => !scene.videoUrl);
+        const scenesToRefine = editedOutline.filter(s => !s.videoUrl);
 
         if (scenesToRefine.length === 0) {
             setRefinePromptsState({ status: 'complete' });
@@ -875,7 +875,7 @@ const DependencyManager: React.FC<{ currentScene: Scene; allScenes: Scene[]; onD
         onDependenciesChange(dependencies.includes(sceneId) ? dependencies.filter(id => id !== sceneId) : [...dependencies, sceneId]); 
     };
     useEffect(() => { const handleClickOutside = (event: MouseEvent) => { if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) setIsOpen(false); }; document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside); }, []);
-    // FIX: Refactored useMemo to use .map and .filter with a type guard to ensure proper type inference and avoid 'unknown' type errors.
+    
     const dependencyScenes = useMemo(() => {
         return dependencies
             .map(id => allScenes.find(s => s.id === id))
@@ -961,7 +961,6 @@ const SceneCard: React.FC<SceneCardProps> = ({
     const [isDurationValid, setIsDurationValid] = useState(true);
     const playSound = useSound();
 
-    // FIX: Refactored useMemo to use .filter and .map with a type guard to ensure proper type inference and avoid 'unknown' type errors.
     const unmetDependencies = useMemo(() => {
         const deps = scene.dependsOn ?? [];
         return deps
