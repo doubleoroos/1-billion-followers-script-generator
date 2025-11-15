@@ -604,8 +604,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         try {
             const results = await processInBatches(
                 scenesToUpdate,
-                // FIX: Explicitly type `scene` as Scene to fix type inference issue.
-                (scene: Scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
+                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
                     id: scene.id,
                     videoPrompt: newPrompt,
                 })),
@@ -644,8 +643,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         try {
             const results = await processInBatches(
                 scenesToRefine,
-                // FIX: Explicitly type `scene` as Scene to fix type inference issue.
-                (scene: Scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
+                (scene) => regenerateVideoPromptForScene(scene, visualStyle).then(newPrompt => ({
                     id: scene.id,
                     videoPrompt: newPrompt,
                 })),
@@ -877,7 +875,17 @@ const DependencyManager: React.FC<{ currentScene: Scene; allScenes: Scene[]; onD
         onDependenciesChange(dependencies.includes(sceneId) ? dependencies.filter(id => id !== sceneId) : [...dependencies, sceneId]); 
     };
     useEffect(() => { const handleClickOutside = (event: MouseEvent) => { if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) setIsOpen(false); }; document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside); }, []);
-    const dependencyScenes = useMemo(() => dependencies.map(id => allScenes.find(s => s.id === id)).filter((s): s is Scene => !!s), [dependencies, allScenes]);
+    // FIX: Refactor to a more explicit loop to avoid potential TS inference issues with chained map/filter.
+    const dependencyScenes = useMemo<Scene[]>(() => {
+        const scenes: Scene[] = [];
+        for (const id of dependencies) {
+            const scene = allScenes.find(s => s.id === id);
+            if (scene) {
+                scenes.push(scene);
+            }
+        }
+        return scenes;
+    }, [dependencies, allScenes]);
     return (
         <div className="space-y-2">
             <div ref={wrapperRef} className="relative">
@@ -958,7 +966,20 @@ const SceneCard: React.FC<SceneCardProps> = ({
     const [isDurationValid, setIsDurationValid] = useState(true);
     const playSound = useSound();
 
-    const unmetDependencies = useMemo(() => (scene.dependsOn ?? []).filter(depId => !completedSceneIds.has(depId)).map(depId => allScenes.find(s => s.id === depId)).filter((s): s is Scene => !!s), [scene.dependsOn, allScenes, completedSceneIds]);
+    // FIX: Refactor to a more explicit loop to avoid potential TS inference issues with chained map/filter.
+    const unmetDependencies = useMemo<Scene[]>(() => {
+        const unmet: Scene[] = [];
+        const deps = scene.dependsOn ?? [];
+        for (const depId of deps) {
+            if (!completedSceneIds.has(depId)) {
+                const depScene = allScenes.find(s => s.id === depId);
+                if (depScene) {
+                    unmet.push(depScene);
+                }
+            }
+        }
+        return unmet;
+    }, [scene.dependsOn, allScenes, completedSceneIds]);
     const isLocked = unmetDependencies.length > 0;
 
     const validateDuration = (value: string) => /^\d+\s*s$/i.test(value.trim());
