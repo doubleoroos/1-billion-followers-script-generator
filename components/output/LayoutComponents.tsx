@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSound } from '../hooks/useSound';
 
 export const StoryboardSection: React.FC<{ id: string, title: string; children: React.ReactNode, style?: React.CSSProperties }> = ({ id, title, children, style }) => (
     <section id={id} className="animate-fade-in-stagger opacity-0 pt-24 -mt-24" style={style}>
@@ -16,6 +17,7 @@ export const OutputNav: React.FC = () => {
     const [indicatorStyle, setIndicatorStyle] = useState({});
     const navRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<{[key: string]: HTMLAnchorElement | null}>({});
+    const playSound = useSound();
 
     const navItems = [
         { id: 'characters', label: 'Characters' },
@@ -79,6 +81,7 @@ export const OutputNav: React.FC = () => {
                         ref={el => { itemRefs.current[item.id] = el; }}
                         href={`#${item.id}`} 
                         onClick={(e) => {
+                            playSound();
                             e.preventDefault();
                             document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}

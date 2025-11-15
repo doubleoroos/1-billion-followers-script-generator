@@ -4,6 +4,7 @@ import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForS
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
+import { useSound } from '../hooks/useSound';
 
 // Re-usable Icons
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
@@ -62,6 +63,8 @@ const ApiKeyManager: React.FC<{
   isVeoKeySelected: boolean | null;
   onSelectKey: () => Promise<void>;
 }> = ({ isVeoKeySelected, onSelectKey }) => {
+  const playSound = useSound();
+
   if (isVeoKeySelected === true) {
     return null;
   }
@@ -75,6 +78,11 @@ const ApiKeyManager: React.FC<{
     );
   }
   
+  const handleSelectKeyClick = () => {
+    playSound();
+    onSelectKey();
+  };
+
   return (
     <div className="panel-glass p-6 rounded-2xl border border-violet-500/50 text-center animate-fade-in mb-8">
       <h4 className="text-lg font-bold text-text-primary mb-2">Enable Video Generation</h4>
@@ -82,7 +90,7 @@ const ApiKeyManager: React.FC<{
           To generate cinematic clips with Google's Veo model, a billed API key is required. This ensures access to the necessary computational resources.
       </p>
       <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-xs text-cyan hover:underline mb-4 block">Learn more about billing</a>
-      <button onClick={onSelectKey} className="btn-glow flex items-center justify-center gap-2 mx-auto bg-primary-action-gradient text-white font-bold py-2 px-5 rounded-full text-sm">
+      <button onClick={handleSelectKeyClick} className="btn-glow flex items-center justify-center gap-2 mx-auto bg-primary-action-gradient text-white font-bold py-2 px-5 rounded-full text-sm">
           <KeyIcon /> Select API Key
       </button>
     </div>
@@ -151,6 +159,8 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     sceneCount,
     isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount
 }) => {
+    const playSound = useSound();
+    
     const isAnySecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running';
     const isMasterRunning = masterState.status === 'generating_prompts' || masterState.status === 'generating_videos';
     const missingAssetsCount = Math.max(scenesWithoutPromptsCount, scenesWithoutVideoCount);
@@ -172,7 +182,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                     <div className="w-full bg-black/30 rounded-full h-2.5 my-3 overflow-hidden">
                         <div className="bg-primary-action-gradient h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
                     </div>
-                    <button onClick={onCancelAll} className="btn-glass bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm self-center border border-white/10">Cancel</button>
+                    <button onClick={() => { playSound(); onCancelAll(); }} className="btn-glass bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm self-center border border-white/10">Cancel</button>
                 </div>
             );
         }
@@ -183,7 +193,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                     <h4 className="font-bold text-white">Generation Failed</h4>
                     <p className="text-sm text-red-200 my-2 font-mono break-all">{masterState.error}</p>
                     <div className="flex justify-center gap-4 mt-3">
-                        <button onClick={onDismissAllError} className="btn-glass bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm border border-white/10">Dismiss</button>
+                        <button onClick={() => { playSound(); onDismissAllError(); }} className="btn-glass bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm border border-white/10">Dismiss</button>
                     </div>
                 </div>
             );
@@ -200,7 +210,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
 
         return (
             <button 
-                onClick={onGenerateAll} 
+                onClick={() => { playSound(); onGenerateAll(); }}
                 disabled={isMasterDisabled}
                 title={masterDisabledTooltip}
                 className="btn-glow w-full h-full flex flex-col items-center justify-center gap-1 bg-primary-action-gradient text-white font-bold py-3 px-5 rounded-2xl text-sm shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
@@ -237,7 +247,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 <div className="w-full h-full p-3 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h5 className="font-bold text-white text-sm">Prompt Generation Failed</h5>
                     <p className="text-xs text-red-200 my-1 font-mono break-all">{promptGenState.error}</p>
-                    <button onClick={onDismissPromptGenError} className="text-xs btn-glass bg-white/5 font-semibold py-1 px-3 rounded-full mt-1 self-center border border-white/10">Dismiss</button>
+                    <button onClick={() => { playSound(); onDismissPromptGenError(); }} className="text-xs btn-glass bg-white/5 font-semibold py-1 px-3 rounded-full mt-1 self-center border border-white/10">Dismiss</button>
                 </div>
             );
         }
@@ -253,7 +263,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     
         return (
             <button
-                onClick={onRegeneratePrompts}
+                onClick={() => { playSound(); onRegeneratePrompts(); }}
                 disabled={disabled}
                 title={tooltip}
                 className="btn-glass w-full h-full flex flex-col items-center justify-center gap-1 text-text-primary font-semibold py-3 px-5 rounded-2xl text-sm disabled:bg-white/5 disabled:text-text-secondary/50 disabled:cursor-not-allowed"
@@ -290,7 +300,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 <div className="w-full h-full p-3 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
                     <h5 className="font-bold text-white text-sm">Prompt Refinement Failed</h5>
                     <p className="text-xs text-red-200 my-1 font-mono break-all">{refinePromptsState.error}</p>
-                    <button onClick={onDismissRefinePromptsError} className="text-xs btn-glass bg-white/5 font-semibold py-1 px-3 rounded-full mt-1 self-center border border-white/10">Dismiss</button>
+                    <button onClick={() => { playSound(); onDismissRefinePromptsError(); }} className="text-xs btn-glass bg-white/5 font-semibold py-1 px-3 rounded-full mt-1 self-center border border-white/10">Dismiss</button>
                 </div>
             );
         }
@@ -306,7 +316,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     
         return (
             <button
-                onClick={onRefineAllPrompts}
+                onClick={() => { playSound(); onRefineAllPrompts(); }}
                 disabled={disabled}
                 title={tooltip}
                 className="btn-glass w-full h-full flex flex-col items-center justify-center gap-1 text-text-primary font-semibold py-3 px-5 rounded-2xl text-sm disabled:bg-white/5 disabled:text-text-secondary/50 disabled:cursor-not-allowed"
@@ -756,6 +766,7 @@ const videoGenerationMessages = [
 
 const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statusInfo, onGenerate, onCancel, isVeoKeySelected, onSelectKey, hasVideo, disabled = false }) => {
     const [progressMessage, setProgressMessage] = useState(videoGenerationMessages[0]);
+    const playSound = useSound();
 
     useEffect(() => {
         let interval: number;
@@ -778,7 +789,7 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
                 <div className="w-full bg-black/30 rounded-full h-1.5 overflow-hidden relative mt-1">
                     <div className="absolute inset-0 bg-primary-action-gradient h-full w-1/2 rounded-full animate-progress-indeterminate"></div>
                 </div>
-                <button onClick={onCancel} className="text-xs btn-glass bg-white/5 text-text-primary font-semibold py-1 px-3 rounded-full mt-2 border border-white/10">
+                <button onClick={() => { playSound(); onCancel(); }} className="text-xs btn-glass bg-white/5 text-text-primary font-semibold py-1 px-3 rounded-full mt-2 border border-white/10">
                     Cancel
                 </button>
             </div>
@@ -791,7 +802,7 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
               <h5 className="font-semibold text-white text-sm mb-2">Generation Error</h5>
               <p className="text-xs font-mono p-2 bg-black/20 rounded text-red-200/80 mb-3 break-words">{statusInfo.error || 'An unknown error occurred.'}</p>
               <div className="flex justify-end gap-2">
-                <button onClick={onGenerate} className="flex items-center gap-1.5 text-xs btn-glow bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-full">
+                <button onClick={() => { playSound(); onGenerate(); }} className="flex items-center gap-1.5 text-xs btn-glow bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-full">
                     <RegenerateIcon />
                     Retry
                 </button>
@@ -824,13 +835,13 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
     
     if (hasVideo) {
         return (
-            <button onClick={onGenerate} className={`${baseClasses} btn-glass bg-white/5 hover:bg-white/10 text-white`}>
+            <button onClick={() => { playSound(); onGenerate(); }} className={`${baseClasses} btn-glass bg-white/5 hover:bg-white/10 text-white`}>
                 <RegenerateIcon /> Regenerate Video
             </button>
         );
     } else {
         return (
-            <button onClick={onGenerate} className={`${baseClasses} btn-glow bg-primary-action-gradient text-white shadow-glow-violet`}>
+            <button onClick={() => { playSound(); onGenerate(); }} className={`${baseClasses} btn-glow bg-primary-action-gradient text-white shadow-glow-violet`}>
                 <VideoIcon /> Generate Video
             </button>
         );
@@ -839,27 +850,38 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
 
 interface ImageGenerationControlsProps { statusInfo: { status: 'idle' | 'loading' | 'error', error?: string }; onGenerate: () => void; hasImage: boolean; disabled?: boolean; }
 const ImageGenerationControls: React.FC<ImageGenerationControlsProps> = ({ statusInfo, onGenerate, hasImage, disabled = false }) => {
+    const playSound = useSound();
+    const handleClick = () => {
+        playSound();
+        onGenerate();
+    };
+
     if (statusInfo.status === 'loading') {
         return (<div className="flex flex-col items-center justify-center gap-2 animate-fade-in w-full text-sm"><p className="text-text-secondary">Generating Preview...</p><div className="w-full bg-black/30 rounded-full h-1.5 overflow-hidden relative"><div className="absolute inset-0 bg-cyan-glow-gradient h-full w-1/2 rounded-full animate-progress-indeterminate"></div></div></div>);
     }
     if (statusInfo.status === 'error') {
-      return (<div className="bg-red-900/30 border border-red-600/50 p-3 rounded-xl animate-fade-in w-full text-left h-full flex flex-col justify-between"><div><h5 className="font-semibold text-white text-sm mb-1">Image Error</h5><p className="text-xs text-red-200/80 mb-2 break-words">{statusInfo.error || 'An unknown error occurred.'}</p></div><div className="flex justify-end"><button onClick={onGenerate} className="text-xs btn-glow bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-full">Retry</button></div></div>);
+      return (<div className="bg-red-900/30 border border-red-600/50 p-3 rounded-xl animate-fade-in w-full text-left h-full flex flex-col justify-between"><div><h5 className="font-semibold text-white text-sm mb-1">Image Error</h5><p className="text-xs text-red-200/80 mb-2 break-words">{statusInfo.error || 'An unknown error occurred.'}</p></div><div className="flex justify-end"><button onClick={handleClick} className="text-xs btn-glow bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-full">Retry</button></div></div>);
     }
     const buttonText = hasImage ? 'Regenerate Preview' : 'Generate Preview'; const Icon = hasImage ? RegenerateIcon : ImageIcon;
-    return (<button onClick={onGenerate} disabled={disabled} title={disabled ? "Prerequisites not met." : ""} className="btn-glow flex items-center justify-center gap-2 w-full bg-cyan-glow-gradient text-azure font-bold py-2 px-4 rounded-full text-sm disabled:bg-white/10 disabled:text-text-secondary/50 disabled:cursor-not-allowed"><Icon /> {buttonText}</button>);
+    return (<button onClick={handleClick} disabled={disabled} title={disabled ? "Prerequisites not met." : ""} className="btn-glow flex items-center justify-center gap-2 w-full bg-cyan-glow-gradient text-azure font-bold py-2 px-4 rounded-full text-sm disabled:bg-white/10 disabled:text-text-secondary/50 disabled:cursor-not-allowed"><Icon /> {buttonText}</button>);
 };
 
 const DependencyManager: React.FC<{ currentScene: Scene; allScenes: Scene[]; onDependenciesChange: (dependencies: string[]) => void; disabled?: boolean; }> = ({ currentScene, allScenes, onDependenciesChange, disabled = false }) => {
     const [isOpen, setIsOpen] = useState(false); const wrapperRef = useRef<HTMLDivElement>(null);
     const dependencies = useMemo(() => currentScene.dependsOn ?? [], [currentScene.dependsOn]);
     const availableScenes = useMemo(() => allScenes.filter(s => s.id !== currentScene.id), [allScenes, currentScene.id]);
-    const handleToggleDependency = (sceneId: string) => { onDependenciesChange(dependencies.includes(sceneId) ? dependencies.filter(id => id !== sceneId) : [...dependencies, sceneId]); };
+    const playSound = useSound();
+
+    const handleToggleDependency = (sceneId: string) => { 
+        playSound();
+        onDependenciesChange(dependencies.includes(sceneId) ? dependencies.filter(id => id !== sceneId) : [...dependencies, sceneId]); 
+    };
     useEffect(() => { const handleClickOutside = (event: MouseEvent) => { if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) setIsOpen(false); }; document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside); }, []);
     const dependencyScenes = useMemo(() => dependencies.map(id => allScenes.find(s => s.id === id)).filter((s): s is Scene => !!s), [dependencies, allScenes]);
     return (
         <div className="space-y-2">
             <div ref={wrapperRef} className="relative">
-                <button onClick={() => setIsOpen(!isOpen)} disabled={disabled} className="w-full text-left bg-white/5 p-2 rounded-lg text-text-primary border border-transparent hover:border-white/20 focus:border-violet-500 focus:bg-white/10 transition flex justify-between items-center disabled:bg-white/5 disabled:text-text-secondary/50 disabled:cursor-not-allowed">
+                <button onClick={() => { playSound(); setIsOpen(!isOpen); }} disabled={disabled} className="w-full text-left bg-white/5 p-2 rounded-lg text-text-primary border border-transparent hover:border-white/20 focus:border-violet-500 focus:bg-white/10 transition flex justify-between items-center disabled:bg-white/5 disabled:text-text-secondary/50 disabled:cursor-not-allowed">
                     <span className="text-sm font-semibold text-text-secondary">Manage Prerequisites</span><svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {isOpen && (<div className="absolute z-20 top-full mt-1 w-full bg-[#1A2D42] border border-white/20 rounded-lg shadow-xl max-h-48 overflow-y-auto">{availableScenes.map(scene => (<label key={scene.id} className="flex items-center gap-3 p-2 hover:bg-violet-500/10 cursor-pointer"><input type="checkbox" checked={dependencies.includes(scene.id)} onChange={() => handleToggleDependency(scene.id)} className="h-4 w-4 rounded bg-azure/20 border-cyan/50 text-violet-500 focus:ring-violet-500" /><span className="text-sm text-text-primary/90"><span className="font-mono text-text-secondary/70 mr-2">{String(scene.sceneNumber).padStart(2, '0')}</span>{scene.title}</span></label>))}</div>)}
@@ -934,6 +956,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
     const [isRegeneratingImagePrompt, setIsRegeneratingImagePrompt] = useState(false);
     const [imagePromptError, setImagePromptError] = useState<string | null>(null);
     const [isDurationValid, setIsDurationValid] = useState(true);
+    const playSound = useSound();
 
     const unmetDependencies = useMemo(() => (scene.dependsOn ?? []).filter(depId => !completedSceneIds.has(depId)).map(depId => allScenes.find(s => s.id === depId)).filter((s): s is Scene => !!s), [scene.dependsOn, allScenes, completedSceneIds]);
     const isLocked = unmetDependencies.length > 0;
@@ -968,12 +991,14 @@ const SceneCard: React.FC<SceneCardProps> = ({
         } catch (error) { const errorMessage = error instanceof Error ? error.message : "An unknown error occurred."; setImageGenerationStatus({ status: 'error', error: errorMessage.split('Reason: ')[1] || errorMessage });}
     };
     const handleRegenerateVideoPrompt = async () => {
+        playSound();
         if (isLocked) return; setIsRegeneratingVideoPrompt(true); setVideoPromptError(null);
         try { const newPrompt = await regenerateVideoPromptForScene(scene, visualStyle); onFieldChange('videoPrompt', newPrompt);
         } catch (error) { console.error("Failed to regenerate prompt:", error); const errorMessage = error instanceof Error ? error.message : "Failed to regenerate prompt."; setVideoPromptError(errorMessage); setTimeout(() => setVideoPromptError(null), 5000);
         } finally { setIsRegeneratingVideoPrompt(false); }
     };
      const handleRegenerateImagePrompt = async () => {
+        playSound();
         if (isLocked) return;
         setIsRegeneratingImagePrompt(true);
         setImagePromptError(null);

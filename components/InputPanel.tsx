@@ -1,6 +1,9 @@
+
+
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
+import { useSound } from './hooks/useSound';
 
 interface InputPanelProps {
   onGenerate: () => void;
@@ -27,9 +30,16 @@ interface OptionButtonProps<T extends string> {
 const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
   const { value, current, onClick, children, tooltip } = props;
   const isActive = value === current;
+  const playSound = useSound();
+
+  const handleClick = () => {
+    playSound();
+    onClick(value);
+  };
+
   return (
     <button
-      onClick={() => onClick(value)}
+      onClick={handleClick}
       title={tooltip}
       aria-pressed={isActive}
       className={`relative w-full px-4 py-3 text-sm font-semibold rounded-full border transition-all duration-300 group
@@ -67,11 +77,17 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   error,
 }) => {
   const [themeSelected, setThemeSelected] = useState(false);
+  const playSound = useSound();
 
   const handleThemeSelection = (theme: RewriteTomorrowTheme) => {
     setRewriteTomorrowTheme(theme);
     setThemeSelected(true);
   }
+  
+  const handleGenerateClick = () => {
+    playSound();
+    onGenerate();
+  };
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
@@ -140,7 +156,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
 
         <div className="pt-4 mt-auto">
             <button
-                onClick={onGenerate}
+                onClick={handleGenerateClick}
                 disabled={isLoading || !themeSelected}
                 className="btn-glow w-full flex items-center justify-center gap-3 bg-primary-action-gradient text-white font-bold py-4 px-4 rounded-xl relative shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
             >

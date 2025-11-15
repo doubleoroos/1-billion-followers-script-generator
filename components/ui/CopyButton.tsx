@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useSound } from '../hooks/useSound';
 
 interface CopyButtonProps {
   textToCopy: string;
@@ -11,8 +11,10 @@ const CheckmarkIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h
 
 export const CopyButton: React.FC<CopyButtonProps> = ({ textToCopy }) => {
   const [copied, setCopied] = useState(false);
+  const playSound = useSound();
 
   const handleCopy = () => {
+    playSound();
     navigator.clipboard.writeText(textToCopy).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

@@ -94,6 +94,8 @@ You are an expert storyteller and screenwriter creating the foundational concept
 - **Visual Style:** ${styleDescription}
 - **Emotional Arc:** ${intensityDescription}
 
+**Creative Synthesis:** Weave these creative directions into a single, cohesive vision. The film's cinematic language (${styleDescription}) must be the primary vehicle for its message (${toneDescription}) and emotional journey (${intensityDescription}). The result should feel intentional and unified, not like a simple combination of separate ideas.
+
 **Your Task:**
 Generate the core creative concept for this film.
 
@@ -128,6 +130,8 @@ ${characterDescriptions}
 - **Narrative Tone:** ${toneDescription}
 - **Emotional Arc:** ${intensityDescription}
 
+**Creative Synthesis:** Ensure the script is a masterclass in showing, not telling. The dialogue and narration must embody the ${toneDescription}. The pacing of scenes and the subtext within the dialogue must meticulously build towards the ${intensityDescription}. Every word should contribute to the overall cinematic vision.
+
 **Your Task:**
 Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. 
 - It must follow a complete narrative arc (beginning, middle, end) based on the synopsis.
@@ -160,6 +164,8 @@ You are an expert film director and concept artist creating a visual outline for
 ---
 ${fullScript}
 ---
+
+**Creative Synthesis:** This is not just a list of shots; it is the visual soul of the film. Every scene's description must be a powerful fusion of the plot requirements from the script and the aesthetic demands of the visual style (${styleDescription}). The lighting, composition, and color palette you describe must directly evoke the scene's intended emotion and advance the overall story. Translate the abstract script into a concrete, breathtaking visual journey.
 
 **Your Task:**
 Based on the provided script and synopsis, create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, you must provide all the required fields. Pay special attention to:
@@ -521,7 +527,6 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     
     // Assemble results gracefully
     const referenceImages = moodboardResults.filter((r): r is ReferenceImage => r !== null);
-    // FIX: Add a type guard to the filter to ensure TypeScript correctly infers the type of `r`. This resolves the 'unknown' type error for `r.imageUrl`.
     const sceneImageMap = new Map<string, string>(sceneImageResults.filter((r): r is { sceneId: string; imageUrl: string } => r !== null).map(r => [r.sceneId, r.imageUrl]));
 
     const visualOutline: Scene[] = outlineWithImagePrompts.map((scene) => ({ ...scene, imageUrl: sceneImageMap.get(scene.id) }));
@@ -738,7 +743,6 @@ Return a single, valid JSON object with four keys: "videoModel", "resolution", "
     });
 
     const data = JSON.parse(response.text.trim());
-    // FIX: Cast string values from the API response to the specific literal types required by the Scene type.
     return {
       videoModel: data.videoModel as Required<Scene>['videoModel'],
       resolution: data.resolution as Required<Scene>['resolution'],

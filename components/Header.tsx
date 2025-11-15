@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { LogoIcon } from './icons/LogoIcon';
+import { useSound } from './hooks/useSound';
 
 interface HeaderProps {
   onStartOver: () => void;
@@ -8,6 +8,13 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver }) => {
+  const playSound = useSound();
+
+  const handleStartOverClick = () => {
+    playSound();
+    onStartOver();
+  };
+
   return (
     <header className="bg-slate-900/60 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50 animate-fade-in">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -22,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver }) =>
         </div>
         {showStartOver && (
           <button
-            onClick={onStartOver}
+            onClick={handleStartOverClick}
             className="btn-glass flex items-center justify-center gap-2 text-text-primary font-semibold py-2 px-4 rounded-full animate-fade-in"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
