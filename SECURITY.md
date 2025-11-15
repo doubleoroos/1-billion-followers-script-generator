@@ -1,5 +1,3 @@
-# **SECURITY.md**
-
 ## 🔒 Security Policy
 
 This repository contains proprietary and confidential intellectual property owned by **Roos van der Jagt / Earth Rising Foundation**.
