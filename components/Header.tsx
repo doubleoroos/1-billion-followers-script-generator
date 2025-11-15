@@ -16,13 +16,14 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver }) =>
   };
 
   return (
-    <header className="bg-slate-900/60 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50 animate-fade-in">
+    <header className="bg-slate-950/70 backdrop-blur-lg border-b border-transparent bg-clip-padding [border-image:linear-gradient(to_right,transparent,rgba(255,255,255,0.1),transparent)_1] sticky top-0 z-50 animate-fade-in">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-4">
           <LogoIcon />
           <div>
             <h1 className="text-xl font-bold">
-              <span className="bg-gold-reflection text-transparent bg-clip-text">Rewrite Tomorrow</span> Film Generator
+              <span className="bg-gradient-to-br from-white to-violet-300 bg-clip-text text-transparent">Rewrite Tomorrow</span>
+              <span className="text-text-primary/80"> Film Generator</span>
             </h1>
             <p className="text-text-secondary text-sm mt-1 hidden sm:block">Crafting positive futures for the 7-10 minute film competition</p>
           </div>

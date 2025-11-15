@@ -40,13 +40,14 @@ const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
       onClick={handleClick}
       title={tooltip}
       aria-pressed={isActive}
-      className={`relative w-full px-4 py-3 text-sm font-semibold rounded-full border transition-all duration-300 group
+      className={`relative w-full px-4 py-3 text-sm font-semibold rounded-full border transition-all duration-300 group overflow-hidden
         ${
           isActive
-            ? 'bg-violet-500/20 border-violet-400 text-white shadow-[0_0_15px_rgba(167,139,250,0.4)]'
+            ? 'border-violet-400 text-white shadow-[0_0_15px_rgba(167,139,250,0.4)]'
             : 'bg-white/5 text-text-secondary border-transparent hover:border-white/20 hover:text-white'
         }`}
     >
+      {isActive && <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(192,132,252,0.3)_0%,rgba(192,132,252,0)_70%)]"></div>}
       <span className="relative z-10">{children}</span>
     </button>
   );
@@ -90,7 +91,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
         <div className="text-center mb-12">
-            <h2 className="text-5xl font-extrabold mb-3 bg-gold-reflection text-transparent bg-clip-text">Envision a New Future</h2>
+            <h2 className="text-5xl font-extrabold mb-3 bg-gradient-to-br from-gold via-violet-300 to-white bg-clip-text text-transparent">Envision a New Future</h2>
             <p className="text-text-secondary text-xl">Your choices will guide the AI in generating a complete film concept.</p>
         </div>
       
@@ -98,7 +99,6 @@ export const InputPanel: React.FC<InputPanelProps> = ({
         
         <ControlGroup title="Step 1: Choose a Core Theme">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                {/* FIX: Added children to OptionButton components to provide button text. */}
                 <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
                 <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
                 <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
@@ -113,7 +113,6 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                         <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Narrative Tone</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                                {/* FIX: Added children to OptionButton components to provide button text. */}
                                 <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
                                 <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Ponder the great questions. Explore the depths of meaning and existence.">Philosophical</OptionButton>
                                 <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Paint a vision of tomorrow. Inspire with a story of optimism and unity.">Hopeful</OptionButton>
@@ -123,7 +122,6 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                          <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Visual Style</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                {/* FIX: Added children to OptionButton components to provide button text. */}
                                 <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
                                 <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
                                 <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
@@ -134,7 +132,6 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                          <div>
                             <h4 className="font-medium text-text-primary mb-2 pl-1">Emotional Arc</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {/* FIX: Added children to OptionButton components to provide button text. */}
                                 <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
                                 <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
                                 <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
@@ -156,7 +153,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             <button
                 onClick={handleGenerateClick}
                 disabled={isLoading || !themeSelected}
-                className="btn-glow w-full flex items-center justify-center gap-3 bg-primary-action-gradient text-white font-bold py-4 px-4 rounded-xl relative shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
+                className="btn-glow w-full flex items-center justify-center gap-3 bg-primary-action-gradient text-white font-bold py-4 px-4 rounded-xl relative shadow-glow-violet disabled:shadow-none"
             >
             {isLoading ? (
                 <>

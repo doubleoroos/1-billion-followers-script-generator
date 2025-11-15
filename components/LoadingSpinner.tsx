@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 
 interface LoadingSpinnerProps {
@@ -34,9 +33,9 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   return (
     <div className="flex flex-col items-center justify-center bg-transparent h-full min-h-[60vh] animate-fade-in">
       <div className="relative h-24 w-24 flex items-center justify-center">
-        <div className="absolute h-full w-full bg-fuchsia-500/20 rounded-full animate-pulse-orb [animation-delay:-1s]"></div>
-        <div className="absolute h-3/4 w-3/4 bg-indigo-500/20 rounded-full animate-pulse-orb"></div>
-        <div className="absolute h-1/2 w-1/2 bg-violet-500/30 rounded-full"></div>
+        <div className="absolute h-full w-full rounded-full animate-pulse-orb bg-[radial-gradient(ellipse,rgba(217,70,239,0.3)_0%,rgba(217,70,239,0)_70%)] [animation-delay:-1s]"></div>
+        <div className="absolute h-3/4 w-3/4 rounded-full animate-pulse-orb bg-[radial-gradient(ellipse,rgba(99,102,241,0.3)_0%,rgba(99,102,241,0)_70%)]"></div>
+        <div className="absolute h-1/2 w-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(179,155,255,0.4)_0%,rgba(179,155,255,0)_70%)]"></div>
       </div>
       <p className="mt-8 text-xl font-semibold text-text-primary text-center transition-all duration-500 w-full">{currentMessage}</p>
       <p className="mt-2 text-sm text-text-secondary/80">{subText}</p>

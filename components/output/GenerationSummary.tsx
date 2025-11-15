@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { RewriteTomorrowTheme, EmotionalArcIntensity, VisualStyle, NarrativeTone } from '../../types';
 
@@ -12,9 +11,9 @@ interface GenerationSummaryProps {
 }
 
 const SummaryItem: React.FC<{ label: string, value: string }> = ({ label, value }) => (
-    <div className="flex-1 text-center bg-slate-900/50 p-4 rounded-lg border border-white/10 min-w-[120px]">
+    <div className="panel-glass flex-1 text-center p-4 rounded-2xl min-w-[120px]">
         <p className="text-sm text-text-secondary uppercase tracking-wider">{label}</p>
-        <p className="font-bold text-violet-400 text-lg capitalize">{value}</p>
+        <p className="font-bold bg-text-gradient-violet bg-clip-text text-transparent text-lg capitalize">{value}</p>
     </div>
 );
 

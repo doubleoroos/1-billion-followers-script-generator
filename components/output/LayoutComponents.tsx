@@ -4,8 +4,8 @@ import { useSound } from '../hooks/useSound';
 export const StoryboardSection: React.FC<{ id: string, title: string; children: React.ReactNode, style?: React.CSSProperties }> = ({ id, title, children, style }) => (
     <section id={id} className="animate-fade-in-stagger opacity-0 pt-24 -mt-24" style={style}>
         <div className="text-center mb-10">
-            <h2 className="text-4xl font-extrabold tracking-wide bg-gold-reflection text-transparent bg-clip-text">{title}</h2>
-            <div className="mt-3 h-1 w-20 bg-primary-action-gradient rounded-full mx-auto"></div>
+            <h2 className="text-4xl font-extrabold tracking-wide bg-gradient-to-br from-gold to-cyan bg-clip-text text-transparent">{title}</h2>
+            <div className="mt-4 h-1 w-24 bg-primary-action-gradient rounded-full mx-auto"></div>
         </div>
         {children}
     </section>
@@ -70,7 +70,7 @@ export const OutputNav: React.FC = () => {
     
     return (
         <nav className="sticky top-[78px] z-40 animate-fade-in-stagger" style={{ animationDelay: '100ms' }}>
-            <div ref={navRef} className="relative w-full max-w-2xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-full p-2 flex justify-around items-center gap-2 sm:gap-4 shadow-soft">
+            <div ref={navRef} className="panel-glass relative w-full max-w-2xl mx-auto rounded-full p-2 flex justify-around items-center gap-2 sm:gap-4">
                  <div 
                     className="absolute h-[calc(100%-1rem)] bg-primary-action-gradient rounded-full transition-all duration-500 ease-in-out shadow-glow-violet"
                     style={indicatorStyle}

@@ -232,7 +232,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 onClick={() => { playSound(); onGenerateAll(); }}
                 disabled={isDisabled}
                 title={disabledTooltip}
-                className="btn-glow w-full h-full flex flex-col items-center justify-center gap-1 bg-primary-action-gradient text-white font-bold py-3 px-5 rounded-2xl text-sm shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
+                className="btn-glow w-full h-full flex flex-col items-center justify-center gap-1 bg-primary-action-gradient text-white font-bold py-3 px-5 rounded-2xl text-sm shadow-glow-violet disabled:shadow-none"
             >
                 <div className="flex items-center gap-2 text-base">
                     <VideoIcon />
@@ -289,7 +289,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                 onClick={() => { playSound(); onGenerateVideosOnly(); }}
                 disabled={isDisabled}
                 title={disabledTooltip}
-                className="btn-glow w-full h-full flex flex-col items-center justify-center gap-1 bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-5 rounded-2xl text-sm shadow-glow-violet disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300"
+                className="btn-glow w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-bold py-3 px-5 rounded-2xl text-sm shadow-glow-violet disabled:shadow-none"
             >
                 <div className="flex items-center gap-2 text-base">
                     <VideoIcon />
@@ -1112,7 +1112,7 @@ const VideoGenerationControls: React.FC<VideoGenerationControlsProps> = ({ statu
         const Icon = hasVideo ? RegenerateIcon : VideoIcon;
         const title = disabled ? "Prerequisites not met. Generate videos for dependent scenes first." : "Please select an API Key above to enable video generation.";
         return (
-            <button disabled title={title} className="btn-glow flex items-center justify-center gap-2 w-full bg-white/10 text-text-secondary/50 font-bold py-2 px-4 rounded-full cursor-not-allowed text-sm">
+            <button disabled title={title} className="btn-glow flex items-center justify-center gap-2 w-full text-text-secondary/50 font-bold py-2 px-4 rounded-full text-sm">
                 <Icon /> {buttonText}
             </button>
         );
@@ -1144,13 +1144,13 @@ const ImageGenerationControls: React.FC<ImageGenerationControlsProps> = ({ statu
     };
 
     if (statusInfo.status === 'loading') {
-        return (<div className="flex flex-col items-center justify-center gap-2 animate-fade-in w-full text-sm"><p className="text-text-secondary">Generating Preview...</p><div className="w-full bg-black/30 rounded-full h-1.5 overflow-hidden relative"><div className="absolute inset-0 bg-cyan-glow-gradient h-full w-1/2 rounded-full animate-progress-indeterminate"></div></div></div>);
+        return (<div className="flex flex-col items-center justify-center gap-2 animate-fade-in w-full text-sm"><p className="text-text-secondary">Generating Preview...</p><div className="w-full bg-black/30 rounded-full h-1.5 overflow-hidden relative"><div className="absolute inset-0 bg-gradient-to-r from-cyan to-azure h-full w-1/2 rounded-full animate-progress-indeterminate"></div></div></div>);
     }
     if (statusInfo.status === 'error') {
       return (<div className="bg-red-900/30 border border-red-600/50 p-3 rounded-xl animate-fade-in w-full text-left h-full flex flex-col justify-between"><div><h5 className="font-semibold text-white text-sm mb-1">Image Error</h5><p className="text-xs text-red-200/80 mb-2 break-words">{statusInfo.error || 'An unknown error occurred.'}</p></div><div className="flex justify-end"><button onClick={handleClick} className="text-xs btn-glow bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-3 rounded-full">Retry</button></div></div>);
     }
     const buttonText = hasImage ? 'Regenerate Preview' : 'Generate Preview'; const Icon = hasImage ? RegenerateIcon : ImageIcon;
-    return (<button onClick={handleClick} disabled={disabled} title={disabled ? "Prerequisites not met." : ""} className="btn-glow flex items-center justify-center gap-2 w-full bg-cyan-glow-gradient text-azure font-bold py-2 px-4 rounded-full text-sm disabled:bg-white/10 disabled:text-text-secondary/50 disabled:cursor-not-allowed"><Icon /> {buttonText}</button>);
+    return (<button onClick={handleClick} disabled={disabled} title={disabled ? "Prerequisites not met." : ""} className="btn-glow flex items-center justify-center gap-2 w-full bg-gradient-to-br from-cyan to-azure text-slate-900 font-bold py-2 px-4 rounded-full text-sm disabled:bg-white/10 disabled:text-text-secondary/50 disabled:cursor-not-allowed"><Icon /> {buttonText}</button>);
 };
 
 const DependencyManager: React.FC<{ currentScene: Scene; allScenes: Scene[]; onDependenciesChange: (dependencies: string[]) => void; disabled?: boolean; }> = ({ currentScene, allScenes, onDependenciesChange, disabled = false }) => {
@@ -1322,13 +1322,13 @@ const SceneCard: React.FC<SceneCardProps> = ({
     return (
         <div className="relative panel-glass rounded-2xl p-6 transition-all duration-300">
             {isLocked && (
-                <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-2xl text-center p-4">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.5)_0%,rgba(15,23,42,0.9)_90%)] backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-2xl text-center p-4">
                     <LockIcon /><p className="mt-2 font-bold text-text-primary">Scene Locked</p>
                     <p className="text-sm text-text-secondary">Waiting for prerequisite scene{unmetDependencies.length > 1 ? 's' : ''}:<span className="font-semibold text-violet-400 ml-1">{unmetDependencies.map(d => `#${d.sceneNumber}`).join(', ')}</span></p>
                 </div>
             )}
             <div className="flex items-center gap-4 mb-6">
-                <span className="text-3xl font-mono font-bold text-cyan/60 select-none">{String(scene.sceneNumber).padStart(2, '0')}</span>
+                <span className="text-3xl font-mono font-bold text-white select-none w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-800 shadow-inner-soft">{String(scene.sceneNumber).padStart(2, '0')}</span>
                 <input type="text" value={scene.title} onChange={(e) => onFieldChange('title', e.target.value)} aria-label="Scene Title" className="text-2xl font-bold text-text-primary bg-transparent focus:bg-white/5 focus:ring-1 focus:ring-violet-500 rounded-lg p-1 -m-1 w-full disabled:text-text-secondary/50" disabled={isLocked} />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">

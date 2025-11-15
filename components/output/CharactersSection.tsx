@@ -85,8 +85,8 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                     </div>
                 ) : (
                     <>
-                        <p className="text-sm font-semibold uppercase tracking-wider text-cyan mb-2">{character.role}</p>
-                        <h3 className="text-2xl font-bold text-violet-400">{character.name}</h3>
+                        <p className="text-sm font-semibold uppercase tracking-wider bg-text-gradient-cyan bg-clip-text text-transparent mb-2">{character.role}</p>
+                        <h3 className="text-2xl font-bold bg-text-gradient-violet bg-clip-text text-transparent">{character.name}</h3>
                         <p className="text-text-primary/80 italic mt-3 text-base">{character.description}</p>
                     </>
                 )}

@@ -104,8 +104,8 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                         </div>
                     ) : (
                        <>
-                            <div className="col-span-10 sm:col-span-3 text-left sm:text-right font-bold text-violet-300 pr-4 pt-1">
-                                <p>{getCharacterName(block.characterId)}</p>
+                            <div className="col-span-10 sm:col-span-3 text-left sm:text-right font-bold pr-4 pt-1">
+                                <p className="bg-gradient-to-tr from-violet-300 to-cyan bg-clip-text text-transparent">{getCharacterName(block.characterId)}</p>
                             </div>
                             <div className="col-span-10 sm:col-span-7">
                                 <AutoSizingTextarea
