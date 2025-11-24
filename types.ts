@@ -14,6 +14,7 @@ export interface Character {
   name: string;
   description: string;
   role: string;
+  voicePreference?: string; // New field for voice assignment
 }
 
 export interface ScriptBlock {
@@ -21,6 +22,7 @@ export interface ScriptBlock {
   type: 'narration' | 'dialogue';
   characterId?: string;
   content: string;
+  audioUrl?: string; // New field for generated audio
 }
 
 export interface Scene {

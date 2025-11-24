@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useSound } from '../hooks/useSound';
 
 export const StoryboardSection: React.FC<{ id: string, title: string; children: React.ReactNode, style?: React.CSSProperties }> = ({ id, title, children, style }) => (
-    <section id={id} className="animate-fade-in-stagger opacity-0 pt-24 -mt-24" style={style}>
+    <section id={id} className="animate-fade-in-stagger pt-24 -mt-24" style={style}>
         <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold tracking-wide bg-gradient-to-br from-gold to-cyan bg-clip-text text-transparent">{title}</h2>
             <div className="mt-4 h-1 w-24 bg-primary-action-gradient rounded-full mx-auto"></div>

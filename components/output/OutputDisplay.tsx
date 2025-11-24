@@ -109,7 +109,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
     };
     
     return (
-        <div className="space-y-16 md:space-y-24 pb-20">
+        <div className="space-y-16 md:space-y-24 pb-32">
             <div className="text-center animate-fade-in">
                 <div className="inline-block">
                     <LogoIcon large={true} />
@@ -157,12 +157,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
                 />
             </StoryboardSection>
 
-            <div className="flex justify-center animate-fade-in" style={{ animationDelay: '1200ms' }}>
+            <div className="flex justify-center animate-fade-in pt-12" style={{ animationDelay: '1200ms' }}>
                 <button 
                     onClick={handleDownloadPDF}
-                    className="btn-glow flex items-center gap-2 bg-slate-800/80 text-white px-8 py-4 rounded-full font-bold border border-white/10 hover:border-violet-400/50 transition-all shadow-lg hover:shadow-violet-500/20 text-lg"
+                    className="btn-glow flex items-center gap-3 bg-slate-800/80 text-white px-10 py-5 rounded-full font-bold border border-white/10 hover:border-violet-400/50 transition-all shadow-xl hover:shadow-violet-500/30 text-xl tracking-wide group"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                     Download Script & Prompts (PDF)

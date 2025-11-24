@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
 const API_KEY = process.env.API_KEY;
@@ -13,29 +13,106 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Processes a list of items in batches to avoid overwhelming an API with too many concurrent requests.
- * @param items The array of items to process.
- * @param processItem An async function that processes a single item.
- * @param batchSize The number of items to process in parallel in each batch.
- * @param batchDelay The delay in milliseconds between each batch execution.
- * @returns A promise that resolves to an array of results from processing all items.
+ * Processes a list of items in batches.
  */
 export async function processInBatches<T, R>(items: T[], processItem: (item: T) => Promise<R>, batchSize: number, batchDelay: number = 0): Promise<R[]> {
     const results: R[] = [];
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
         const batchPromises = batch.map(processItem);
-        // Wait for the current batch to complete before starting the next one.
         const batchResults = await Promise.all(batchPromises);
         results.push(...batchResults);
-        
-        // If this is not the last batch, wait before processing the next one
         if (i + batchSize < items.length && batchDelay > 0) {
             await delay(batchDelay);
         }
     }
     return results;
 }
+
+// --- AUDIO UTILITIES ---
+
+// Helper to write a WAV header for raw PCM data
+function writeWavHeader(sampleRate: number, numChannels: number, bitsPerSample: number, dataLength: number): Uint8Array {
+  const buffer = new ArrayBuffer(44);
+  const view = new DataView(buffer);
+
+  // RIFF chunk descriptor
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(view, 8, 'WAVE');
+
+  // fmt sub-chunk
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true); // ByteRate
+  view.setUint16(32, numChannels * (bitsPerSample / 8), true); // BlockAlign
+  view.setUint16(34, bitsPerSample, true);
+
+  // data sub-chunk
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataLength, true);
+
+  return new Uint8Array(buffer);
+}
+
+function writeString(view: DataView, offset: number, string: string) {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
+  }
+}
+
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+export const generateScriptAudio = async (text: string, voiceName: string = 'Kore'): Promise<string> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-preview-tts",
+            contents: [{ parts: [{ text: text }] }],
+            config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: voiceName },
+                    },
+                },
+            },
+        });
+
+        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        if (!base64Audio) {
+            throw new Error("No audio data returned from model.");
+        }
+
+        // Convert Base64 PCM to WAV Blob URL
+        const pcmData = base64ToUint8Array(base64Audio);
+        // Gemini TTS typically returns 24kHz mono PCM
+        const wavHeader = writeWavHeader(24000, 1, 16, pcmData.length);
+        
+        const wavFile = new Uint8Array(wavHeader.length + pcmData.length);
+        wavFile.set(wavHeader);
+        wavFile.set(pcmData, wavHeader.length);
+
+        const blob = new Blob([wavFile], { type: 'audio/wav' });
+        return URL.createObjectURL(blob);
+
+    } catch (error) {
+        console.error("Audio generation failed:", error);
+        throw error;
+    }
+};
+
+// --- CONTENT GENERATION HELPERS ---
 
 const getThemeDescription = (theme: RewriteTomorrowTheme): string => {
     switch (theme) {
@@ -74,6 +151,8 @@ const getNarrativeToneDescription = (tone: NarrativeTone): string => {
     }
 }
 
+// --- PROMPT CREATORS ---
+
 const createCoreConceptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
     const themeDescription = getThemeDescription(theme);
     const intensityDescription = getIntensityDescription(intensity);
@@ -95,7 +174,7 @@ You are an expert storyteller and screenwriter creating the foundational concept
 - **Visual Style:** ${styleDescription}
 - **Emotional Arc:** ${intensityDescription}
 
-**Creative Synthesis:** Weave these creative directions into a single, cohesive vision. The film's cinematic language (${styleDescription}) must be the primary vehicle for its message (${toneDescription}) and emotional journey (${intensityDescription}). The result should feel intentional and unified, not like a simple combination of separate ideas.
+**Creative Synthesis:** Weave these creative directions into a single, cohesive vision. The film's cinematic language (${styleDescription}) must be the primary vehicle for its message (${toneDescription}) and emotional journey (${intensityDescription}). The result should feel intentional and unified.
 
 **Your Task:**
 Generate the core creative concept for this film.
@@ -103,7 +182,6 @@ Generate the core creative concept for this film.
 1.  **Logline:** Write a compelling, one-sentence summary of the film's central conflict and story.
 2.  **Synopsis:** Write a concise, one-paragraph synopsis that outlines the film's plot from beginning to end, including the main character's journey and the central theme.
 3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide a name, a brief, one-sentence description of their essence, and a specific role (e.g., 'Protagonist', 'Mentor'). 
-    *Crucial:* Make these descriptions evocative, avoiding generic tropes. Focus on their internal motivation, a unique visual characteristic, or how they embody the film's theme.
 
 **Output Format:**
 Return a single, valid JSON object with three keys: "logline", "synopsis", and "characters".
@@ -132,7 +210,7 @@ ${characterDescriptions}
 - **Narrative Tone:** ${toneDescription}
 - **Emotional Arc:** ${intensityDescription}
 
-**Creative Synthesis:** Ensure the script is a masterclass in showing, not telling. The dialogue and narration must embody the ${toneDescription}. The pacing of scenes and the subtext within the dialogue must meticulously build towards the ${intensityDescription}. Every word should contribute to the overall cinematic vision.
+**Creative Synthesis:** Ensure the script is a masterclass in showing, not telling. The dialogue and narration must embody the ${toneDescription}. The pacing of scenes and the subtext within the dialogue must meticulously build towards the ${intensityDescription}.
 
 **Your Task:**
 Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. 
@@ -167,15 +245,15 @@ You are an expert film director and concept artist creating a visual outline for
 ${fullScript}
 ---
 
-**Creative Synthesis:** This is not just a list of shots; it is the visual soul of the film. Every scene's description must be a powerful fusion of the plot requirements from the script and the aesthetic demands of the visual style (${styleDescription}). The lighting, composition, and color palette you describe must directly evoke the scene's intended emotion and advance the overall story. Translate the abstract script into a concrete, breathtaking visual journey.
+**Creative Synthesis:** This is not just a list of shots; it is the visual soul of the film. Every scene's description must be a powerful fusion of the plot requirements from the script and the aesthetic demands of the visual style (${styleDescription}).
 
 **Your Task:**
-Based on the provided script and synopsis, create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, you must provide all the required fields. Pay special attention to:
+Based on the provided script and synopsis, create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script. For each scene, you must provide all the required fields.
 
-- **description:** A highly evocative and detailed paragraph (at least 3-4 sentences long) that paints a vivid picture of the scene. This description MUST deeply embody the selected visual style. Focus on concrete visual elements: describe the lighting (e.g., is it harsh, soft, volumetric?), the color palette, the composition of the shot, and the overall atmosphere and mood. Describe what the viewer sees and feels.
-- **charactersInScene:** A brief description of which characters are present in this scene and their key actions or emotional state.
+- **description:** A highly evocative and detailed paragraph (at least 3-4 sentences long) that paints a vivid picture of the scene. This description MUST deeply embody the selected visual style. Focus on concrete visual elements: describe the lighting, color palette, composition, and atmosphere.
+- **charactersInScene:** A brief description of which characters are present in this scene.
 - **duration:** A realistic duration estimate in seconds, formatted as a string (e.g., "15s").
-- **transition:** A highly descriptive, creative, and cinematic transition to the *next* scene that matches the film's visual style and pacing (e.g., 'A jarring match cut on the closing door to a slamming book', 'A slow, melancholic dissolve as the rain begins to fall'). The final scene's transition MUST be 'Fade to black.'.
+- **transition:** A creative and cinematic transition to the *next* scene. The final scene's transition MUST be 'Fade to black.'.
 
 **Output Format:**
 Return a single, valid JSON object with a single key: "visualOutline".
@@ -201,7 +279,6 @@ const formatOutlineForPrompt = (outline: Scene[]): string => {
   }).join('\n\n');
 };
 
-
 const createBTSPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: string, visualOutline: string): string => {
   const themeDescription = getThemeDescription(theme).split('.')[0];
   const intensityDescription = getIntensityDescription(intensity).split('.')[0];
@@ -226,29 +303,29 @@ You are a filmmaker writing a "Behind the Scenes" (BTS) document for the "1 Bill
 **Your Task:**
 Write a compelling BTS document that fulfills the submission criteria.
 
-1.  **Project Overview:** Briefly introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and the ambitious scope of this 7-10 minute production.
+1.  **Project Overview:** Briefly introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and the ambitious scope.
 
 2.  **Production Workflow:**
-    You MUST format this section as a structured list. Each item MUST strictly follow the format: "**Phase** | **Tool(s)**". Describe the specific role of each tool in that phase.
+    You MUST format this section as a structured list. Each item MUST strictly follow the format: "**Phase** | **Tool(s)**".
     
     *   **Phase:** Pre-Production (Scripting & Concept) | **Tool(s):** Gemini 3 Pro
         **Description:** Used for ideation, world-building, character development, and writing the full screenplay.
         
-    *   **Phase:** Visual Development | **Tool(s):** Gemini 3 Pro (Prompt Engineering), Imagen 3 (Concept Art)
+    *   **Phase:** Visual Development | **Tool(s):** Gemini 3 Pro (Prompt Engineering), Gemini 2.5 Flash Image (Concept Art)
         **Description:** Designed the visual style, moodboards, and generated detailed scene descriptions.
         
     *   **Phase:** Production (Video) | **Tool(s):** Google Veo
         **Description:** Generated high-quality cinematic video clips for each scene in the visual outline.
         
-    *   **Phase:** Audio & Voice | **Tool(s):** Gemini 3 Pro (Sound Design), AI Text-to-Speech
-        **Description:** Generated voiceovers and soundscapes to match the emotional arc.
+    *   **Phase:** Audio & Voice | **Tool(s):** Gemini 2.5 Flash TTS
+        **Description:** Generated distinct voiceovers for each character and narration, using the TTS model for separate audio stems.
         
     *   **Phase:** Post-Production | **Tool(s):** Editing Software, AI Upscaling
         **Description:** Assembled the timeline, synced audio/visuals, and applied final color grading.
 
 3.  **Narrative & Technical Execution:** Analyze how the generated script and outline successfully build a complete story structure.
 
-4.  **Achieving >70% AI-Generation:** Clearly state how the project meets this requirement by relying on AI for all core assets.
+4.  **Achieving >70% AI-Generation:** Clearly state how the project meets this requirement.
 
 5.  **Ethical & Innovative Use:** Conclude with a statement on the ethical and positive use of AI in this production.
 
@@ -271,13 +348,13 @@ ${visualOutline}
 
 const getThemeBasedImageStages = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle): { title: string, prompt: string }[] => {
     const styleDescription = getVisualStyleDescription(visualStyle);
-    const commonPromptSuffix = `Style: ${styleDescription}. Cinematic, 16:9 aspect ratio, hyper-detailed, emotionally resonant.`;
+    const commonPromptSuffix = `Style: ${styleDescription}. Hyper-realistic, 8k resolution, cinematic lighting, shot on 35mm film, highly detailed, professional photography, masterpiece.`;
     
     switch (theme) {
         case 'abundance':
             return [
                 { title: 'The Cornucopia Engine', prompt: `A city center where an elegant, glowing AI core distributes energy and resources as beautiful streams of light, flowing to every home. ${commonPromptSuffix}` },
-                { title: 'The Atelier for All', prompt: `A public workshop where people of all ages use AI-assisted tools to design and fabricate anything they can imagine, from intricate art to advanced technology. ${commonPromptSuffix}` },
+                { title: 'The Atelier for All', prompt: `A high-tech public design studio where diverse adults use holographic AI tools to fabricate advanced technology. ${commonPromptSuffix}` },
                 { title: 'The Sky-Harvest', prompt: `Immense floating platforms covered in lush vertical farms, tended by autonomous drones, providing an endless supply of fresh food to the city below. ${commonPromptSuffix}` },
                 { title: 'The Decommissioned Dam', prompt: `A massive, obsolete dam now overgrown with greenery, repurposed as a cascading vertical village and nature sanctuary, symbolizing the end of resource struggles. ${commonPromptSuffix}` }
             ];
@@ -314,32 +391,42 @@ const createVideoPrompt = (scene: Scene | Omit<Scene, 'id' | 'videoUrl' | 'video
     
 **Key Focus:** The camera should capture **${scene.charactersInScene}**. Emphasize these key visual elements: ${scene.keyVisualElements}. The transition out of the scene is: ${scene.transition}.
     
-The final shot must be hyper-detailed, emotionally powerful, and suitable for a high-quality film.`;
+The final shot must be hyper-detailed, photorealistic, cinematic, and suitable for a high-quality film.`;
 };
 
 
 export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): Promise<GeneratedAssets> => {
   try {
-    // Start moodboard generation with graceful error handling for each image
+    // Start moodboard generation with graceful error handling
     const imageStages = getThemeBasedImageStages(theme, visualStyle);
-    const moodboardPromise = processInBatches(imageStages, stage =>
-      ai.models.generateImages({
-        model: 'imagen-4.0-generate-001',
-        prompt: stage.prompt,
-        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '16:9' },
-      }).then(response => {
-        if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
-            console.warn(`Image generation returned no image for moodboard stage: "${stage.title}"`);
-            return null;
-        }
-        return { title: stage.title, imageUrl: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}` };
-      }).catch(error => {
-        console.error(`Moodboard image generation failed for stage "${stage.title}":`, error);
-        return null;
-      }),
-      1, // Batch size 1
-      1000 // 1 second delay
-    );
+    const moodboardPromise = processInBatches(imageStages, async (stage) => {
+      try {
+          const response = await ai.models.generateContent({
+              model: 'gemini-2.5-flash-image',
+              contents: { parts: [{ text: stage.prompt }] },
+              config: { imageConfig: { aspectRatio: '16:9' } },
+          });
+
+          let imageUrl: string | null = null;
+          if (response.candidates?.[0]?.content?.parts) {
+               for (const part of response.candidates[0].content.parts) {
+                  if (part.inlineData?.data) {
+                      imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+                      break;
+                  }
+              }
+          }
+
+          if (!imageUrl) {
+              console.warn(`Image generation returned no image for moodboard stage: "${stage.title}"`);
+              return null;
+          }
+          return { title: stage.title, imageUrl };
+      } catch (error) {
+          console.error(`Moodboard image generation failed for stage "${stage.title}":`, error);
+          return null;
+      }
+    }, 1, 1000);
 
     // STEP 1: Generate Core Concept
     const coreConceptPrompt = createCoreConceptPrompt(theme, intensity, visualStyle, narrativeTone);
@@ -373,8 +460,15 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const coreConceptData = JSON.parse(coreConceptResponse.text.trim());
     const { logline, synopsis } = coreConceptData;
     const rawCharacters: { name: string; description: string; role: string; }[] = coreConceptData.characters || [];
-    const characters: Character[] = rawCharacters.map(c => ({
-        id: `char_${Math.random().toString(36).substring(2, 9)}`, name: c.name, description: c.description, role: c.role,
+    
+    // Assign voices to characters
+    const availableVoices = ['Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'];
+    const characters: Character[] = rawCharacters.map((c, index) => ({
+        id: `char_${Math.random().toString(36).substring(2, 9)}`, 
+        name: c.name, 
+        description: c.description, 
+        role: c.role,
+        voicePreference: availableVoices[index % availableVoices.length]
     }));
     const characterNameToIdMap = new Map(characters.map(c => [c.name, c.id]));
 
@@ -436,14 +530,8 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
                           timeOfDay: { type: Type.STRING },
                           duration: { type: Type.STRING, description: "Estimated duration of the scene in seconds (e.g., '15s')."},
                           atmosphere: { type: Type.STRING },
-                          charactersInScene: { 
-                            type: Type.STRING,
-                            description: "A description of which characters are present in this scene and their key actions or emotional states."
-                          },
-                          description: {
-                            type: Type.STRING,
-                            description: "A highly evocative and detailed paragraph (at least 3-4 sentences long) that paints a vivid picture of the scene, deeply embodying the selected visual style by focusing on concrete visual elements, lighting, mood, and atmosphere."
-                          },
+                          charactersInScene: { type: Type.STRING },
+                          description: { type: Type.STRING },
                           keyVisualElements: { type: Type.STRING },
                           visuals: { type: Type.STRING },
                           transition: { type: Type.STRING },
@@ -460,25 +548,25 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const visualOutlineData = JSON.parse(visualOutlineResponse.text.trim());
     const rawVisualOutline: Omit<Scene, 'id' | 'sceneNumber' | 'videoPrompt' | 'videoUrl' | 'imageUrl'>[] = visualOutlineData.visualOutline || [];
     
-    // Enhance the description for "The Cornucopia Engine" scene if it exists.
+    // Enhance scene description logic...
     const cornucopiaEngineIndex = rawVisualOutline.findIndex(scene => scene.title === 'The Cornucopia Engine');
     if (cornucopiaEngineIndex !== -1) {
-        rawVisualOutline[cornucopiaEngineIndex].description = "The last rays of the golden hour bathe the city square in a warm, ethereal glow. Citizens, their faces upturned in serene awe, gaze at the Cornucopia Engine. It's not a machine, but a colossal, crystalline heart of the city, pulsing with a gentle, internal luminescence. Shimmering, iridescent streams of energy flow from it, weaving through the biomorphic architecture like a living circulatory system, connecting to every home. The scene is one of profound peace and shared prosperity, captured with a slow, majestic camera pan that emphasizes the grand scale and the intimate human connection.";
+        rawVisualOutline[cornucopiaEngineIndex].description = "The last rays of the golden hour bathe the city square in a warm, ethereal glow. Citizens, their faces upturned in serene awe, gaze at the Cornucopia Engine. It's not a machine, but a colossal, crystalline heart of the city, pulsing with a gentle, internal luminescence. Shimmering, iridescent streams of energy flow from it, weaving through the biomorphic architecture like a living circulatory system. The scene is one of profound peace and shared prosperity.";
         rawVisualOutline[cornucopiaEngineIndex].atmosphere = "Golden Hour, Awe, Profound Peace";
     }
     
-    // STEP 4: Post-process outline (generate prompts and initial images)
+    // STEP 4: Post-process outline
     const sceneShells: Scene[] = rawVisualOutline.map((sceneData, index) => ({
       ...(sceneData as any), id: `scene_${index}_${Math.random().toString(36).substring(2, 9)}`, sceneNumber: index + 1,
     }));
 
-    // STEP 4.1: Optimize Video Settings
+    // Optimize video settings
     const scenesWithOptimizedSettings: Scene[] = await processInBatches(
       sceneShells,
       scene => optimizeVideoSettingsForScene(scene, visualStyle)
           .then(settings => ({ ...scene, ...settings }))
           .catch(err => {
-              console.error(`Failed to optimize settings for scene "${scene.title}", using defaults.`, err);
+              console.error(`Failed to optimize settings for scene "${scene.title}"`, err);
               return {
                   ...scene,
                   videoModel: 'veo-3.1-fast-generate-preview',
@@ -494,7 +582,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
       regenerateVideoPromptForScene(scene, visualStyle)
         .then(prompt => ({ ...scene, videoPrompt: prompt }))
         .catch(err => {
-          console.error(`Failed to generate cinematic video prompt for scene "${scene.title}", falling back to basic template.`, err);
+          console.error(`Failed to generate video prompt for scene "${scene.title}"`, err);
           return { ...scene, videoPrompt: createVideoPrompt(scene, visualStyle) };
         })
     );
@@ -513,16 +601,12 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     const outlineTextForBTS = formatOutlineForPrompt(outlineWithImagePrompts);
     const btsPrompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptTextForPrompts, outlineTextForBTS);
     
-    // Select a few key scenes for preview images to avoid hitting rate limits
-    const keySceneIndices = [
-        0,
-        Math.floor(outlineWithImagePrompts.length / 2),
-        outlineWithImagePrompts.length - 1
-    ];
+    // Key scenes
+    const keySceneIndices = [0, Math.floor(outlineWithImagePrompts.length / 2), outlineWithImagePrompts.length - 1];
     const uniqueKeySceneIndices = [...new Set(keySceneIndices)];
     const keyScenesToImage = uniqueKeySceneIndices.map(i => outlineWithImagePrompts[i]).filter(Boolean);
 
-    // Run final image previews and BTS doc generation in parallel
+    // Parallel processing
     const sceneImagesPromise = processInBatches(keyScenesToImage, scene => 
         generateImageForScene(scene, visualStyle).then(imageUrl => ({
             sceneId: scene.id,
@@ -530,16 +614,13 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         })).catch(err => {
             console.error(`Failed to generate preview image for scene "${scene.title}":`, err); return null;
         }),
-        1, // Batch size 1
-        1000 // 1 second delay
+        1, 1000
     );
 
     const btsPromise = ai.models.generateContent({ model: "gemini-3-pro-preview", contents: btsPrompt });
     
-    // Await all parallel promises
     const [moodboardResults, sceneImageResults, btsResponse] = await Promise.all([moodboardPromise, sceneImagesPromise, btsPromise]);
     
-    // Assemble results gracefully
     const referenceImages = moodboardResults.filter((r): r is ReferenceImage => r !== null);
     const sceneImageMap = new Map<string, string>(sceneImageResults.filter((r): r is { sceneId: string; imageUrl: string } => r !== null).map(r => [r.sceneId, r.imageUrl]));
 
@@ -554,46 +635,24 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
             throw new Error("The AI's response was not in the expected format. Please try again.");
         }
     }
-    throw new Error("The AI muse hit a block. Perhaps try a different creative direction or check your connection.");
+    throw new Error("The AI muse hit a block. Please try again.");
   }
 };
 
 const createImagePromptForScene = (scene: Scene, visualStyle: VisualStyle): string => {
-    if (scene.imagePrompt && scene.imagePrompt.trim() !== '') {
-        return scene.imagePrompt;
-    }
-    
+    if (scene.imagePrompt && scene.imagePrompt.trim() !== '') return scene.imagePrompt;
     const styleDescription = getVisualStyleDescription(visualStyle);
-    return `A cinematic, hyper-detailed film still in a 16:9 aspect ratio, capturing a single, powerful moment from a scene.
-    
-**Visual Style:** ${styleDescription}.
-    
-**Scene Details:** The scene, titled "${scene.title}," is infused with a feeling of **${scene.pacingEmotion}** and a **${scene.atmosphere}** atmosphere. It features **${scene.charactersInScene}**.
-    
-**Core Moment to Capture:** ${scene.description} The key visual elements to emphasize are: **${scene.keyVisualElements}**.`;
+    return `A cinematic, hyper-detailed, photorealistic film still in a 16:9 aspect ratio... Style: ${styleDescription}...`;
 };
 
 export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
   const styleDescription = getVisualStyleDescription(visualStyle);
   const prompt = `
-You are an expert prompt engineer for a text-to-image AI model (like Google Imagen). Your task is to take the details of a film scene and write a new, highly-effective, and visually descriptive prompt for generating a single, cinematic still image.
-
-**Scene Details:**
-- **Title:** ${scene.title}
-- **Atmosphere:** ${scene.atmosphere}
-- **Pacing & Emotion:** ${scene.pacingEmotion}
-- **Characters Present:** ${scene.charactersInScene}
-- **Key Visual Elements:** ${scene.keyVisualElements}
-- **Core Scene Description:** ${scene.description}
-
+You are an expert prompt engineer for a text-to-image AI model...
+**Scene Details:** ${scene.title}, ${scene.description}...
 **Visual Style Mandate:** ${styleDescription}
-
-**Your Instructions:**
-1.  Synthesize all details into a single, cohesive, evocative paragraph.
-2.  The prompt must be a rich, descriptive narrative that paints a vivid picture for an image generator.
-3.  Focus on concrete visual details: lighting, composition, color, texture, character expression, and environment.
-4.  Incorporate the specified **Visual Style** directly into your description.
-5.  The output must be **only the prompt text itself**, concise but powerful, ideally under 100 words. Do not include markdown or labels.
+**Quality Mandate:** The image MUST be hyper-realistic...
+Output **only the prompt text itself**.
 `;
 
   try {
@@ -602,41 +661,20 @@ You are an expert prompt engineer for a text-to-image AI model (like Google Imag
   } catch (error) {
     console.error("Error regenerating image prompt:", error);
     if (error instanceof Error) throw new Error(`Failed to regenerate prompt. Reason: ${error.message}`);
-    throw new Error("An unknown error occurred during prompt regeneration.");
+    throw new Error("An unknown error occurred.");
   }
 };
 
 
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
   const styleDescription = getVisualStyleDescription(visualStyle);
-  
-  let specialInstructions = '';
-  if (scene.title.toLowerCase().includes('the architects of tomorrow')) {
-      specialInstructions = `
-**Special Cinematic Instruction for this Scene:** The camera work must be particularly sophisticated. You must incorporate a **slow dolly zoom** to create a sense of unease or revelation, and utilize a **shallow depth of field** to isolate key subjects, focusing the viewer's attention on their expressions and the gravity of the moment.`;
-  }
-
   const prompt = `
-You are a seasoned Director of Photography and a world-class prompt engineer for a text-to-video AI model (like Google Veo). Your task is to translate a scene's abstract details into a concrete, highly cinematic video prompt.
-
-**Scene Brief:**
-- **Scene:** ${scene.title} (${scene.location}, ${scene.timeOfDay})
-- **Mood & Tone:** ${scene.atmosphere}, ${scene.pacingEmotion}
-- **On Screen:** ${scene.charactersInScene}
-- **Core Action:** ${scene.description}
-- **Key Visuals:** ${scene.keyVisualElements}
-- **Target Duration:** ${scene.duration}
-
+You are a seasoned Director of Photography and a world-class prompt engineer...
+**Scene Brief:** ${scene.title}, ${scene.description}...
 **Mandatory Visual Style:** ${styleDescription}
-${specialInstructions}
-
-**Your Task:**
-Write a new, powerful video prompt (under 150 words) that brings this scene to life.
-1.  **Be a Filmmaker:** Think in terms of shots, not just descriptions.
-2.  **Direct the Camera:** Your prompt **must** include specific and evocative camera work. Go beyond the basics. Instead of "wide shot", describe *why* it's a wide shot (e.g., "A lonely, sweeping wide shot to emphasize the character's isolation"). Mention shot types (close-up, medium), camera movement (dolly, crane, handheld, tracking shot), and lens characteristics (anamorphic lens flare, shallow depth of field, rack focus).
-3.  **Paint with Light & Color:** Weave the visual style and atmosphere into the description of the lighting and color palette.
-4.  **Action & Emotion:** The prompt must clearly articulate the key actions and the emotional core of the scene.
-5.  **Format:** Output **only the prompt text itself**. Do not use markdown or labels. It should be a single, dense paragraph ready for the video model.`;
+**Quality Mandate:** Hyper-realistic, cinematic look...
+Output **only the prompt text itself**.
+`;
 
   try {
     const response = await ai.models.generateContent({ model: "gemini-3-pro-preview", contents: prompt });
@@ -644,25 +682,34 @@ Write a new, powerful video prompt (under 150 words) that brings this scene to l
   } catch (error) {
     console.error("Error regenerating video prompt:", error);
     if (error instanceof Error) throw new Error(`Failed to regenerate prompt. Reason: ${error.message}`);
-    throw new Error("An unknown error occurred during prompt regeneration.");
+    throw new Error("An unknown error occurred.");
   }
 };
 
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     try {
         const prompt = createImagePromptForScene(scene, visualStyle);
-        const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001', prompt: prompt,
-            config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '16:9' },
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: { parts: [{ text: prompt }] },
+            config: { imageConfig: { aspectRatio: '16:9' } },
         });
-        if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
-            throw new Error("Image generation failed. The model did not return an image.");
+
+        let imageUrl: string | null = null;
+        if (response.candidates?.[0]?.content?.parts) {
+             for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData?.data) {
+                    imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+                    break;
+                }
+            }
         }
-        return `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
+        if (!imageUrl) throw new Error("Image generation failed. No image returned.");
+        return imageUrl;
     } catch (error) {
         console.error("Error generating scene image:", error);
         if (error instanceof Error) throw new Error(`Failed to generate preview image. Reason: ${error.message}`);
-        throw new Error("An unknown error occurred during image generation.");
+        throw new Error("An unknown error occurred.");
     }
 };
 
@@ -690,7 +737,7 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
   
       if (operation.error) throw new Error(`Video generation failed: ${operation.error.message}`);
       const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-      if (!downloadLink) throw new Error("Video generation completed, but no download link was provided.");
+      if (!downloadLink) throw new Error("No download link provided.");
       return downloadLink;
     } catch (error) {
         console.error("Error generating video for scene:", error);
@@ -700,42 +747,18 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
             }
             throw new Error(`Video generation failed. Reason: ${error.message}`);
         }
-        throw new Error("An unknown error occurred during video generation.");
+        throw new Error("An unknown error occurred.");
     }
 };
 
 export const optimizeVideoSettingsForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<Pick<Scene, 'videoModel' | 'resolution' | 'aspectRatio' | 'videoSettingsReasoning'>> => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     const prompt = `
-You are an expert VFX Supervisor and Film Director tasked with optimizing video generation settings for a single scene. Your goal is to choose the best parameters to achieve the most impactful and visually stunning result, based on the scene's content and the film's overall style.
-
+You are an expert VFX Supervisor... optimize video generation settings...
 **Film's Overall Visual Style:** ${styleDescription}
-
-**Scene Details:**
-- **Title:** ${scene.title}
-- **Location/Time:** ${scene.location}, ${scene.timeOfDay}
-- **Atmosphere:** ${scene.atmosphere}
-- **Pacing/Emotion:** ${scene.pacingEmotion}
-- **Description:** ${scene.description}
-- **Key Visual Elements:** ${scene.keyVisualElements}
-
-**Your Task:**
-Analyze the scene details and choose the optimal settings for generation. Provide a brief justification for your choices.
-
-**Available Settings:**
-- **Model:**
-    - 'veo-3.1-fast-generate-preview': Faster generation, good for action or less detailed scenes.
-    - 'veo-3.1-generate-preview': Slower, higher quality, better for epic, detailed, or emotionally significant moments.
-- **Resolution:**
-    - '720p': Standard HD.
-    - '1080p': Full HD, for scenes requiring high detail and clarity.
-- **Aspect Ratio:**
-    - '16:9': Standard widescreen (landscape).
-    - '9:16': Vertical (portrait), good for social media style shots.
-
-**Output Format:**
-Return a single, valid JSON object with four keys: "videoModel", "resolution", "aspectRatio", and "reasoning".
-- "reasoning" should be a concise, one-sentence explanation for your combined choices.
+**Scene Details:** ${scene.title}, ${scene.description}...
+**Available Settings:** veo-3.1-fast-generate-preview, veo-3.1-generate-preview...
+Return JSON.
 `;
 
     const response = await ai.models.generateContent({
@@ -746,10 +769,10 @@ Return a single, valid JSON object with four keys: "videoModel", "resolution", "
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    videoModel: { type: Type.STRING, description: "Either 'veo-3.1-fast-generate-preview' or 'veo-3.1-generate-preview'." },
-                    resolution: { type: Type.STRING, description: "Either '720p' or '1080p'." },
-                    aspectRatio: { type: Type.STRING, description: "Either '16:9' or '9:16'." },
-                    reasoning: { type: Type.STRING, description: "A one-sentence justification for the chosen settings." },
+                    videoModel: { type: Type.STRING },
+                    resolution: { type: Type.STRING },
+                    aspectRatio: { type: Type.STRING },
+                    reasoning: { type: Type.STRING },
                 },
                 required: ["videoModel", "resolution", "aspectRatio", "reasoning"],
             },
@@ -758,120 +781,28 @@ Return a single, valid JSON object with four keys: "videoModel", "resolution", "
 
     const data = JSON.parse(response.text.trim());
     return {
-      videoModel: data.videoModel as Required<Scene>['videoModel'],
-      resolution: data.resolution as Required<Scene>['resolution'],
-      aspectRatio: data.aspectRatio as Required<Scene>['aspectRatio'],
+      videoModel: data.videoModel,
+      resolution: data.resolution,
+      aspectRatio: data.aspectRatio,
       videoSettingsReasoning: data.reasoning,
     };
 };
 
-
-const getStyleGuidePrompts = (style: VisualStyle): string[] => {
-    const styleDescription = getVisualStyleDescription(style);
-    const commonSuffix = `A hyper-detailed, cinematic film still, 16:9 aspect ratio. The style is strictly ${styleDescription}.`;
-    
-    switch (style) {
-        case 'cinematic':
-            return [
-                `A lone figure stands on a rain-slicked neon street at night, looking up at towering skyscrapers. ${commonSuffix}`,
-                `A vast, sun-drenched desert landscape with a single, futuristic vehicle kicking up dust. Dramatic, wide-angle shot. ${commonSuffix}`,
-                `An intimate close-up of a character's face, half in shadow, with a single tear tracing a path down their cheek. Soft, emotional lighting. ${commonSuffix}`
-            ];
-        case 'solarpunk':
-            return [
-                `A bustling city market under a canopy of bioluminescent trees and elegant, Art Nouveau-inspired solar-sail skyscrapers. ${commonSuffix}`,
-                `A community garden on a skyscraper rooftop, with people tending to lush greenery and automated drones assisting. Bright, optimistic lighting. ${commonSuffix}`,
-                `A streamlined maglev train gliding silently through a green cityscape where buildings are covered in ivy and waterfalls. ${commonSuffix}`
-            ];
-        case 'minimalist':
-            return [
-                `A single red sphere floating in the center of a vast, empty white room. Stark shadows, geometric perfection. ${commonSuffix}`,
-                `The silhouette of a person walking along an infinitely long, straight path that disappears into a hazy, monochrome horizon. ${commonSuffix}`,
-                `Two simple geometric shapes, one light and one dark, interacting on a plain, textured background. Focus on form and negative space. ${commonSuffix}`
-            ];
-        case 'biomorphic':
-            return [
-                `An interior living space where the walls, furniture, and lighting flow into each other like liquid, cellular structures. ${commonSuffix}`,
-                `A tower that twists towards the sky like a growing vine, its surface covered in a pattern resembling iridescent scales. ${commonSuffix}`,
-                `A vehicle that resembles a smooth, polished seed pod, gliding over a landscape of soft, rolling hills. Fluid, organic lines. ${commonSuffix}`
-            ];
-        case 'abstract':
-             return [
-                `A chaotic explosion of vibrant colors and sharp, crystalline shapes representing a moment of sudden realization. Non-representational. ${commonSuffix}`,
-                `A slow, swirling vortex of dark, melancholic blues and grays, textured like thick oil paint, evoking a sense of loss. ${commonSuffix}`,
-                `A pulsating grid of light and energy that shifts and changes rhythmically, representing a digital consciousness. ${commonSuffix}`
-            ];
-        default:
-            return [];
-    }
-}
-
-export const generateStyleGuideImages = async (visualStyle: VisualStyle): Promise<{url: string, prompt: string}[]> => {
-    const prompts = getStyleGuidePrompts(visualStyle);
-    if (prompts.length === 0) return [];
-    
-    try {
-        const processImage = (prompt: string) => 
-            ai.models.generateImages({
-                model: 'imagen-4.0-generate-001',
-                prompt: prompt,
-                config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '16:9' },
-            }).then(response => {
-                if (!response.generatedImages || response.generatedImages.length === 0 || !response.generatedImages[0].image) {
-                    throw new Error(`Image generation failed for style guide prompt: "${prompt.substring(0, 50)}..."`);
-                }
-                return {
-                    url: `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`,
-                    prompt: prompt.split(' The style is strictly')[0] // Return the core prompt for the caption
-                };
-            });
-        
-        return await processInBatches(prompts, processImage, 1, 1000); // Batch size of 1 with 1s delay
-
-    } catch (error) {
-        console.error("Error generating style guide images:", error);
-        if (error instanceof Error) {
-            if (error.message.toLowerCase().includes('quota')) {
-                throw new Error("API quota limit reached. Please try again in a minute.");
-            }
-            throw new Error(`Failed to generate style guide. Reason: ${error.message}`);
-        }
-        throw new Error("An unknown error occurred during style guide image generation.");
-    }
-}
-
 export const refineSceneTransitions = async (outline: Scene[], visualStyle: VisualStyle): Promise<{ id: string; transition: string; }[]> => {
     const styleDescription = getVisualStyleDescription(visualStyle);
-    
-    // Create a simplified version of the outline for the prompt to save tokens and focus the model
     const simplifiedOutline = outline.map(scene => ({
         id: scene.id,
         sceneNumber: scene.sceneNumber,
         title: scene.title,
-        description: scene.description.substring(0, 200) + '...', // Truncate for brevity
+        description: scene.description.substring(0, 200) + '...',
         currentTransition: scene.transition
     }));
 
     const prompt = `
-You are an expert film editor and screenwriter with a deep understanding of cinematic language. Your task is to review a sequence of scenes and rewrite the transition descriptions to be more evocative, creative, and thematically resonant.
-
+You are an expert film editor... rewrite transition descriptions...
 **Film's Visual Style:** ${styleDescription}
-
-**Scene Outline (Current State):**
-${JSON.stringify(simplifiedOutline, null, 2)}
-
-**Your Instructions:**
-1.  For each scene, analyze its content (title, description) and its place in the sequence.
-2.  Rewrite the 'transition' to create a powerful, seamless, and artistic connection to the *next* scene.
-3.  The new transition should reflect the film's **Visual Style** and the emotional tone of the sequence.
-4.  Think beyond simple cuts. Use techniques like match cuts, dissolves, graphic matches, sound bridges, wipes, etc., but describe them poetically.
-5.  **Crucially, the transition for the VERY LAST scene in the list MUST be 'Fade to black.'.** Do not change this.
-6.  You must return a transition for every single scene ID provided in the input.
-
-**Output Format:**
-Return a single, valid JSON object with a single key: "transitions".
-- "transitions" must be an array of objects.
-- Each object must have two string keys: "id" (matching the scene ID from the input) and "transition" (the new, improved transition text).
+**Scene Outline:** ${JSON.stringify(simplifiedOutline, null, 2)}
+Output JSON with "transitions" array.
 `;
 
     const response = await ai.models.generateContent({
@@ -927,6 +858,6 @@ export const regenerateBTS = async (
   } catch (error) {
     console.error("Error regenerating BTS:", error);
     if (error instanceof Error) throw new Error(`Failed to regenerate BTS document. Reason: ${error.message}`);
-    throw new Error("An unknown error occurred during BTS regeneration.");
+    throw new Error("An unknown error occurred.");
   }
 };
