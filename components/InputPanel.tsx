@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
@@ -21,11 +22,12 @@ interface OptionButtonProps<T extends string> {
   value: T;
   current: string;
   onClick: (value: T) => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   tooltip: string;
 }
 
-const OptionButton = <T extends string>(props: OptionButtonProps<T>) => {
+// Fix: Added comma to generic type parameter <T extends string,> to prevent JSX parsing ambiguity
+const OptionButton = <T extends string,>(props: OptionButtonProps<T>) => {
   const { value, current, onClick, children, tooltip } = props;
   const isActive = value === current;
   const playSound = useSound();

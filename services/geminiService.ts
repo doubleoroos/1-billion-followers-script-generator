@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -171,7 +172,7 @@ ${fullScript}
 Based on the provided script and synopsis, create a detailed, scene-by-scene visual outline (10-15 scenes) that strictly adheres to the specified **Visual Style**. This outline must map directly to the script and be suitable for a 7-10 minute film. For each scene, you must provide all the required fields. Pay special attention to:
 
 - **description:** A highly evocative and detailed paragraph (at least 3-4 sentences long) that paints a vivid picture of the scene. This description MUST deeply embody the selected visual style. Focus on concrete visual elements: describe the lighting (e.g., is it harsh, soft, volumetric?), the color palette, the composition of the shot, and the overall atmosphere and mood. Describe what the viewer sees and feels.
-- **charactersInScene:** A brief description of which characters are present and their key actions or emotional state.
+- **charactersInScene:** A brief description of which characters are present in this scene and their key actions or emotional state.
 - **duration:** A realistic duration estimate in seconds, formatted as a string (e.g., "15s").
 - **transition:** A highly descriptive, creative, and cinematic transition to the *next* scene that matches the film's visual style and pacing (e.g., 'A jarring match cut on the closing door to a slamming book', 'A slow, melancholic dissolve as the rain begins to fall'). The final scene's transition MUST be 'Fade to black.'.
 
@@ -207,13 +208,13 @@ const createBTSPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcInt
   const toneDescription = getNarrativeToneDescription(narrativeTone).split('.')[0];
   
   return `
-You are a filmmaker writing a "Behind the Scenes" (BTS) document (500-600 words) for the "1 Billion Summit AI Film Award".
+You are a filmmaker writing a "Behind the Scenes" (BTS) document for the "1 Billion Summit AI Film Award".
 
-**Competition Rules to Address:**
+**Competition Rules & Submission Criteria:**
 - **Film Length:** 7-10 minutes.
 - **AI Integration:** Must be at least 70% AI-generated.
-- **Mandatory Tools:** Heavy use of Google Gemini models is required for video generation (e.g., Veo) and image generation (e.g., Imagen).
-- **Technical Standards:** Must meet professional production standards (clean audio, audio/visual sync, professional sound design, English subtitles).
+- **Tools:** Use of Google Gemini ecosystem (Gemini, Imagen, Veo) is central.
+- **Mandatory Format:** The workflow description MUST be broken down by "Phase" and "Tool(s)".
 
 **Creative Choices Made:**
 - **Theme:** ${theme.charAt(0).toUpperCase() + theme.slice(1)} (${themeDescription}).
@@ -222,27 +223,39 @@ You are a filmmaker writing a "Behind the Scenes" (BTS) document (500-600 words)
 - **Emotional Arc:** ${intensity.charAt(0).toUpperCase() + intensity.slice(1)} (${intensityDescription}).
 
 **Your Task:**
-Write a compelling BTS document detailing your creative process using AI as a core partner.
+Write a compelling BTS document that fulfills the submission criteria.
 
-1.  **Introduction:** Introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and its ambitious scope as a **7-10 minute**, heavily AI-driven narrative.
+1.  **Project Overview:** Briefly introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and the ambitious scope of this 7-10 minute production.
 
-2.  **AI as Creative Partner & Workflow:** This is the most crucial section. Detail the end-to-end workflow using the Google Gemini ecosystem:
-    - **Google Gemini (Pro/Flash):** Explain how it was used for the initial brainstorming and to generate the foundational script, characters, and a detailed, scene-by-scene visual outline for a 7-10 minute film.
-    - **Google Imagen:** Describe its role in creating the initial concept art and a comprehensive moodboard to establish a consistent aesthetic, aligning with the chosen visual style.
-    - **Google Veo:** Detail how Veo will be the primary tool for generating the final video clips, translating the visual outline's cinematic descriptions into high-quality motion.
-    - **Supplemental AI Tools:** Briefly mention plans for using tools like ElevenLabs for high-quality voiceover generation from the script's narration and dialogue.
+2.  **Production Workflow:**
+    You MUST format this section as a structured list. Each item MUST strictly follow the format: "**Phase:** [Phase Name] | **Tool(s):** [Tool Names]". Describe the specific role of each tool in that phase.
+    
+    *   **Phase:** Pre-Production (Scripting & Concept) | **Tool(s):** Google Gemini 3 Pro
+        **Description:** Used for ideation, world-building, character development, and writing the full screenplay.
+        
+    *   **Phase:** Visual Development | **Tool(s):** Google Gemini 3 Pro (Prompt Engineering), Google Imagen 4 (Concept Art)
+        **Description:** Designed the visual style, moodboards, and generated detailed scene descriptions.
+        
+    *   **Phase:** Production (Video) | **Tool(s):** Google Veo
+        **Description:** Generated high-quality cinematic video clips for each scene in the visual outline.
+        
+    *   **Phase:** Audio & Voice | **Tool(s):** Google Gemini 3 Pro (Sound Design), AI Text-to-Speech
+        **Description:** Generated voiceovers and soundscapes to match the emotional arc.
+        
+    *   **Phase:** Post-Production | **Tool(s):** Editing Software, AI Upscaling
+        **Description:** Assembled the timeline, synced audio/visuals, and applied final color grading.
 
-3.  **Narrative & Technical Execution:** Analyze how the generated script and outline successfully build a complete 7-10 minute story. Explain the plan for post-production, including editing the AI-generated clips for continuity, creating a clean audio mix, ensuring proper dialogue sync, and implementing a professional sound design with separate dialogue, music, and effects tracks. Mention the final step of adding English subtitles.
+3.  **Narrative & Technical Execution:** Analyze how the generated script and outline successfully build a complete story structure.
 
-4.  **Achieving >70% AI-Generation:** Clearly state how the project meets this requirement. Emphasize that all core narrative and visual assets (script, scenes, video clips, concept art) originate from AI, with human effort focused on creative direction, prompt engineering, editing, sound design, and final assembly.
+4.  **Achieving >70% AI-Generation:** Clearly state how the project meets this requirement by relying on AI for all core assets.
 
-5.  **Ethical & Innovative Use:** Conclude by highlighting the innovative aspects of this AI-centric workflow for longer-form storytelling. Affirm a commitment to ethical AI use, including full transparency about the tools employed and a dedication to creating an unbiased, positive film.
+5.  **Ethical & Innovative Use:** Conclude with a statement on the ethical and positive use of AI in this production.
 
 **Formatting:**
 - Professional, insightful tone.
-- Well-structured paragraphs.
-- Output a single block of text (no markdown).
-- Total length: 500-600 words.
+- Use bolding for **Phase** and **Tool(s)** headers as shown.
+- Output a single block of text (no markdown code blocks).
+- Total length: 500-700 words.
 
 **Generated Assets for Reference:**
 ---
@@ -330,7 +343,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     // STEP 1: Generate Core Concept
     const coreConceptPrompt = createCoreConceptPrompt(theme, intensity, visualStyle, narrativeTone);
     const coreConceptResponse = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-3-pro-preview",
       contents: coreConceptPrompt,
       config: {
         responseMimeType: "application/json",
@@ -367,7 +380,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     // STEP 2: Generate Script
     const scriptPrompt = createScriptPrompt(theme, intensity, narrativeTone, logline, synopsis, characters);
     const scriptResponse = await ai.models.generateContent({
-        model: "gemini-2.5-pro",
+        model: "gemini-3-pro-preview",
         contents: scriptPrompt,
         config: {
             responseMimeType: "application/json",
@@ -405,7 +418,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
     // STEP 3: Generate Visual Outline
     const visualOutlinePrompt = createVisualOutlinePrompt(theme, visualStyle, synopsis, scriptTextForPrompts);
     const visualOutlineResponse = await ai.models.generateContent({
-        model: "gemini-2.5-pro",
+        model: "gemini-3-pro-preview",
         contents: visualOutlinePrompt,
         config: {
             responseMimeType: "application/json",
@@ -520,7 +533,7 @@ export const generateCreativeAssets = async (theme: RewriteTomorrowTheme, intens
         1000 // 1 second delay
     );
 
-    const btsPromise = ai.models.generateContent({ model: "gemini-2.5-flash", contents: btsPrompt });
+    const btsPromise = ai.models.generateContent({ model: "gemini-3-pro-preview", contents: btsPrompt });
     
     // Await all parallel promises
     const [moodboardResults, sceneImageResults, btsResponse] = await Promise.all([moodboardPromise, sceneImagesPromise, btsPromise]);
@@ -583,7 +596,7 @@ You are an expert prompt engineer for a text-to-image AI model (like Google Imag
 `;
 
   try {
-    const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
+    const response = await ai.models.generateContent({ model: "gemini-3-pro-preview", contents: prompt });
     return response.text.trim();
   } catch (error) {
     console.error("Error regenerating image prompt:", error);
@@ -625,7 +638,7 @@ Write a new, powerful video prompt (under 150 words) that brings this scene to l
 5.  **Format:** Output **only the prompt text itself**. Do not use markdown or labels. It should be a single, dense paragraph ready for the video model.`;
 
   try {
-    const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
+    const response = await ai.models.generateContent({ model: "gemini-3-pro-preview", contents: prompt });
     return response.text.trim();
   } catch (error) {
     console.error("Error regenerating video prompt:", error);
@@ -725,7 +738,7 @@ Return a single, valid JSON object with four keys: "videoModel", "resolution", "
 `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-pro-preview",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -861,7 +874,7 @@ Return a single, valid JSON object with a single key: "transitions".
 `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-pro-preview",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
