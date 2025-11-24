@@ -8,17 +8,13 @@ import { CopyButton } from '../ui/CopyButton';
 import { useSound } from '../hooks/useSound';
 
 // Re-usable Icons
-const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
-const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
-const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
-const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
+const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const CheckmarkIcon = () => <svg className="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path className="animate-draw-checkmark" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" style={{ strokeDasharray: 24, strokeDashoffset: 24 }} /></svg>;
-const RegenerateIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg>;
-const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1-1.257-.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>;
-const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
-const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-secondary hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>;
-const InfoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1-1.257-.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>;
+const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>;
 
 const parseVideoGenerationError = (error: unknown): { userMessage: string; isApiKeyError: boolean } => {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -45,7 +41,7 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     let content: React.ReactNode = null;
     if (status === 'dirty') content = <span className="text-cyan">Unsaved changes...</span>;
     else if (status === 'saving') content = <span className="text-cyan flex items-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>;
-    else if (status === 'saved') content = <span className="text-green-400 flex items-center gap-2"><CheckmarkIcon />Continuity preserved.</span>;
+    else if (status === 'saved') content = <span className="text-green-400 flex items-center gap-2"><CheckmarkIcon />Synced.</span>;
     else return <div className="h-5"></div>;
     return <div className="h-5 text-sm transition-opacity duration-300">{content}</div>;
 };
@@ -98,23 +94,16 @@ const ApiKeyManager: React.FC<{
   );
 };
 
-const atmosphereOptions = [
-    'Misty', 'Golden Hour', 'Stormy', 'Serene', 'Eerie', 'Bustling', 'Oppressive', 'Tranquil', 'Vibrant', 'Desolate', 'Futuristic', 'Nostalgic',
-];
-const transitionOptions = [
-    'Cut to:', 'Cross-dissolve to:', 'Slow dissolve to:', 'Fade in from Black.', 'Fade to Black.', 'Match cut on action to:', 'Jump cut to:', 'Smash cut to black.', 'Wipe left to:', 'Wipe right to:', 'Iris out.', 'Iris in.',
-];
-
 const DatalistInput: React.FC<{
   label: string; id: string; value: string; onChange: (value: string) => void; options: string[]; placeholder?: string; disabled?: boolean;
 }> = ({ label, id, value, onChange, options, placeholder, disabled = false }) => {
   const datalistId = `${id}-list`;
   return (
     <div>
-      <label htmlFor={id} className="block text-text-secondary font-semibold mb-1 text-sm">{label}</label>
+      <label htmlFor={id} className="block text-slate-400 font-medium mb-1 text-xs uppercase tracking-wide">{label}</label>
       <input
         id={id} type="text" value={value} onChange={(e) => onChange(e.target.value)} list={datalistId}
-        className="w-full bg-white/5 p-2 rounded-lg text-text-primary border border-transparent hover:border-white/20 focus:border-violet-500 focus:bg-white/10 transition disabled:bg-white/5 disabled:text-text-secondary/50 disabled:cursor-not-allowed"
+        className="w-full bg-slate-900/50 p-2.5 rounded-lg text-white text-sm border border-white/10 hover:border-violet-500/50 focus:border-violet-500 focus:bg-slate-900 transition disabled:opacity-50"
         placeholder={placeholder} disabled={disabled}
       />
       <datalist id={datalistId}>{options.map(option => (<option key={option} value={option} />))}</datalist>
@@ -122,7 +111,8 @@ const DatalistInput: React.FC<{
   );
 };
 
-const SceneCard: React.FC<{
+// Cinematic Scene Card
+const CinematicSceneCard: React.FC<{
   scene: Scene;
   visualStyle: VisualStyle;
   onUpdate: (scene: Scene) => void;
@@ -135,138 +125,140 @@ const SceneCard: React.FC<{
   isPromptRegenerating: boolean;
   isVeoKeySelected: boolean | null;
 }> = ({
-  scene, visualStyle, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
+  scene, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
   isVideoGenerating, isImageGenerating, isPromptRegenerating, isVeoKeySelected
 }) => {
+    const [activeTab, setActiveTab] = useState<'video' | 'image'>('video');
     const playSound = useSound();
-    
+
+    const atmosphereOptions = ['Misty', 'Golden Hour', 'Stormy', 'Serene', 'Eerie', 'Bustling', 'Oppressive', 'Tranquil', 'Vibrant', 'Desolate', 'Futuristic', 'Nostalgic'];
+    const transitionOptions = ['Cut to:', 'Cross-dissolve to:', 'Fade to Black.', 'Match cut on action to:', 'Jump cut to:', 'Smash cut to black.'];
+
     return (
-        <div className="panel-glass rounded-2xl p-6 transition-all duration-300 hover:bg-white/5 relative group">
-            <div className="flex justify-between items-start mb-6">
-                <div>
-                    <h3 className="text-xl font-bold text-white mb-1">Scene {scene.sceneNumber}: {scene.title}</h3>
-                    <div className="flex flex-wrap gap-2 text-xs text-text-secondary">
-                        <span className="bg-white/10 px-2 py-1 rounded">{scene.location}</span>
-                        <span className="bg-white/10 px-2 py-1 rounded">{scene.timeOfDay}</span>
-                        <span className="bg-white/10 px-2 py-1 rounded">{scene.duration}</span>
+        <div className="panel-glass-strong rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-glow-violet/20 border border-white/10 group">
+            
+            {/* Header / Metadata Strip */}
+            <div className="bg-slate-900/80 border-b border-white/5 p-4 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-300 font-bold font-mono">
+                        {scene.sceneNumber}
+                    </div>
+                    <div>
+                        <h3 className="text-white font-bold text-sm tracking-wide">{scene.title}</h3>
+                        <p className="text-xs text-slate-400">{scene.location} • {scene.timeOfDay} • {scene.duration}</p>
                     </div>
                 </div>
-                {scene.videoUrl && (
-                    <div className="flex gap-2">
-                        <a href={scene.videoUrl} download target="_blank" rel="noreferrer" className="text-cyan hover:text-white p-2 bg-cyan/10 rounded-full hover:bg-cyan/20 transition-colors" title="Download Video">
-                            <DownloadIcon />
-                        </a>
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    <button onClick={() => setActiveTab('video')} className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors ${activeTab === 'video' ? 'bg-violet-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:text-white'}`}>
+                        <VideoIcon /> Video
+                    </button>
+                    <button onClick={() => setActiveTab('image')} className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors ${activeTab === 'image' ? 'bg-cyan-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:text-white'}`}>
+                        <ImageIcon /> Image
+                    </button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-4">
-                    <div>
-                        <div className="flex justify-between items-center mb-1">
-                             <label className="block text-text-secondary font-semibold text-sm">Action Description</label>
-                             <CopyButton textToCopy={scene.description} />
+            <div className="grid grid-cols-1 lg:grid-cols-12">
+                
+                {/* Visual Preview Area (Left / Top) */}
+                <div className="lg:col-span-7 bg-black relative min-h-[300px] flex items-center justify-center border-b lg:border-b-0 lg:border-r border-white/10">
+                    
+                    {/* VIDEO TAB CONTENT */}
+                    {activeTab === 'video' && (
+                        <>
+                            {scene.videoUrl ? (
+                                <video src={scene.videoUrl} controls className="w-full h-full object-contain max-h-[400px]" />
+                            ) : (
+                                <div className="text-center p-8">
+                                    <div className={`mb-4 inline-block p-4 rounded-full ${isVideoGenerating ? 'animate-pulse bg-violet-900/20' : 'bg-white/5'}`}>
+                                        {isVideoGenerating ? <div className="animate-spin h-8 w-8 border-2 border-violet-500 border-t-transparent rounded-full" /> : <VideoIcon />}
+                                    </div>
+                                    <p className="text-slate-400 text-sm mb-4">{isVideoGenerating ? 'Rendering cinematic clip...' : 'No video generated yet.'}</p>
+                                    <button 
+                                        onClick={() => { playSound(); onGenerateVideo(scene); }}
+                                        disabled={isVideoGenerating || !isVeoKeySelected}
+                                        className="btn-glow flex items-center gap-2 mx-auto bg-primary-action-gradient text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg disabled:opacity-50 disabled:grayscale"
+                                    >
+                                        {!isVeoKeySelected && <LockIcon />}
+                                        {isVideoGenerating ? 'Generating...' : 'Generate with Veo'}
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* IMAGE TAB CONTENT */}
+                    {activeTab === 'image' && (
+                        <>
+                            {scene.imageUrl ? (
+                                <div className="relative w-full h-full group/img">
+                                    <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-contain max-h-[400px]" />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                        <a href={scene.imageUrl} download className="btn-glass flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-full hover:bg-black/80">
+                                            <DownloadIcon /> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center p-8">
+                                    <div className={`mb-4 inline-block p-4 rounded-full ${isImageGenerating ? 'animate-pulse bg-cyan-900/20' : 'bg-white/5'}`}>
+                                        {isImageGenerating ? <div className="animate-spin h-8 w-8 border-2 border-cyan-500 border-t-transparent rounded-full" /> : <PlaceholderImageIcon />}
+                                    </div>
+                                    <p className="text-slate-400 text-sm mb-4">{isImageGenerating ? 'Creating concept art...' : 'No image generated yet.'}</p>
+                                    <button 
+                                        onClick={() => { playSound(); onGenerateImage(scene); }}
+                                        disabled={isImageGenerating}
+                                        className="btn-glass flex items-center gap-2 mx-auto bg-cyan-600/20 text-cyan-200 border-cyan-500/50 hover:bg-cyan-600 hover:text-white px-6 py-2 rounded-full font-bold text-sm"
+                                    >
+                                        <SparklesIcon /> {isImageGenerating ? 'Painting...' : 'Generate with Imagen'}
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* Controls Area (Right / Bottom) */}
+                <div className="lg:col-span-5 p-6 space-y-5 bg-slate-900/20">
+                    
+                    {/* Description Edit */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Action</label>
+                            <CopyButton textToCopy={scene.description} className="scale-75 origin-right" />
                         </div>
                         <textarea
                             value={scene.description}
                             onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
-                            className="w-full bg-black/20 p-3 rounded-lg text-text-primary text-sm border border-transparent focus:border-violet-500 focus:bg-black/40 transition resize-y min-h-[100px]"
+                            className="w-full bg-slate-950/50 p-3 rounded-lg text-sm text-slate-200 border border-white/5 focus:border-violet-500/50 focus:ring-0 transition resize-none h-24 leading-relaxed"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <DatalistInput label="Atmosphere" id={`atmosphere-${scene.id}`} value={scene.atmosphere} onChange={(val) => onUpdate({...scene, atmosphere: val})} options={atmosphereOptions} />
-                        <DatalistInput label="Transition" id={`transition-${scene.id}`} value={scene.transition} onChange={(val) => onUpdate({...scene, transition: val})} options={transitionOptions} />
-                    </div>
-                </div>
 
-                 <div className="space-y-4">
-                     {/* Image Generation Section */}
-                    <div className="bg-black/20 rounded-xl p-4 border border-white/5">
-                        <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-sm font-bold text-text-primary flex items-center gap-2"><ImageIcon /> Image Preview (Imagen)</h4>
-                            <button
-                                onClick={() => { playSound(); onGenerateImage(scene); }}
-                                disabled={isImageGenerating}
-                                className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-full transition disabled:opacity-50"
-                            >
-                                {isImageGenerating ? 'Generating...' : (scene.imageUrl ? 'Regenerate' : 'Generate')}
-                            </button>
-                        </div>
-                        {scene.imageUrl ? (
-                            <div className="relative aspect-video rounded-lg overflow-hidden group/img">
-                                <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition flex items-center justify-center">
-                                    <a href={scene.imageUrl} download="scene_preview.jpg" className="text-white hover:text-cyan"><DownloadIcon /></a>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="aspect-video rounded-lg bg-white/5 flex items-center justify-center text-text-secondary">
-                                <span className="text-xs">No preview image</span>
-                            </div>
-                        )}
-                        <div className="mt-2">
-                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-xs text-text-secondary">Image Prompt</label>
-                                <button onClick={() => { playSound(); onRegenerateImagePrompt(scene); }} disabled={isPromptRegenerating} className="text-xs text-violet-400 hover:text-violet-300 disabled:opacity-50 flex items-center gap-1">
-                                     <SparklesIcon /> {isPromptRegenerating ? '...' : 'Refine'}
-                                </button>
-                             </div>
-                             <textarea
-                                value={scene.imagePrompt || ''}
-                                onChange={(e) => onUpdate({ ...scene, imagePrompt: e.target.value })}
-                                className="w-full bg-black/30 p-2 rounded text-xs text-text-secondary border border-transparent focus:border-violet-500/50 resize-y"
-                                rows={2}
-                            />
-                        </div>
+                    {/* Dropdowns */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <DatalistInput label="Atmosphere" id={`atm-${scene.id}`} value={scene.atmosphere} onChange={(v) => onUpdate({...scene, atmosphere: v})} options={atmosphereOptions} />
+                        <DatalistInput label="Transition" id={`trans-${scene.id}`} value={scene.transition} onChange={(v) => onUpdate({...scene, transition: v})} options={transitionOptions} />
                     </div>
 
-                    {/* Video Generation Section */}
-                    <div className="bg-black/20 rounded-xl p-4 border border-white/5">
+                    {/* Prompt Refiner */}
+                    <div className="pt-4 border-t border-white/5">
                         <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-sm font-bold text-text-primary flex items-center gap-2"><VideoIcon /> Video Clip (Veo)</h4>
-                            <button
-                                onClick={() => { playSound(); onGenerateVideo(scene); }}
-                                disabled={isVideoGenerating || !isVeoKeySelected}
-                                className={`text-xs px-3 py-1 rounded-full transition flex items-center gap-1 ${!isVeoKeySelected ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-primary-action-gradient hover:shadow-glow-violet text-white disabled:opacity-50'}`}
-                                title={!isVeoKeySelected ? "Select API Key to enable" : ""}
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                {activeTab === 'video' ? 'Video Prompt' : 'Image Prompt'}
+                            </label>
+                            <button 
+                                onClick={() => { playSound(); activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene); }}
+                                disabled={isPromptRegenerating}
+                                className="text-xs text-violet-400 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
                             >
-                                {!isVeoKeySelected && <LockIcon />}
-                                {isVideoGenerating ? 'Generating...' : (scene.videoUrl ? 'Regenerate' : 'Generate')}
+                                <SparklesIcon /> {isPromptRegenerating ? 'Refining...' : 'AI Refine'}
                             </button>
                         </div>
-                        {scene.videoUrl ? (
-                            <div className="aspect-video rounded-lg overflow-hidden bg-black">
-                                <video src={scene.videoUrl} controls className="w-full h-full" />
-                            </div>
-                        ) : (
-                             <div className="aspect-video rounded-lg bg-white/5 flex flex-col items-center justify-center text-text-secondary p-4 text-center">
-                                {isVideoGenerating ? (
-                                    <>
-                                        <div className="animate-spin h-6 w-6 border-2 border-violet-500 border-t-transparent rounded-full mb-2"></div>
-                                        <span className="text-xs">Creating cinematic magic...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <PlaceholderImageIcon />
-                                        <span className="text-xs mt-2">Ready to generate</span>
-                                    </>
-                                )}
-                            </div>
-                        )}
-                         <div className="mt-2">
-                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-xs text-text-secondary">Video Prompt</label>
-                                 <button onClick={() => { playSound(); onRegenerateVideoPrompt(scene); }} disabled={isPromptRegenerating} className="text-xs text-violet-400 hover:text-violet-300 disabled:opacity-50 flex items-center gap-1">
-                                     <SparklesIcon /> {isPromptRegenerating ? '...' : 'Refine'}
-                                </button>
-                             </div>
-                             <textarea
-                                value={scene.videoPrompt || ''}
-                                onChange={(e) => onUpdate({ ...scene, videoPrompt: e.target.value })}
-                                className="w-full bg-black/30 p-2 rounded text-xs text-text-secondary border border-transparent focus:border-violet-500/50 resize-y"
-                                rows={2}
-                            />
-                        </div>
+                        <textarea
+                            value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
+                            onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
+                            className="w-full bg-slate-950/30 p-3 rounded-lg text-xs text-slate-400 border border-white/5 focus:border-violet-500/50 focus:text-white transition resize-none h-20"
+                        />
                     </div>
                 </div>
             </div>
@@ -633,18 +625,24 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const scenesWithoutImage = localOutline.filter(s => !s.imageUrl);
 
     const handleGenerateAllPreviews = async () => {
-        // Use ref for freshness
         const scenesToProcess = outlineRef.current.filter(s => !s.imageUrl);
-        
         if (scenesToProcess.length === 0) return;
 
         setPreviewGenState({ status: 'running' });
-        
         try {
              await processInBatches<Scene, void>(scenesToProcess, async (scene) => {
-                 // Double check freshness inside loop
-                 const currentScene = outlineRef.current.find(s => s.id === scene.id) || scene;
+                 let currentScene = outlineRef.current.find(s => s.id === scene.id) || scene;
                  if (currentScene.imageUrl) return;
+
+                 if (!currentScene.imagePrompt || currentScene.imagePrompt.trim() === '') {
+                    try {
+                        const imagePrompt = await regenerateImagePromptForScene(currentScene, visualStyle);
+                        currentScene = { ...currentScene, imagePrompt };
+                        handleSceneUpdate(currentScene);
+                    } catch (e) {
+                        console.error("Failed to generate prompt for image preview", e);
+                    }
+                 }
                  await handleGenerateImage(currentScene);
              }, 2, 1000);
              setPreviewGenState({ status: 'complete' });
@@ -679,7 +677,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         try {
             await processInBatches<Scene, void>(localOutline, async (scene) => {
                  const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
-                 // Functional state update to avoid stale closures
                  setLocalOutline(prev => {
                     const newOutline = prev.map(s => s.id === scene.id ? { ...s, videoPrompt } : s);
                     outlineRef.current = newOutline;
@@ -687,7 +684,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                     return newOutline;
                  });
             }, 3, 500);
-            
              setRefinePromptsState({ status: 'complete' });
         } catch (e) {
             setRefinePromptsState({ status: 'error', error: 'Failed to refine prompts.' });
@@ -701,25 +697,18 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         abortControllerRef.current = new AbortController();
         const signal = abortControllerRef.current.signal;
         
-        // Use ref for freshness
         const scenesToProcess = outlineRef.current.filter(s => !s.videoUrl && s.videoPrompt && s.videoPrompt.trim() !== '');
-
         setVideoGenState({ status: 'generating_videos', progress: { current: 0, total: scenesToProcess.length } });
         
         try {
             for (let i = 0; i < scenesToProcess.length; i++) {
                 if (signal.aborted) break;
-                // Always fetch the latest version of the scene from ref before processing
                 let scene = scenesToProcess[i];
                 const freshScene = outlineRef.current.find(s => s.id === scene.id);
                 if (freshScene) scene = freshScene;
-
-                if (scene.videoUrl) continue; // Skip if done
+                if (scene.videoUrl) continue;
                 
-                // Update progress
                 setVideoGenState(prev => ({ ...prev, progress: { ...prev.progress, current: i + 1 } }));
-                
-                // Generate
                 setGeneratingVideos(prev => new Set(prev).add(scene.id));
                 try {
                     const videoUrl = await generateVideoForScene(scene, signal);
@@ -728,11 +717,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                     onVideoSave(updatedScene);
                 } catch (e) {
                     if (signal.aborted) break;
-                    console.error(`Failed to generate video for scene ${scene.sceneNumber}`, e);
                     const { isApiKeyError } = parseVideoGenerationError(e);
                     if (isApiKeyError) {
                         onInvalidKeyError();
-                        throw e; // Stop batch on auth error
+                        throw e;
                     }
                 } finally {
                     setGeneratingVideos(prev => {
@@ -741,13 +729,11 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                         return next;
                     });
                 }
-                
-                // Small delay between requests to be nice to the API
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
             if (!signal.aborted) setVideoGenState(prev => ({ ...prev, status: 'complete' }));
         } catch (e) {
-             if (!signal.aborted) setVideoGenState(prev => ({ ...prev, status: 'error', error: (e instanceof Error ? e.message : 'Batch generation failed') }));
+             if (!signal.aborted) setVideoGenState(prev => ({ ...prev, status: 'error', error: (e instanceof Error ? e.message : 'Batch failed') }));
         } finally {
              abortControllerRef.current = null;
              if (!signal.aborted) setTimeout(() => setVideoGenState(prev => ({ ...prev, status: 'idle' })), 3000);
@@ -759,42 +745,30 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          abortControllerRef.current = new AbortController();
          const signal = abortControllerRef.current.signal;
 
-         // Phase 1: Ensure prompts (Video AND Image)
-         // Using refs to ensure we catch any scenes that might have been updated via other means (unlikely during batch but safe)
          const scenesNeedingVideoPrompts = outlineRef.current.filter(s => !s.videoPrompt || s.videoPrompt.trim() === '');
          const scenesNeedingImagePrompts = outlineRef.current.filter(s => !s.imagePrompt || s.imagePrompt.trim() === '');
-         
          const totalPrompts = scenesNeedingVideoPrompts.length + scenesNeedingImagePrompts.length;
          
          if (totalPrompts > 0) {
              setMasterState({ status: 'generating_prompts', progress: { current: 0, total: totalPrompts } });
              let processed = 0;
-
              try {
-                 // 1.1 Video Prompts
                  for (const scene of scenesNeedingVideoPrompts) {
                      if (signal.aborted) break;
                      processed++;
                      setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: processed } }));
-                     
                      const freshScene = outlineRef.current.find(s => s.id === scene.id) || scene;
                      const videoPrompt = await regenerateVideoPromptForScene(freshScene, visualStyle);
-                     
                      handleSceneUpdate({ ...freshScene, videoPrompt });
                  }
-
-                 // 1.2 Image Prompts
                  for (const scene of scenesNeedingImagePrompts) {
                      if (signal.aborted) break;
                      processed++;
                      setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: processed } }));
-                     
                      const freshScene = outlineRef.current.find(s => s.id === scene.id) || scene;
                      const imagePrompt = await regenerateImagePromptForScene(freshScene, visualStyle);
-                     
                      handleSceneUpdate({ ...freshScene, imagePrompt });
                  }
-
              } catch (e) {
                  if (!signal.aborted) {
                     setMasterState({ status: 'error', progress: { current: 0, total: 0 }, error: "Failed during prompt generation phase." });
@@ -804,30 +778,23 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          }
          
          if (signal.aborted) return;
-
-         // Phase 2: Generate Videos
          const scenesForVideo = outlineRef.current.filter(s => !s.videoUrl);
          
          if (scenesForVideo.length > 0) {
              setMasterState({ status: 'generating_videos', progress: { current: 0, total: scenesForVideo.length } });
-             
              try {
                  for (let i = 0; i < scenesForVideo.length; i++) {
                      if (signal.aborted) break;
                      let scene = scenesForVideo[i];
                      const freshScene = outlineRef.current.find(s => s.id === scene.id);
                      if (freshScene) scene = freshScene;
-                     
-                     // Fallback check for prompt (should be there from Phase 1)
                      if (!scene.videoPrompt) {
                           const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
                           scene = { ...scene, videoPrompt };
                           handleSceneUpdate(scene);
                      }
-                     
                      setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: i + 1 } }));
                      setGeneratingVideos(prev => new Set(prev).add(scene.id));
-                     
                      try {
                          const videoUrl = await generateVideoForScene(scene, signal);
                          const updatedScene = { ...scene, videoUrl };
@@ -840,7 +807,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                              onInvalidKeyError();
                              throw e;
                          }
-                         console.error(e);
                      } finally {
                          setGeneratingVideos(prev => {
                             const next = new Set(prev);
@@ -848,7 +814,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                             return next;
                         });
                      }
-                     // Delay to respect rate limits
                      await new Promise(resolve => setTimeout(resolve, 2000));
                  }
              } catch (e) {
@@ -858,19 +823,24 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          }
          
          if (signal.aborted) return;
-
-         // Phase 3: Generate Images
          const scenesForImages = outlineRef.current.filter(s => !s.imageUrl);
          
          if (scenesForImages.length > 0) {
              setMasterState(prev => ({ ...prev, status: 'generating_images', progress: { current: 0, total: scenesForImages.length } }));
-             
              try {
                  await processInBatches<Scene, void>(scenesForImages, async (scene) => {
                      if (signal.aborted) return;
-                     const currentScene = outlineRef.current.find(s => s.id === scene.id) || scene;
+                     let currentScene = outlineRef.current.find(s => s.id === scene.id) || scene;
                      if (currentScene.imageUrl) return;
-
+                     if (!currentScene.imagePrompt || currentScene.imagePrompt.trim() === '') {
+                        try {
+                            const imagePrompt = await regenerateImagePromptForScene(currentScene, visualStyle);
+                            currentScene = { ...currentScene, imagePrompt };
+                            handleSceneUpdate(currentScene);
+                        } catch (e) {
+                             console.error("Failed to generate prompt for image in master batch", e);
+                        }
+                     }
                      setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: prev.progress.current + 1 } }));
                      await handleGenerateImage(currentScene);
                  }, 2, 1000);
@@ -878,13 +848,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                  console.error("Batch image generation failed", e);
              }
          }
-
          if (!signal.aborted) setMasterState(prev => ({ ...prev, status: 'complete' }));
-         
          abortControllerRef.current = null;
          if (!signal.aborted) setTimeout(() => setMasterState(prev => ({ ...prev, status: 'idle' })), 3000);
     };
-
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-fade-in-stagger" style={{ animationDelay: '200ms' }}>
@@ -913,7 +880,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 onDismissVideoGenError={() => setVideoGenState(prev => ({...prev, status: 'idle'}))}
 
                 promptGenState={promptGenState}
-                onRegeneratePrompts={() => {}} // Implemented inside master mostly
+                onRegeneratePrompts={() => {}}
                 onDismissPromptGenError={() => setPromptGenState(prev => ({...prev, status: 'idle'}))}
                 
                 refinePromptsState={refinePromptsState}
@@ -937,7 +904,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
 
             <div className="space-y-6">
                 {localOutline.map((scene) => (
-                    <SceneCard
+                    <CinematicSceneCard
                         key={scene.id}
                         scene={scene}
                         visualStyle={visualStyle}

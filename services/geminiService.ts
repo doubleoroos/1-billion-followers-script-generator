@@ -102,7 +102,8 @@ Generate the core creative concept for this film.
 
 1.  **Logline:** Write a compelling, one-sentence summary of the film's central conflict and story.
 2.  **Synopsis:** Write a concise, one-paragraph synopsis that outlines the film's plot from beginning to end, including the main character's journey and the central theme.
-3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide a name, a brief, one-sentence description of their essence, and a specific role (e.g., 'Protagonist', 'Mentor').
+3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide a name, a brief, one-sentence description of their essence, and a specific role (e.g., 'Protagonist', 'Mentor'). 
+    *Crucial:* Make these descriptions evocative, avoiding generic tropes. Focus on their internal motivation, a unique visual characteristic, or how they embody the film's theme.
 
 **Output Format:**
 Return a single, valid JSON object with three keys: "logline", "synopsis", and "characters".
@@ -228,12 +229,12 @@ Write a compelling BTS document that fulfills the submission criteria.
 1.  **Project Overview:** Briefly introduce the film's concept, its connection to the "Rewrite Tomorrow" theme, and the ambitious scope of this 7-10 minute production.
 
 2.  **Production Workflow:**
-    You MUST format this section as a structured list. Each item MUST strictly follow the format: "**Phase:** [Phase Name] | **Tool(s):** [Tool Names]". Describe the specific role of each tool in that phase.
+    You MUST format this section as a structured list. Each item MUST strictly follow the format: "**Phase** | **Tool(s)**". Describe the specific role of each tool in that phase.
     
     *   **Phase:** Pre-Production (Scripting & Concept) | **Tool(s):** Gemini 3 Pro
         **Description:** Used for ideation, world-building, character development, and writing the full screenplay.
         
-    *   **Phase:** Visual Development | **Tool(s):** Gemini 3 Pro (Prompt Engineering), Google Imagen 3 (Concept Art)
+    *   **Phase:** Visual Development | **Tool(s):** Gemini 3 Pro (Prompt Engineering), Imagen 3 (Concept Art)
         **Description:** Designed the visual style, moodboards, and generated detailed scene descriptions.
         
     *   **Phase:** Production (Video) | **Tool(s):** Google Veo

@@ -18,49 +18,47 @@ interface InputPanelProps {
   error: string | null;
 }
 
-interface OptionButtonProps<T extends string> {
-  value: T;
-  current: string;
-  onClick: (value: T) => void;
-  children?: React.ReactNode;
-  tooltip: string;
+interface ChoiceCardProps {
+  label: string;
+  description: string;
+  isSelected: boolean;
+  onClick: () => void;
 }
 
-// Fix: Added comma to generic type parameter <T extends string,> to prevent JSX parsing ambiguity
-const OptionButton = <T extends string,>(props: OptionButtonProps<T>) => {
-  const { value, current, onClick, children, tooltip } = props;
-  const isActive = value === current;
-  const playSound = useSound();
-
-  const handleClick = () => {
-    playSound();
-    onClick(value);
-  };
-
-  return (
-    <button
-      onClick={handleClick}
-      title={tooltip}
-      aria-pressed={isActive}
-      className={`relative w-full px-4 py-3 text-sm font-semibold rounded-full border transition-all duration-300 group overflow-hidden
-        ${
-          isActive
-            ? 'border-violet-400 text-white shadow-[0_0_15px_rgba(167,139,250,0.4)]'
-            : 'bg-white/5 text-text-secondary border-transparent hover:border-white/20 hover:text-white'
-        }`}
-    >
-      {isActive && <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(192,132,252,0.3)_0%,rgba(192,132,252,0)_70%)]"></div>}
-      <span className="relative z-10">{children}</span>
-    </button>
-  );
+const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected, onClick }) => {
+    const playSound = useSound();
+    return (
+        <button
+            onClick={() => { playSound(); onClick(); }}
+            className={`group relative flex flex-col items-start text-left p-5 rounded-xl border transition-all duration-300 w-full h-full
+            ${isSelected 
+                ? 'bg-violet-500/10 border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.15)]' 
+                : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20'
+            }`}
+        >
+            <div className="flex justify-between w-full mb-2">
+                <span className={`font-bold text-lg ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
+                    {label}
+                </span>
+                {isSelected && (
+                    <div className="h-5 w-5 rounded-full bg-violet-500 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                )}
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">{description}</p>
+        </button>
+    );
 };
 
-const ControlGroup: React.FC<{title: string, children: React.ReactNode}> = ({ title, children }) => (
-    <div className="space-y-3">
-        <h3 className="font-semibold text-text-primary text-lg pl-2">{title}</h3>
-        <div className="bg-slate-900/40 p-4 rounded-2xl border border-white/10">
-            {children}
-        </div>
+const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, title }) => (
+    <div className="flex items-center gap-3 mb-6">
+        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 border border-white/10 text-sm font-mono text-violet-300">
+            {number}
+        </span>
+        <h3 className="text-xl font-semibold text-white tracking-tight">{title}</h3>
     </div>
 );
 
@@ -86,93 +84,136 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   }
   
   const handleGenerateClick = () => {
-    playSound();
+    playSound('success');
     onGenerate();
   };
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in">
-        <div className="text-center mb-12">
-            <h2 className="text-5xl font-extrabold mb-3 bg-gradient-to-br from-gold via-violet-300 to-white bg-clip-text text-transparent">Envision a New Future</h2>
-            <p className="text-text-secondary text-xl">Your choices will guide the AI in generating a complete film concept.</p>
+    <div className="max-w-5xl mx-auto animate-fade-in pb-20">
+        <div className="text-center mb-16 space-y-4">
+            <h2 className="text-6xl md:text-7xl font-extrabold tracking-tight">
+                <span className="bg-gradient-to-r from-white via-violet-200 to-slate-400 bg-clip-text text-transparent">
+                    Envision the Future
+                </span>
+            </h2>
+            <p className="text-slate-400 text-xl max-w-2xl mx-auto font-light">
+                Direct the AI to generate a complete film script, storyboard, and production plan.
+            </p>
         </div>
       
-        <div className="panel-glass p-6 md:p-8 rounded-3xl flex flex-col space-y-8">
-        
-        <ControlGroup title="Step 1: Choose a Core Theme">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <OptionButton value="abundance" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A post-scarcity world where AI ensures prosperity for all.">Abundance</OptionButton>
-                <OptionButton value="ascension" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="AI as a bridge to higher forms of consciousness and existence.">Ascension</OptionButton>
-                <OptionButton value="harmony" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="A perfect balance between humanity, technology, and nature.">Harmony</OptionButton>
-                <OptionButton value="enlightenment" current={rewriteTomorrowTheme} onClick={handleThemeSelection} tooltip="AI helps unlock the deepest mysteries of the mind and universe.">Enlightenment</OptionButton>
-            </div>
-        </ControlGroup>
+        <div className="space-y-12">
+            
+            {/* Step 1: Theme */}
+            <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+                <SectionHeader number="01" title="Select a Core Theme" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <ChoiceCard 
+                        label="Abundance" 
+                        description="A post-scarcity world where AI ensures prosperity, eliminating poverty through shared resources." 
+                        isSelected={rewriteTomorrowTheme === 'abundance'} 
+                        onClick={() => handleThemeSelection('abundance')} 
+                    />
+                    <ChoiceCard 
+                        label="Ascension" 
+                        description="AI acting as a bridge to higher forms of consciousness, transcending physical limitations." 
+                        isSelected={rewriteTomorrowTheme === 'ascension'} 
+                        onClick={() => handleThemeSelection('ascension')} 
+                    />
+                    <ChoiceCard 
+                        label="Harmony" 
+                        description="A perfect symbiotic balance between humanity, advanced technology, and the natural world." 
+                        isSelected={rewriteTomorrowTheme === 'harmony'} 
+                        onClick={() => handleThemeSelection('harmony')} 
+                    />
+                    <ChoiceCard 
+                        label="Enlightenment" 
+                        description="AI helping humanity unlock the deepest mysteries of the mind, universe, and empathy." 
+                        isSelected={rewriteTomorrowTheme === 'enlightenment'} 
+                        onClick={() => handleThemeSelection('enlightenment')} 
+                    />
+                </div>
+            </section>
 
-        {themeSelected && (
-            <div className="space-y-6 animate-fade-in">
-                <ControlGroup title="Step 2: Set the Creative Direction">
-                    <div className="space-y-6">
+            {themeSelected && (
+                <>
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                
+                {/* Step 2: Tone & Style */}
+                <section className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+                    <SectionHeader number="02" title="Define the Aesthetic" />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
-                            <h4 className="font-medium text-text-primary mb-2 pl-1">Narrative Tone</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                                <OptionButton value="poetic" current={narrativeTone} onClick={setNarrativeTone} tooltip="Speak in metaphor. Weave rich imagery to capture the heart of the idea.">Poetic</OptionButton>
-                                <OptionButton value="philosophical" current={narrativeTone} onClick={setNarrativeTone} tooltip="Ponder the great questions. Explore the depths of meaning and existence.">Philosophical</OptionButton>
-                                <OptionButton value="hopeful" current={narrativeTone} onClick={setNarrativeTone} tooltip="Paint a vision of tomorrow. Inspire with a story of optimism and unity.">Hopeful</OptionButton>
-                                <OptionButton value="intimate" current={narrativeTone} onClick={setNarrativeTone} tooltip="Share a quiet secret. Draw the viewer close with a personal, reflective voice.">Intimate</OptionButton>
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 ml-1">Narrative Tone</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                <ChoiceCard label="Poetic" description="Lyrical, metaphorical, rich imagery." isSelected={narrativeTone === 'poetic'} onClick={() => setNarrativeTone('poetic')} />
+                                <ChoiceCard label="Philosophical" description="Contemplative, deep questions." isSelected={narrativeTone === 'philosophical'} onClick={() => setNarrativeTone('philosophical')} />
+                                <ChoiceCard label="Hopeful" description="Inspiring, optimistic, uplifting." isSelected={narrativeTone === 'hopeful'} onClick={() => setNarrativeTone('hopeful')} />
+                                <ChoiceCard label="Intimate" description="Personal, quiet, character-focused." isSelected={narrativeTone === 'intimate'} onClick={() => setNarrativeTone('intimate')} />
                             </div>
                         </div>
-                         <div>
-                            <h4 className="font-medium text-text-primary mb-2 pl-1">Visual Style</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                <OptionButton value="cinematic" current={visualStyle} onClick={setVisualStyle} tooltip="Craft a world of breathtaking realism. Use grand scale and dramatic light to stir the soul.">Cinematic</OptionButton>
-                                <OptionButton value="solarpunk" current={visualStyle} onClick={setVisualStyle} tooltip="Envision a world in bloom. Weave sunlight, technology, and nature into a hopeful tomorrow.">Solarpunk</OptionButton>
-                                <OptionButton value="minimalist" current={visualStyle} onClick={setVisualStyle} tooltip="Find power in simplicity. Use clean forms and open space to convey profound ideas.">Minimalist</OptionButton>
-                                <OptionButton value="biomorphic" current={visualStyle} onClick={setVisualStyle} tooltip="Draw from nature's blueprint. Create a flowing, interconnected world of organic shapes.">Biomorphic</OptionButton>
-                                <OptionButton value="abstract" current={visualStyle} onClick={setVisualStyle} tooltip="Evoke feelings through non-literal forms. Use color, shape, and texture to build an inner landscape.">Abstract</OptionButton>
-                            </div>
-                        </div>
-                         <div>
-                            <h4 className="font-medium text-text-primary mb-2 pl-1">Emotional Arc</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <OptionButton value="subtle" current={emotionalArc} onClick={setEmotionalArc} tooltip="A gentle current. Build feeling through quiet, contemplative moments.">Subtle</OptionButton>
-                                <OptionButton value="moderate" current={emotionalArc} onClick={setEmotionalArc} tooltip="Chart the heart's journey. Craft moments of tension and release that resonate deeply.">Moderate</OptionButton>
-                                <OptionButton value="intense" current={emotionalArc} onClick={setEmotionalArc} tooltip="A storm of emotion. Forge a powerful, dramatic arc with profound, cathartic peaks.">Intense</OptionButton>
+                        <div>
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 ml-1">Visual Style</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                <ChoiceCard label="Cinematic" description="Photorealistic, dramatic lighting." isSelected={visualStyle === 'cinematic'} onClick={() => setVisualStyle('cinematic')} />
+                                <ChoiceCard label="Solarpunk" description="Nature & tech, optimistic greenery." isSelected={visualStyle === 'solarpunk'} onClick={() => setVisualStyle('solarpunk')} />
+                                <ChoiceCard label="Minimalist" description="Clean forms, negative space." isSelected={visualStyle === 'minimalist'} onClick={() => setVisualStyle('minimalist')} />
+                                <ChoiceCard label="Biomorphic" description="Organic shapes, fluid structures." isSelected={visualStyle === 'biomorphic'} onClick={() => setVisualStyle('biomorphic')} />
                             </div>
                         </div>
                     </div>
-                </ControlGroup>
-            </div>
-        )}
+                </section>
 
-        {error && (
-            <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl animate-fade-in text-sm text-red-200">
-                <p className="font-semibold mb-1">An Unexpected Plot Twist</p>
-                <p>{error}</p>
-            </div>
-        )}
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-        <div className="pt-4 mt-auto">
-            <button
-                onClick={handleGenerateClick}
-                disabled={isLoading || !themeSelected}
-                className="btn-glow w-full flex items-center justify-center gap-3 bg-primary-action-gradient text-white font-bold py-4 px-4 rounded-xl relative shadow-glow-violet disabled:shadow-none"
-            >
-            {isLoading ? (
-                <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Generating...</span>
+                {/* Step 3: Pacing */}
+                <section className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+                    <SectionHeader number="03" title="Emotional Intensity" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <ChoiceCard label="Subtle" description="Gentle, contemplative flow." isSelected={emotionalArc === 'subtle'} onClick={() => setEmotionalArc('subtle')} />
+                        <ChoiceCard label="Moderate" description="Balanced tension and release." isSelected={emotionalArc === 'moderate'} onClick={() => setEmotionalArc('moderate')} />
+                        <ChoiceCard label="Intense" description="Dramatic peaks, profound catharsis." isSelected={emotionalArc === 'intense'} onClick={() => setEmotionalArc('intense')} />
+                    </div>
+                </section>
                 </>
-            ) : (
-                <div className="flex items-center gap-2 text-lg">
-                    <SparklesIcon />
-                    <span>Generate Film Blueprint</span>
+            )}
+
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl animate-fade-in flex items-center gap-3 text-red-200">
+                    <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <p>{error}</p>
                 </div>
             )}
-            </button>
-        </div>
+
+            <div className="fixed bottom-8 left-0 right-0 px-4 flex justify-center z-50 pointer-events-none">
+                <button
+                    onClick={handleGenerateClick}
+                    disabled={isLoading || !themeSelected}
+                    className={`pointer-events-auto btn-glow group relative overflow-hidden rounded-full transition-all duration-500 
+                    ${isLoading || !themeSelected ? 'opacity-50 grayscale' : 'opacity-100 hover:scale-105'}
+                    bg-slate-900 border border-white/20 p-1`}
+                >
+                     <div className="absolute inset-0 bg-primary-action-gradient opacity-20 blur-xl group-hover:opacity-40 transition-opacity"></div>
+                     <div className="relative bg-primary-action-gradient text-white font-bold py-4 px-12 rounded-full flex items-center gap-4 text-xl shadow-2xl shadow-violet-500/30">
+                        {isLoading ? (
+                            <>
+                                <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Fabricating Vision...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="tracking-wide">INITIATE GENERATION</span>
+                                <SparklesIcon />
+                            </>
+                        )}
+                     </div>
+                </button>
+            </div>
+            
+            {/* Spacer for fixed button */}
+            <div className="h-24"></div>
         </div>
     </div>
   );
