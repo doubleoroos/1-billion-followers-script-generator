@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CopyButton } from '../ui/CopyButton';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
@@ -6,6 +7,8 @@ import { useSound } from '../hooks/useSound';
 interface BtsSectionProps {
     document: string;
     onSave: (newDoc: string) => void;
+    onRegenerate: () => void;
+    isRegenerating: boolean;
 }
 
 // Helper components for status indicator
@@ -20,7 +23,7 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     return <div className="h-5 text-sm transition-opacity duration-300 text-right">{content}</div>;
 };
 
-export const BtsSection: React.FC<BtsSectionProps> = ({ document, onSave }) => {
+export const BtsSection: React.FC<BtsSectionProps> = ({ document, onSave, onRegenerate, isRegenerating }) => {
     const [editedDoc, setEditedDoc] = useState(document);
     const playSound = useSound();
     const { status, save } = useAutosave({ onSave, onSuccess: () => playSound('success') });
@@ -36,7 +39,21 @@ export const BtsSection: React.FC<BtsSectionProps> = ({ document, onSave }) => {
 
     return (
          <div className="relative panel-glass p-8 md:p-12 rounded-2xl max-w-4xl mx-auto text-text-primary/90 space-y-4 leading-relaxed">
-            <CopyButton textToCopy={editedDoc} />
+            <div className="absolute top-3 right-3 flex gap-2 z-10">
+                 <button
+                    onClick={onRegenerate}
+                    disabled={isRegenerating}
+                    className="btn-glass flex items-center gap-2 text-xs font-semibold py-1 px-3 rounded-full border border-white/10 hover:border-violet-400 text-text-secondary hover:text-white transition-all disabled:opacity-50"
+                >
+                    {isRegenerating ? (
+                         <div className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full"></div>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg>
+                    )}
+                    {isRegenerating ? 'Updating...' : 'Update Context'}
+                </button>
+                <CopyButton textToCopy={editedDoc} className="" />
+            </div>
             <div className="flex justify-end items-center">
                 <SaveStatusIndicator status={status} />
             </div>

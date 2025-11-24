@@ -901,3 +901,31 @@ Return a single, valid JSON object with a single key: "transitions".
     const data = JSON.parse(response.text.trim());
     return data.transitions;
 };
+
+export const regenerateBTS = async (
+  theme: RewriteTomorrowTheme,
+  intensity: EmotionalArcIntensity,
+  visualStyle: VisualStyle,
+  narrativeTone: NarrativeTone,
+  script: ScriptBlock[],
+  characters: Character[],
+  outline: Scene[]
+): Promise<string> => {
+  const scriptText = script.map(block => {
+      const charName = characters.find(c => c.id === block.characterId)?.name || 'Unknown Character';
+      return block.type === 'narration' ? `(NARRATION)\n${block.content}` : `${charName.toUpperCase()}\n${block.content}`;
+    }).join('\n\n');
+
+  const outlineText = formatOutlineForPrompt(outline);
+
+  const prompt = createBTSPrompt(theme, intensity, visualStyle, narrativeTone, scriptText, outlineText);
+
+  try {
+    const response = await ai.models.generateContent({ model: "gemini-3-pro-preview", contents: prompt });
+    return response.text.trim();
+  } catch (error) {
+    console.error("Error regenerating BTS:", error);
+    if (error instanceof Error) throw new Error(`Failed to regenerate BTS document. Reason: ${error.message}`);
+    throw new Error("An unknown error occurred during BTS regeneration.");
+  }
+};

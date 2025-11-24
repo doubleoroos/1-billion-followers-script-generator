@@ -11,6 +11,7 @@ import { OutputNav, StoryboardSection } from './LayoutComponents';
 import { GenerationSummary } from './GenerationSummary';
 import { downloadPDF } from '../../services/pdfService';
 import { useSound } from '../hooks/useSound';
+import { regenerateBTS } from '../../services/geminiService';
 
 // Component Props
 interface OutputDisplayProps {
@@ -39,6 +40,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
 }) => {
     const { script, characters, visualOutline, referenceImages, btsDocument } = generatedAssets;
     const [isVeoKeySelected, setIsVeoKeySelected] = useState<boolean | null>(null);
+    const [isRegeneratingBts, setIsRegeneratingBts] = useState(false);
     const playSound = useSound();
 
     const checkApiKey = useCallback(async () => {
@@ -82,6 +84,28 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
     const handleDownloadPDF = () => {
         playSound();
         downloadPDF(generatedAssets, creativeChoices);
+    };
+
+    const handleRegenerateBts = async () => {
+        setIsRegeneratingBts(true);
+        playSound();
+        try {
+            const newBts = await regenerateBTS(
+                creativeChoices.theme,
+                creativeChoices.arc,
+                visualStyle,
+                creativeChoices.tone,
+                script,
+                characters,
+                visualOutline
+            );
+            onBtsSave(newBts);
+        } catch (e) {
+            console.error(e);
+            alert("Failed to update BTS document.");
+        } finally {
+            setIsRegeneratingBts(false);
+        }
     };
     
     return (
@@ -134,7 +158,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             </StoryboardSection>
 
             <StoryboardSection id="bts" title="Behind The Scenes" style={{ animationDelay: '1000ms' }}>
-                <BtsSection document={btsDocument} onSave={onBtsSave} />
+                <BtsSection 
+                    document={btsDocument} 
+                    onSave={onBtsSave} 
+                    onRegenerate={handleRegenerateBts}
+                    isRegenerating={isRegeneratingBts}
+                />
             </StoryboardSection>
         </div>
     );
