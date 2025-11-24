@@ -349,7 +349,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             const isGeneratingImages = masterState.status === 'generating_images';
             
             let title = '';
-            if (isGeneratingPrompts) title = 'Phase 1: Regenerating Prompts';
+            if (isGeneratingPrompts) title = 'Phase 1: Generating Prompts';
             else if (isGeneratingVideos) title = 'Phase 2: Generating Videos';
             else if (isGeneratingImages) title = 'Phase 3: Generating Image Previews';
             
@@ -759,23 +759,42 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          abortControllerRef.current = new AbortController();
          const signal = abortControllerRef.current.signal;
 
-         // Phase 1: Ensure prompts
-         // Use ref for freshness
-         const scenesNeedingPrompts = outlineRef.current.filter(s => !s.videoPrompt || s.videoPrompt.trim() === '');
+         // Phase 1: Ensure prompts (Video AND Image)
+         // Using refs to ensure we catch any scenes that might have been updated via other means (unlikely during batch but safe)
+         const scenesNeedingVideoPrompts = outlineRef.current.filter(s => !s.videoPrompt || s.videoPrompt.trim() === '');
+         const scenesNeedingImagePrompts = outlineRef.current.filter(s => !s.imagePrompt || s.imagePrompt.trim() === '');
          
-         if (scenesNeedingPrompts.length > 0) {
-             setMasterState({ status: 'generating_prompts', progress: { current: 0, total: scenesNeedingPrompts.length } });
+         const totalPrompts = scenesNeedingVideoPrompts.length + scenesNeedingImagePrompts.length;
+         
+         if (totalPrompts > 0) {
+             setMasterState({ status: 'generating_prompts', progress: { current: 0, total: totalPrompts } });
+             let processed = 0;
+
              try {
-                 for (let i=0; i < scenesNeedingPrompts.length; i++) {
+                 // 1.1 Video Prompts
+                 for (const scene of scenesNeedingVideoPrompts) {
                      if (signal.aborted) break;
-                     const scene = scenesNeedingPrompts[i];
-                     setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: i + 1 } }));
-                     const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
+                     processed++;
+                     setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: processed } }));
                      
-                     const updatedScene = { ...scene, videoPrompt };
-                     // Instant update for local loop usage not needed if we use ref, but good for UI
-                     handleSceneUpdate(updatedScene);
+                     const freshScene = outlineRef.current.find(s => s.id === scene.id) || scene;
+                     const videoPrompt = await regenerateVideoPromptForScene(freshScene, visualStyle);
+                     
+                     handleSceneUpdate({ ...freshScene, videoPrompt });
                  }
+
+                 // 1.2 Image Prompts
+                 for (const scene of scenesNeedingImagePrompts) {
+                     if (signal.aborted) break;
+                     processed++;
+                     setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: processed } }));
+                     
+                     const freshScene = outlineRef.current.find(s => s.id === scene.id) || scene;
+                     const imagePrompt = await regenerateImagePromptForScene(freshScene, visualStyle);
+                     
+                     handleSceneUpdate({ ...freshScene, imagePrompt });
+                 }
+
              } catch (e) {
                  if (!signal.aborted) {
                     setMasterState({ status: 'error', progress: { current: 0, total: 0 }, error: "Failed during prompt generation phase." });
@@ -787,7 +806,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          if (signal.aborted) return;
 
          // Phase 2: Generate Videos
-         // Re-fetch list from ref to get updated prompts
          const scenesForVideo = outlineRef.current.filter(s => !s.videoUrl);
          
          if (scenesForVideo.length > 0) {
@@ -796,12 +814,11 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
              try {
                  for (let i = 0; i < scenesForVideo.length; i++) {
                      if (signal.aborted) break;
-                     // Get fresh scene
                      let scene = scenesForVideo[i];
                      const freshScene = outlineRef.current.find(s => s.id === scene.id);
                      if (freshScene) scene = freshScene;
                      
-                     // Double check prompt availability
+                     // Fallback check for prompt (should be there from Phase 1)
                      if (!scene.videoPrompt) {
                           const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
                           scene = { ...scene, videoPrompt };
@@ -831,6 +848,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                             return next;
                         });
                      }
+                     // Delay to respect rate limits
                      await new Promise(resolve => setTimeout(resolve, 2000));
                  }
              } catch (e) {
@@ -842,7 +860,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          if (signal.aborted) return;
 
          // Phase 3: Generate Images
-         // Re-fetch list from ref
          const scenesForImages = outlineRef.current.filter(s => !s.imageUrl);
          
          if (scenesForImages.length > 0) {
@@ -851,7 +868,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
              try {
                  await processInBatches<Scene, void>(scenesForImages, async (scene) => {
                      if (signal.aborted) return;
-                     // Check freshness
                      const currentScene = outlineRef.current.find(s => s.id === scene.id) || scene;
                      if (currentScene.imageUrl) return;
 

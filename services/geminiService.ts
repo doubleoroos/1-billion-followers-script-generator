@@ -230,16 +230,16 @@ Write a compelling BTS document that fulfills the submission criteria.
 2.  **Production Workflow:**
     You MUST format this section as a structured list. Each item MUST strictly follow the format: "**Phase:** [Phase Name] | **Tool(s):** [Tool Names]". Describe the specific role of each tool in that phase.
     
-    *   **Phase:** Pre-Production (Scripting & Concept) | **Tool(s):** Google Gemini 3 Pro
+    *   **Phase:** Pre-Production (Scripting & Concept) | **Tool(s):** Gemini 3 Pro
         **Description:** Used for ideation, world-building, character development, and writing the full screenplay.
         
-    *   **Phase:** Visual Development | **Tool(s):** Google Gemini 3 Pro (Prompt Engineering), Google Imagen (Concept Art)
+    *   **Phase:** Visual Development | **Tool(s):** Gemini 3 Pro (Prompt Engineering), Google Imagen 3 (Concept Art)
         **Description:** Designed the visual style, moodboards, and generated detailed scene descriptions.
         
     *   **Phase:** Production (Video) | **Tool(s):** Google Veo
         **Description:** Generated high-quality cinematic video clips for each scene in the visual outline.
         
-    *   **Phase:** Audio & Voice | **Tool(s):** Google Gemini 3 Pro (Sound Design), AI Text-to-Speech
+    *   **Phase:** Audio & Voice | **Tool(s):** Gemini 3 Pro (Sound Design), AI Text-to-Speech
         **Description:** Generated voiceovers and soundscapes to match the emotional arc.
         
     *   **Phase:** Post-Production | **Tool(s):** Editing Software, AI Upscaling
