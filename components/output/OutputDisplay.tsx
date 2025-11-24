@@ -109,7 +109,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
     };
     
     return (
-        <div className="space-y-16 md:space-y-24">
+        <div className="space-y-16 md:space-y-24 pb-20">
             <div className="text-center animate-fade-in">
                 <div className="inline-block">
                     <LogoIcon large={true} />
@@ -120,15 +120,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             
             <div className="flex flex-col items-center animate-fade-in" style={{ animationDelay: '50ms' }}>
                 <GenerationSummary choices={creativeChoices} />
-                <button 
-                    onClick={handleDownloadPDF}
-                    className="mt-8 btn-glow flex items-center gap-2 bg-slate-800/80 text-white px-6 py-3 rounded-full font-bold border border-white/10 hover:border-violet-400/50 transition-all shadow-lg hover:shadow-violet-500/20"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download Script & Prompts (PDF)
-                </button>
             </div>
             
             <OutputNav />
@@ -165,6 +156,18 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
                     isRegenerating={isRegeneratingBts}
                 />
             </StoryboardSection>
+
+            <div className="flex justify-center animate-fade-in" style={{ animationDelay: '1200ms' }}>
+                <button 
+                    onClick={handleDownloadPDF}
+                    className="btn-glow flex items-center gap-2 bg-slate-800/80 text-white px-8 py-4 rounded-full font-bold border border-white/10 hover:border-violet-400/50 transition-all shadow-lg hover:shadow-violet-500/20 text-lg"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Script & Prompts (PDF)
+                </button>
+            </div>
         </div>
     );
 }
