@@ -506,6 +506,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
   outline, onSave, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError
 }) => {
     const [localOutline, setLocalOutline] = useState<Scene[]>(outline);
+    const outlineRef = useRef<Scene[]>(outline);
     const { status, save } = useAutosave({ onSave });
     const [generatingVideos, setGeneratingVideos] = useState<Set<string>>(new Set());
     const [generatingImages, setGeneratingImages] = useState<Set<string>>(new Set());
@@ -523,11 +524,13 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
 
     useEffect(() => {
         setLocalOutline(outline);
+        outlineRef.current = outline;
     }, [outline]);
 
     const handleSceneUpdate = useCallback((updatedScene: Scene) => {
         setLocalOutline(prev => {
             const newOutline = prev.map(s => s.id === updatedScene.id ? updatedScene : s);
+            outlineRef.current = newOutline;
             save(newOutline);
             return newOutline;
         });
@@ -566,7 +569,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             handleSceneUpdate(updatedScene);
         } catch (e) {
              console.error("Image generation failed", e);
-             alert("Failed to generate image.");
         } finally {
             setGeneratingImages(prev => {
                 const next = new Set(prev);
@@ -619,7 +621,9 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         }
         setMasterState(prev => ({ ...prev, status: 'idle' }));
         setVideoGenState(prev => ({ ...prev, status: 'idle' }));
-        // Reset others...
+        setPreviewGenState(prev => ({ ...prev, status: 'idle' }));
+        setRefinePromptsState(prev => ({ ...prev, status: 'idle' }));
+        setRefineTransitionsState(prev => ({ ...prev, status: 'idle' }));
     };
 
     // Counts
@@ -629,14 +633,19 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const scenesWithoutImage = localOutline.filter(s => !s.imageUrl);
 
     const handleGenerateAllPreviews = async () => {
+        // Use ref for freshness
+        const scenesToProcess = outlineRef.current.filter(s => !s.imageUrl);
+        
+        if (scenesToProcess.length === 0) return;
+
         setPreviewGenState({ status: 'running' });
-        const scenesToProcess = scenesWithoutImage;
-        let completed = 0;
         
         try {
              await processInBatches<Scene, void>(scenesToProcess, async (scene) => {
-                 await handleGenerateImage(scene);
-                 completed++;
+                 // Double check freshness inside loop
+                 const currentScene = outlineRef.current.find(s => s.id === scene.id) || scene;
+                 if (currentScene.imageUrl) return;
+                 await handleGenerateImage(currentScene);
              }, 2, 1000);
              setPreviewGenState({ status: 'complete' });
         } catch (e) {
@@ -655,6 +664,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 return t ? { ...scene, transition: t.transition } : scene;
             });
             setLocalOutline(newOutline);
+            outlineRef.current = newOutline;
             save(newOutline);
             setRefineTransitionsState({ status: 'complete' });
         } catch (e) {
@@ -667,14 +677,12 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleRefineAllPrompts = async () => {
         setRefinePromptsState({ status: 'running' });
         try {
-            // Process prompts in parallel batches with functional state updates
             await processInBatches<Scene, void>(localOutline, async (scene) => {
                  const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
                  // Functional state update to avoid stale closures
                  setLocalOutline(prev => {
                     const newOutline = prev.map(s => s.id === scene.id ? { ...s, videoPrompt } : s);
-                    // We can't easily call save() here without passing the full new array, 
-                    // which we have in `newOutline`.
+                    outlineRef.current = newOutline;
                     save(newOutline);
                     return newOutline;
                  });
@@ -693,13 +701,20 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         abortControllerRef.current = new AbortController();
         const signal = abortControllerRef.current.signal;
         
-        const scenesToProcess = scenesReadyForVideo;
+        // Use ref for freshness
+        const scenesToProcess = outlineRef.current.filter(s => !s.videoUrl && s.videoPrompt && s.videoPrompt.trim() !== '');
+
         setVideoGenState({ status: 'generating_videos', progress: { current: 0, total: scenesToProcess.length } });
         
         try {
             for (let i = 0; i < scenesToProcess.length; i++) {
                 if (signal.aborted) break;
-                const scene = scenesToProcess[i];
+                // Always fetch the latest version of the scene from ref before processing
+                let scene = scenesToProcess[i];
+                const freshScene = outlineRef.current.find(s => s.id === scene.id);
+                if (freshScene) scene = freshScene;
+
+                if (scene.videoUrl) continue; // Skip if done
                 
                 // Update progress
                 setVideoGenState(prev => ({ ...prev, progress: { ...prev.progress, current: i + 1 } }));
@@ -745,10 +760,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          const signal = abortControllerRef.current.signal;
 
          // Phase 1: Ensure prompts
-         const scenesNeedingPrompts = scenesWithoutPrompts;
-         
-         // Helper to track updates across phases without relying on state updates (which are async)
-         const ephemeralUpdates = new Map<string, Scene>();
+         // Use ref for freshness
+         const scenesNeedingPrompts = outlineRef.current.filter(s => !s.videoPrompt || s.videoPrompt.trim() === '');
          
          if (scenesNeedingPrompts.length > 0) {
              setMasterState({ status: 'generating_prompts', progress: { current: 0, total: scenesNeedingPrompts.length } });
@@ -760,9 +773,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                      const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
                      
                      const updatedScene = { ...scene, videoPrompt };
-                     ephemeralUpdates.set(scene.id, updatedScene);
-                     
-                     // Use functional update to ensure we are working on latest state
+                     // Instant update for local loop usage not needed if we use ref, but good for UI
                      handleSceneUpdate(updatedScene);
                  }
              } catch (e) {
@@ -776,7 +787,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          if (signal.aborted) return;
 
          // Phase 2: Generate Videos
-         const scenesForVideo = scenesWithoutVideo;
+         // Re-fetch list from ref to get updated prompts
+         const scenesForVideo = outlineRef.current.filter(s => !s.videoUrl);
          
          if (scenesForVideo.length > 0) {
              setMasterState({ status: 'generating_videos', progress: { current: 0, total: scenesForVideo.length } });
@@ -784,18 +796,15 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
              try {
                  for (let i = 0; i < scenesForVideo.length; i++) {
                      if (signal.aborted) break;
+                     // Get fresh scene
                      let scene = scenesForVideo[i];
-                     
-                     // Use the version from Phase 1 if available
-                     if (ephemeralUpdates.has(scene.id)) {
-                         scene = ephemeralUpdates.get(scene.id)!;
-                     }
+                     const freshScene = outlineRef.current.find(s => s.id === scene.id);
+                     if (freshScene) scene = freshScene;
                      
                      // Double check prompt availability
                      if (!scene.videoPrompt) {
                           const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
                           scene = { ...scene, videoPrompt };
-                          ephemeralUpdates.set(scene.id, scene);
                           handleSceneUpdate(scene);
                      }
                      
@@ -805,7 +814,6 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                      try {
                          const videoUrl = await generateVideoForScene(scene, signal);
                          const updatedScene = { ...scene, videoUrl };
-                         ephemeralUpdates.set(scene.id, updatedScene);
                          handleSceneUpdate(updatedScene);
                          onVideoSave(updatedScene);
                      } catch (e) {
@@ -834,7 +842,8 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
          if (signal.aborted) return;
 
          // Phase 3: Generate Images
-         const scenesForImages = scenesWithoutImage;
+         // Re-fetch list from ref
+         const scenesForImages = outlineRef.current.filter(s => !s.imageUrl);
          
          if (scenesForImages.length > 0) {
              setMasterState(prev => ({ ...prev, status: 'generating_images', progress: { current: 0, total: scenesForImages.length } }));
@@ -842,8 +851,12 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
              try {
                  await processInBatches<Scene, void>(scenesForImages, async (scene) => {
                      if (signal.aborted) return;
+                     // Check freshness
+                     const currentScene = outlineRef.current.find(s => s.id === scene.id) || scene;
+                     if (currentScene.imageUrl) return;
+
                      setMasterState(prev => ({ ...prev, progress: { ...prev.progress, current: prev.progress.current + 1 } }));
-                     await handleGenerateImage(scene);
+                     await handleGenerateImage(currentScene);
                  }, 2, 1000);
              } catch (e) {
                  console.error("Batch image generation failed", e);

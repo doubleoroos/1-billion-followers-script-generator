@@ -233,7 +233,7 @@ Write a compelling BTS document that fulfills the submission criteria.
     *   **Phase:** Pre-Production (Scripting & Concept) | **Tool(s):** Google Gemini 3 Pro
         **Description:** Used for ideation, world-building, character development, and writing the full screenplay.
         
-    *   **Phase:** Visual Development | **Tool(s):** Google Gemini 3 Pro (Prompt Engineering), Google Imagen 4 (Concept Art)
+    *   **Phase:** Visual Development | **Tool(s):** Google Gemini 3 Pro (Prompt Engineering), Google Imagen (Concept Art)
         **Description:** Designed the visual style, moodboards, and generated detailed scene descriptions.
         
     *   **Phase:** Production (Video) | **Tool(s):** Google Veo
