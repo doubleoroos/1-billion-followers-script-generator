@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -293,19 +294,25 @@ Return a raw string (Markdown formatted).
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-Refine the following video prompt for Google's **Veo** model.
-**Goal:** Create a hyper-realistic, cinematic 1080p video clip.
+You are an expert cinematographer and prompt engineer for Google's **Veo** video generation model.
+**Goal:** Create a hyper-realistic, cinematic 1080p video clip that visually captures the essence of the scene.
+
+**Scene Context:**
+- **Action:** ${scene.description}
+- **Atmosphere:** ${scene.atmosphere}
+- **Location:** ${scene.location}
+- **Time:** ${scene.timeOfDay}
+
 **Visual Style:** ${styleDescription}
-**Scene Context:** ${scene.description}
-**Current Prompt:** ${scene.videoPrompt || scene.description}
 
-**Instructions:**
-- Focus on movement, lighting, and camera angle.
-- Ensure it sounds like a visual description, not a story summary.
-- Keep it under 60 words for best results.
-- DO NOT use "Generate a video of..." just describe the visual.
+**Task:**
+Write a refined, evocative video generation prompt.
+- **Focus on:** Cinematic lighting (e.g., chiaroscuro, golden hour, neon), camera movement (e.g., slow dolly, handheld, aerial), and realistic textures.
+- **Structure:** [Subject/Action], [Environment], [Lighting/Mood], [Camera Movement], [Style keywords].
+- **Constraint:** Keep it under 70 words. optimize for Veo's motion understanding.
+- **Tone:** ${scene.pacingEmotion || 'neutral'}
 
-**Output:** Return ONLY the refined prompt string.
+**Output:** Return ONLY the refined prompt text.
 `;
 }
 
@@ -322,6 +329,7 @@ Refine the following image prompt for Google's **Imagen** model.
 - Focus on composition, texture, lighting, and color palette.
 - Mention specific camera lenses or artistic references if applicable to the style.
 - Ensure it is safe and suitable for a general audience.
+- Safe Prompting: Avoid generating images of children in realistic settings to prevent safety filter triggers. Use "figures", "silhouettes", or "characters" if age is ambiguous.
 
 **Output:** Return ONLY the refined prompt string.
 `;

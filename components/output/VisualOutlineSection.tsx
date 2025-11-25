@@ -701,10 +701,13 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleRefineAllPrompts = async () => {
         setRefinePromptsState({ status: 'running' });
         try {
-            await processInBatches<Scene, void>(localOutline, async (scene) => {
-                 const videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle);
+            // Iterate over localOutline IDs but fetch fresh scenes to ensure updates are caught
+            await processInBatches<Scene, void>(localOutline, async (item) => {
+                 const freshScene = outlineRef.current.find(s => s.id === item.id) || item;
+                 const videoPrompt = await regenerateVideoPromptForScene(freshScene, visualStyle);
+                 
                  setLocalOutline(prev => {
-                    const newOutline = prev.map(s => s.id === scene.id ? { ...s, videoPrompt } : s);
+                    const newOutline = prev.map(s => s.id === item.id ? { ...s, videoPrompt } : s);
                     outlineRef.current = newOutline;
                     save(newOutline);
                     return newOutline;
