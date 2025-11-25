@@ -294,25 +294,25 @@ Return a raw string (Markdown formatted).
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are an expert cinematographer and prompt engineer for Google's **Veo** video generation model.
-**Goal:** Create a hyper-realistic, cinematic 1080p video clip that visually captures the essence of the scene.
+You are a world-class cinematographer and prompt engineer for Google's **Veo** generative video model.
 
-**Scene Context:**
+**Goal:** Transform the following scene description into a highly evocative, cinematic video generation prompt.
+
+**Scene Details:**
 - **Action:** ${scene.description}
-- **Atmosphere:** ${scene.atmosphere}
 - **Location:** ${scene.location}
-- **Time:** ${scene.timeOfDay}
+- **Atmosphere:** ${scene.atmosphere}
+- **Lighting/Time:** ${scene.timeOfDay}
 
 **Visual Style:** ${styleDescription}
 
-**Task:**
-Write a refined, evocative video generation prompt.
-- **Focus on:** Cinematic lighting (e.g., chiaroscuro, golden hour, neon), camera movement (e.g., slow dolly, handheld, aerial), and realistic textures.
-- **Structure:** [Subject/Action], [Environment], [Lighting/Mood], [Camera Movement], [Style keywords].
-- **Constraint:** Keep it under 70 words. optimize for Veo's motion understanding.
-- **Tone:** ${scene.pacingEmotion || 'neutral'}
+**Instructions:**
+1.  **Cinematography:** Specify camera movement (e.g., "Slow push-in," "Aerial drone shot," "Low angle tracking"), lighting (e.g., "Soft golden hour backlighting," "Neon noir," "High contrast chiaroscuro"), and lens character (e.g., "Anamorphic bokeh," "Wide angle 24mm").
+2.  **Realism:** Emphasize textures, depth of field, and photorealism (e.g., "8k resolution," "Highly detailed," "Film grain").
+3.  **Clarity:** Be concise but descriptive. Focus on what is visibly happening.
 
-**Output:** Return ONLY the refined prompt text.
+**Output:**
+Return ONLY the refined video prompt string. Keep it under 75 words.
 `;
 }
 
