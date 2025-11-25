@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Scene, VisualStyle } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
@@ -15,6 +15,8 @@ const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" class
 const CheckmarkIcon = () => <svg className="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path className="animate-draw-checkmark" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" style={{ strokeDasharray: 24, strokeDashoffset: 24 }} /></svg>;
 const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1-1.257-.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>;
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>;
+const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>;
+const SearchIcon = () => <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 
 const parseVideoGenerationError = (error: unknown): { userMessage: string; isApiKeyError: boolean } => {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -504,6 +506,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const [generatingImages, setGeneratingImages] = useState<Set<string>>(new Set());
     const [regeneratingPrompts, setRegeneratingPrompts] = useState<Set<string>>(new Set());
     
+    // Search & Filter State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [locationFilter, setLocationFilter] = useState('All');
+
     // Bulk States
     const [masterState, setMasterState] = useState<MasterBulkState>({ status: 'idle', progress: { current: 0, total: 0 } });
     const [videoGenState, setVideoGenState] = useState<MasterBulkState>({ status: 'idle', progress: { current: 0, total: 0 } });
@@ -518,6 +524,26 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         setLocalOutline(outline);
         outlineRef.current = outline;
     }, [outline]);
+    
+    // Filter Logic
+    const uniqueLocations = useMemo(() => {
+        const locs = new Set(localOutline.map(s => s.location));
+        return ['All', ...Array.from(locs).sort()];
+    }, [localOutline]);
+    
+    const filteredScenes = useMemo(() => {
+        return localOutline.filter(scene => {
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = 
+                scene.title.toLowerCase().includes(query) ||
+                scene.charactersInScene.toLowerCase().includes(query) ||
+                scene.location.toLowerCase().includes(query);
+            
+            const matchesLocation = locationFilter === 'All' || scene.location === locationFilter;
+            
+            return matchesSearch && matchesLocation;
+        });
+    }, [localOutline, searchQuery, locationFilter]);
 
     const handleSceneUpdate = useCallback((updatedScene: Scene) => {
         setLocalOutline(prev => {
@@ -902,23 +928,63 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 scenesWithoutImageCount={scenesWithoutImage.length}
             />
 
-            <div className="space-y-6">
-                {localOutline.map((scene) => (
-                    <CinematicSceneCard
-                        key={scene.id}
-                        scene={scene}
-                        visualStyle={visualStyle}
-                        onUpdate={handleSceneUpdate}
-                        onGenerateVideo={handleGenerateVideo}
-                        onGenerateImage={handleGenerateImage}
-                        onRegenerateVideoPrompt={handleRegenerateVideoPrompt}
-                        onRegenerateImagePrompt={handleRegenerateImagePrompt}
-                        isVideoGenerating={generatingVideos.has(scene.id)}
-                        isImageGenerating={generatingImages.has(scene.id)}
-                        isPromptRegenerating={regeneratingPrompts.has(scene.id)}
-                        isVeoKeySelected={isVeoKeySelected}
+            {/* Search and Filters */}
+            <div className="flex flex-col md:flex-row gap-4 mb-2">
+                <div className="flex-1 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <SearchIcon />
+                    </div>
+                    <input
+                        type="text"
+                        className="w-full bg-slate-900/50 pl-10 pr-4 py-3 rounded-xl text-sm border border-white/10 focus:border-violet-500/50 focus:ring-0 text-white placeholder-slate-500 transition-colors shadow-inner"
+                        placeholder="Search scenes by title, character, or location..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                ))}
+                </div>
+                <div className="w-full md:w-64 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                         <FilterIcon />
+                    </div>
+                    <select
+                        className="w-full bg-slate-900/50 pl-10 pr-4 py-3 rounded-xl text-sm border border-white/10 focus:border-violet-500/50 focus:ring-0 text-white appearance-none cursor-pointer shadow-inner"
+                        value={locationFilter}
+                        onChange={(e) => setLocationFilter(e.target.value)}
+                    >
+                         {uniqueLocations.map(loc => (
+                             <option key={loc} value={loc} className="bg-slate-900 text-white">{loc === 'All' ? 'All Locations' : loc}</option>
+                         ))}
+                    </select>
+                </div>
+            </div>
+            <div className="text-xs text-text-secondary px-2 mb-6">
+                Showing {filteredScenes.length} of {localOutline.length} scenes
+            </div>
+
+            <div className="space-y-6">
+                {filteredScenes.length > 0 ? (
+                    filteredScenes.map((scene) => (
+                        <CinematicSceneCard
+                            key={scene.id}
+                            scene={scene}
+                            visualStyle={visualStyle}
+                            onUpdate={handleSceneUpdate}
+                            onGenerateVideo={handleGenerateVideo}
+                            onGenerateImage={handleGenerateImage}
+                            onRegenerateVideoPrompt={handleRegenerateVideoPrompt}
+                            onRegenerateImagePrompt={handleRegenerateImagePrompt}
+                            isVideoGenerating={generatingVideos.has(scene.id)}
+                            isImageGenerating={generatingImages.has(scene.id)}
+                            isPromptRegenerating={regeneratingPrompts.has(scene.id)}
+                            isVeoKeySelected={isVeoKeySelected}
+                        />
+                    ))
+                ) : (
+                    <div className="text-center py-12 text-slate-500 bg-white/5 rounded-xl border border-dashed border-white/10">
+                        <p>No scenes found matching your filters.</p>
+                        <button onClick={() => { setSearchQuery(''); setLocationFilter('All'); }} className="mt-2 text-violet-400 hover:text-white underline text-sm">Clear filters</button>
+                    </div>
+                )}
             </div>
         </div>
     );
