@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -370,13 +369,27 @@ You are a world-class cinematographer and prompt engineer for Google's **Imagen*
 }
 
 const createTransitionRefinementPrompt = (currentScene: Scene, nextScene: Scene | undefined, visualStyle: VisualStyle): string => {
+    const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-Suggest a cinematic transition from Scene ${currentScene.sceneNumber} (${currentScene.location}) to ${nextScene ? `Scene ${nextScene.sceneNumber} (${nextScene.location})` : 'End Credits'}.
-**Style:** ${visualStyle}
-**Current Action:** ${currentScene.description}
-**Next Action:** ${nextScene ? nextScene.description : 'Fade out'}
+You are a master film editor and cinematographer. Suggest a highly cinematic and creative transition from Scene ${currentScene.sceneNumber} to ${nextScene ? `Scene ${nextScene.sceneNumber}` : 'the end'}.
 
-**Output:** Return ONLY the transition description (e.g., "Match cut on the rising sun...").
+**Visual Style:** ${visualStyle}
+${styleDescription}
+
+**Scene ${currentScene.sceneNumber} (OUT):**
+Location: ${currentScene.location}
+Action: ${currentScene.description}
+
+**Scene ${nextScene ? nextScene.sceneNumber : 'END'} (IN):**
+Location: ${nextScene ? nextScene.location : 'Credits'}
+Action: ${nextScene ? nextScene.description : 'Fade to black'}
+
+**Task:**
+Suggest a transition that connects these two scenes visually, thematically, or emotionally.
+Examples: "Match cut on the circular shape of the sun to the protagonist's eye," "Sound bridge of the rain continuing into the next interior scene," "Whip pan right following the movement."
+
+**Constraint:**
+Return ONLY the transition description string. Keep it concise (under 20 words).
 `;
 }
 
@@ -605,23 +618,24 @@ export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: V
 };
 
 export const refineSceneTransitions = async (outline: Scene[], visualStyle: VisualStyle): Promise<{id: string, transition: string}[]> => {
-    // This could be batched, but for simplicity we'll do linear or small batch
-    const results = [];
-    for (let i = 0; i < outline.length; i++) {
-        const current = outline[i];
-        const next = outline[i+1];
+    const pairs = outline.map((scene, i) => ({
+        current: scene,
+        next: outline[i + 1]
+    }));
+
+    return processInBatches(pairs, async ({ current, next }) => {
         const prompt = createTransitionRefinementPrompt(current, next, visualStyle);
         try {
             const resp = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3-pro-preview',
                 contents: prompt
             });
-            results.push({ id: current.id, transition: resp.text?.trim() || "Cut to next." });
+            return { id: current.id, transition: resp.text?.trim() || "Cut to next." };
         } catch (e) {
-            results.push({ id: current.id, transition: "Cut to next." });
+            console.error("Transition refinement failed", e);
+            return { id: current.id, transition: "Cut to next." };
         }
-    }
-    return results;
+    }, 5, 200);
 };
 
 export const regenerateTitleForScene = async (scene: Scene): Promise<string> => {
