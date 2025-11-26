@@ -29,6 +29,29 @@ export async function processInBatches<T, R>(items: T[], processItem: (item: T) 
     return results;
 }
 
+// Helper to clean JSON strings from Markdown formatting and extra text
+const cleanJson = (text: string): string => {
+    if (!text) return '{}';
+    let cleaned = text.trim();
+    
+    // Remove markdown code blocks if present
+    if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    // Attempt to find the first { and last } to handle extra text before/after
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+    
+    return cleaned;
+};
+
 // --- AUDIO UTILITIES ---
 
 // Helper to write a WAV header for raw PCM data
@@ -410,7 +433,7 @@ export const generateCreativeAssets = async (
         contents: conceptPrompt,
         config: { responseMimeType: 'application/json' }
     });
-    const concept = JSON.parse(conceptResp.text || '{}');
+    const concept = JSON.parse(cleanJson(conceptResp.text || '{}'));
     
     // 2. Script
     const scriptPrompt = createScriptPrompt(theme, intensity, narrativeTone, concept.logline, concept.synopsis, concept.characters);
@@ -419,7 +442,7 @@ export const generateCreativeAssets = async (
         contents: scriptPrompt,
         config: { responseMimeType: 'application/json' }
     });
-    const scriptData = JSON.parse(scriptResp.text || '{}');
+    const scriptData = JSON.parse(cleanJson(scriptResp.text || '{}'));
 
     // 3. Visual Outline
     const scriptText = scriptData.script.map((b: any) => b.content).join('\n');
@@ -429,7 +452,7 @@ export const generateCreativeAssets = async (
         contents: outlinePrompt,
         config: { responseMimeType: 'application/json' }
     });
-    const outlineData = JSON.parse(outlineResp.text || '{}');
+    const outlineData = JSON.parse(cleanJson(outlineResp.text || '{}'));
 
     // 4. BTS
     const btsPrompt = createBTSPrompt(theme, visualStyle, concept.synopsis, outlineData.visualOutline);
