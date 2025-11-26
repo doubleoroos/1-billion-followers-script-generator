@@ -15,7 +15,8 @@ interface ScriptSectionProps {
 const CheckmarkIcon = () => <svg className="h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path className="animate-draw-checkmark" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" style={{ strokeDasharray: 24, strokeDashoffset: 24 }} /></svg>;
 const SpeakerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>;
 const PlayIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>;
-const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+const PauseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const MagicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>;
 
 
@@ -42,40 +43,124 @@ const AutoSizingTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElem
     return <textarea ref={textareaRef} {...props} />;
 };
 
+const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+const InlineAudioPlayer: React.FC<{ src: string; filename: string }> = ({ src, filename }) => {
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        const updateTime = () => setCurrentTime(audio.currentTime);
+        const updateDuration = () => setDuration(audio.duration);
+        const onEnd = () => setIsPlaying(false);
+
+        audio.addEventListener('timeupdate', updateTime);
+        audio.addEventListener('loadedmetadata', updateDuration);
+        audio.addEventListener('ended', onEnd);
+
+        return () => {
+            audio.removeEventListener('timeupdate', updateTime);
+            audio.removeEventListener('loadedmetadata', updateDuration);
+            audio.removeEventListener('ended', onEnd);
+        };
+    }, []);
+
+    const togglePlay = () => {
+        if (!audioRef.current) return;
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+    };
+
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const time = parseFloat(e.target.value);
+        if (audioRef.current) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+        }
+    };
+
+    return (
+        <div className="w-full mt-3 bg-slate-100 rounded-full p-2 flex items-center gap-3 border border-slate-200 shadow-sm">
+            <audio ref={audioRef} src={src} preload="metadata" />
+            
+            <button 
+                onClick={togglePlay}
+                className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center transition-colors"
+            >
+                {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </button>
+
+            <div className="flex-grow flex flex-col justify-center h-full">
+                <input 
+                    type="range" 
+                    min="0" 
+                    max={duration || 0} 
+                    value={currentTime} 
+                    onChange={handleSeek}
+                    className="w-full h-1 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                />
+            </div>
+
+            <span className="text-[10px] font-mono font-medium text-slate-500 w-16 text-right">
+                {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+
+            <a 
+                href={src} 
+                download={filename}
+                className="flex-shrink-0 p-2 text-slate-400 hover:text-violet-600 transition-colors"
+                title="Download Audio Stem"
+            >
+                <DownloadIcon />
+            </a>
+        </div>
+    );
+};
+
 // Audio Controls Component
 const AudioBlockControls: React.FC<{ 
     block: ScriptBlock; 
     onGenerate: () => void; 
     isGenerating: boolean; 
-    onPlay: () => void;
-}> = ({ block, onGenerate, isGenerating, onPlay }) => {
+}> = ({ block, onGenerate, isGenerating }) => {
     const playSound = useSound();
     
+    if (block.audioUrl) {
+        return (
+            <InlineAudioPlayer 
+                src={block.audioUrl} 
+                filename={`voice_${block.type}_${block.id}.wav`} 
+            />
+        );
+    }
+
     return (
-        <div className="flex items-center gap-2 mt-2 opacity-50 hover:opacity-100 transition-opacity justify-end">
-            {block.audioUrl ? (
-                <>
-                    <button onClick={() => { playSound(); onPlay(); }} className="flex items-center gap-1 text-[10px] uppercase tracking-wide font-sans text-violet-600 hover:text-violet-800 bg-violet-50 px-2 py-1 rounded-full border border-violet-200 transition-colors">
-                        <PlayIcon /> Play Audio
-                    </button>
-                    <a href={block.audioUrl} download={`voice_${block.type}_${block.id}.wav`} className="flex items-center gap-1 text-[10px] uppercase tracking-wide font-sans text-slate-500 hover:text-slate-800 bg-slate-50 px-2 py-1 rounded-full border border-slate-200 transition-colors">
-                        <DownloadIcon /> Stem
-                    </a>
-                </>
-            ) : (
-                <button 
-                    onClick={() => { playSound(); onGenerate(); }} 
-                    disabled={isGenerating}
-                    className="flex items-center gap-1 text-[10px] uppercase tracking-wide font-sans text-slate-400 hover:text-violet-600 transition-colors disabled:opacity-50"
-                >
-                    {isGenerating ? (
-                        <div className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full"></div>
-                    ) : (
-                        <SpeakerIcon />
-                    )}
-                    {isGenerating ? 'Generating...' : 'Generate Voice'}
-                </button>
-            )}
+        <div className="flex justify-end mt-2">
+            <button 
+                onClick={() => { playSound(); onGenerate(); }} 
+                disabled={isGenerating}
+                className="flex items-center gap-2 text-[10px] uppercase tracking-wide font-sans text-slate-400 hover:text-violet-600 transition-colors disabled:opacity-50"
+            >
+                {isGenerating ? (
+                    <div className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full"></div>
+                ) : (
+                    <SpeakerIcon />
+                )}
+                {isGenerating ? 'Generating...' : 'Generate Voice'}
+            </button>
         </div>
     );
 }
@@ -96,7 +181,6 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
     const { status, save } = useAutosave({ onSave, onSuccess: () => playSound('success') });
     const [generatingAudio, setGeneratingAudio] = useState<Set<string>>(new Set());
     const [isBulkGenerating, setIsBulkGenerating] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         setEditedScript(processedScript);
@@ -196,15 +280,6 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
         }
     };
 
-    const handlePlayAudio = (url: string) => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
-        audioRef.current = new Audio(url);
-        audioRef.current.play();
-    };
-
     const scriptToText = () => {
         return editedScript.map(block => {
             if (block.type === 'narration') {
@@ -268,7 +343,6 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                                         block={block} 
                                         isGenerating={generatingAudio.has(block.id)}
                                         onGenerate={() => handleGenerateAudio(block)}
-                                        onPlay={() => block.audioUrl && handlePlayAudio(block.audioUrl)}
                                     />
                                 </div>
                             ) : (
@@ -289,7 +363,6 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                                             block={block} 
                                             isGenerating={generatingAudio.has(block.id)}
                                             onGenerate={() => handleGenerateAudio(block)}
-                                            onPlay={() => block.audioUrl && handlePlayAudio(block.audioUrl)}
                                         />
                                     </div>
                                 </div>

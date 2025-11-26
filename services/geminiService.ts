@@ -184,7 +184,7 @@ Generate the core creative concept for this film.
 3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide:
     - **Name:** A fitting name.
     - **Role:** Specific role (e.g., 'Protagonist', 'Mentor').
-    - **Description:** A rich, evocative, and multi-sentence description (3-4 sentences) that details their personality, deeper motivations, and visual appearance. Ensure the description captures their unique essence and aligns with the positive future theme of "${theme}".
+    - **Description:** A rich, evocative, and detailed description (3-4 sentences) that captures their personality, inner motivation, and physical appearance. Ensure the description reflects the positive future theme of "${theme}".
 
 **Output Format:**
 Return a single, valid JSON object with three keys: "logline", "synopsis", and "characters".
@@ -251,7 +251,7 @@ ${fullScript}
 Break the script down into a sequence of scenes. For each scene, define the visual and cinematic elements.
 1. **Scene Title:** Create a concise, evocative, and poetic title for the scene (e.g., "The Solar Harvest", "Echoes of the Hub").
 2. **Location & Atmosphere:** Describe the setting and the mood (e.g., lighting, weather, feeling).
-3. **Action & Visuals:** Describe what happens and what we see. Focus on imagery.
+3. **Action & Visuals:** Describe what happens and what we see. **Do not just list actions.** Use evocative, sensory language to describe the scene. Focus on textures, lighting, specific movements, and the emotional resonance of the moment. Make it read like a novel.
 4. **Cinematography:** Suggest a specific camera angle or movement (e.g., "Wide drone shot", "Close-up on eyes").
 5. **Prompts:** Create distinct, detailed prompts for generating the visual assets (Video and Image).
 
@@ -267,7 +267,7 @@ Return a single, valid JSON object with a single key: "visualOutline".
     - "duration" (estimated string, e.g., "45s")
     - "atmosphere" (string)
     - "charactersInScene" (string, names comma-separated)
-    - "description" (string, the action)
+    - "description" (string, highly evocative and detailed narrative description using sensory language)
     - "keyVisualElements" (string, specific details to capture)
     - "visuals" (string, description of the shot composition)
     - "transition" (string, edit to next scene)
@@ -299,21 +299,20 @@ const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyl
     return `
 You are a world-class cinematographer and prompt engineer for Google's **Veo** generative video model.
 
-**Goal:** Transform the following scene description into a highly evocative, cinematic, and visually stunning video generation prompt.
+**Goal:** Create a highly evocative, cinematic video generation prompt for this scene.
 
-**Scene Details:**
+**Input Context:**
 - **Action:** ${scene.description}
 - **Location:** ${scene.location}
 - **Atmosphere:** ${scene.atmosphere}
-- **Lighting/Time:** ${scene.timeOfDay}
-
-**Visual Style:** ${styleDescription}
+- **Time:** ${scene.timeOfDay}
+- **Visual Style:** ${styleDescription}
 
 **Instructions:**
-1.  **Cinematic Language:** Use professional terminology to describe camera movement (e.g., "Slow push-in," "Aerial drone shot," "Low angle tracking," "Rack focus"), lighting (e.g., "Volumetric lighting," "Rim lighting," "Subsurface scattering"), and lens choice (e.g., "Anamorphic," "Telephoto," "Macro").
-2.  **Evocative Detail:** Do not just describe the action; describe the *feeling* of the image through texture, light, and motion. Use sensory words.
-3.  **Visual Style Alignment:** Strictly adhere to the "${visualStyle}" aesthetic.
-4.  **Format:** Return ONLY the refined video prompt string. Keep it under 80 words. Focus on visual fidelity and motion.
+1.  **Cinematic Fidelity:** Use specific camera language (e.g., "Low angle push-in," "Aerial drone establish," "Anamorphic depth of field", "Rack focus").
+2.  **Sensory Detail:** Describe the texture of materials, the quality of light (e.g., "volumetric god rays," "neon reflections," "soft diffused glow"), and the specific motion in the shot.
+3.  **Style Enforcement:** Ensure the output strictly adheres to the "${visualStyle}" aesthetic.
+4.  **Format:** Return ONLY the raw prompt string. Keep it concise (approx 50-75 words) but dense with visual information.
 `;
 }
 

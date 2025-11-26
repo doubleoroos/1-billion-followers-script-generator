@@ -773,6 +773,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                  const freshScene = outlineRef.current.find(s => s.id === item.id) || item;
                  
                  // Regenerate BOTH prompts to align with "Optimize All Prompts" button intent
+                 // The service has been updated to produce cinematic and evocative video prompts.
                  const [videoPrompt, imagePrompt] = await Promise.all([
                      regenerateVideoPromptForScene(freshScene, visualStyle),
                      regenerateImagePromptForScene(freshScene, visualStyle)
