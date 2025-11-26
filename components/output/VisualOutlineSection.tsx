@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Scene, VisualStyle } from '../../types';
-import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches } from '../../services/geminiService';
+import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { CopyButton } from '../ui/CopyButton';
@@ -178,11 +178,11 @@ const CinematicSceneCard: React.FC<{
                                     <p className="text-slate-400 text-sm mb-4">{isVideoGenerating ? 'Rendering cinematic clip...' : 'No video generated yet.'}</p>
                                     <button 
                                         onClick={() => { playSound(); onGenerateVideo(scene); }}
-                                        disabled={isVideoGenerating || !isVeoKeySelected}
+                                        disabled={isVideoGenerating || isVeoKeySelected === null}
                                         className="btn-glow flex items-center gap-2 mx-auto bg-primary-action-gradient text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg disabled:opacity-50 disabled:grayscale"
                                     >
-                                        {!isVeoKeySelected && <LockIcon />}
-                                        {isVideoGenerating ? 'Generating...' : 'Generate with Veo'}
+                                        {isVeoKeySelected === false && <LockIcon />}
+                                        {isVideoGenerating ? 'Generating...' : (isVeoKeySelected ? 'Generate with Veo' : 'Unlock & Generate')}
                                     </button>
                                 </div>
                             )}
@@ -297,6 +297,10 @@ interface BulkGenerationControlsProps {
     onRefineAllPrompts: () => void;
     onDismissRefinePromptsError: () => void;
 
+    refineTitlesState: { status: BulkStatus; error?: string; };
+    onRefineTitles: () => void;
+    onDismissRefineTitlesError: () => void;
+
     refineTransitionsState: { status: BulkStatus; error?: string; };
     onRefineAllTransitions: () => void;
     onDismissRefineTransitionsError: () => void;
@@ -318,6 +322,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     videoGenState, onGenerateVideosOnly, onCancelVideosOnly, onDismissVideoGenError,
     promptGenState, onRegeneratePrompts, onDismissPromptGenError,
     refinePromptsState, onRefineAllPrompts, onDismissRefinePromptsError,
+    refineTitlesState, onRefineTitles, onDismissRefineTitlesError,
     refineTransitionsState, onRefineAllTransitions, onDismissRefineTransitionsError,
     previewGenState, onGenerateAllPreviews, onDismissPreviewGenError,
     isVeoKeySelected, scenesWithoutPromptsCount, scenesWithoutVideoCount, scenesReadyForVideoCount, scenesWithoutImageCount
@@ -326,7 +331,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
     
     const isMasterRunning = masterState.status === 'generating_prompts' || masterState.status === 'generating_videos' || masterState.status === 'generating_images';
     const isVideoGenRunning = videoGenState.status === 'generating_videos';
-    const isSecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running' || previewGenState.status === 'running' || refineTransitionsState.status === 'running';
+    const isSecondaryRunning = promptGenState.status === 'running' || refinePromptsState.status === 'running' || previewGenState.status === 'running' || refineTransitionsState.status === 'running' || refineTitlesState.status === 'running';
     const isAnyProcessRunning = isMasterRunning || isVideoGenRunning || isSecondaryRunning;
 
     const renderMasterUI = () => {
@@ -470,6 +475,28 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                      )}
                  </div>
 
+                 {/* Refine Titles */}
+                 <div className="panel-glass p-4 rounded-xl flex flex-col justify-between">
+                     <div>
+                        <h4 className="font-bold text-text-primary text-sm mb-1">Refine Titles</h4>
+                        <p className="text-xs text-text-secondary mb-3">Generate evocative titles.</p>
+                     </div>
+                      {refineTitlesState.status === 'running' ? (
+                         <div className="text-center">
+                             <div className="animate-spin h-5 w-5 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                             <span className="text-xs text-text-secondary">Refining...</span>
+                         </div>
+                     ) : (
+                         <button
+                            onClick={() => { playSound(); onRefineTitles(); }}
+                            disabled={isAnyProcessRunning}
+                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg border border-white/10 disabled:opacity-50"
+                         >
+                            Refine Titles
+                         </button>
+                     )}
+                 </div>
+
                  {/* Refine Transitions */}
                  <div className="panel-glass p-4 rounded-xl flex flex-col justify-between">
                      <div>
@@ -515,6 +542,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const [videoGenState, setVideoGenState] = useState<MasterBulkState>({ status: 'idle', progress: { current: 0, total: 0 } });
     const [promptGenState, setPromptGenState] = useState<{ status: BulkStatus, error?: string }>({ status: 'idle' });
     const [refinePromptsState, setRefinePromptsState] = useState<{ status: BulkStatus, error?: string }>({ status: 'idle' });
+    const [refineTitlesState, setRefineTitlesState] = useState<{ status: BulkStatus, error?: string }>({ status: 'idle' });
     const [refineTransitionsState, setRefineTransitionsState] = useState<{ status: BulkStatus, error?: string }>({ status: 'idle' });
     const [previewGenState, setPreviewGenState] = useState<{ status: BulkStatus, error?: string }>({ status: 'idle' });
     
@@ -642,6 +670,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         setPreviewGenState(prev => ({ ...prev, status: 'idle' }));
         setRefinePromptsState(prev => ({ ...prev, status: 'idle' }));
         setRefineTransitionsState(prev => ({ ...prev, status: 'idle' }));
+        setRefineTitlesState(prev => ({ ...prev, status: 'idle' }));
     };
 
     // Counts
@@ -698,16 +727,43 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         }
     };
     
+    const handleRefineTitles = async () => {
+        setRefineTitlesState({ status: 'running' });
+        try {
+             await processInBatches<Scene, void>(localOutline, async (item) => {
+                 const freshScene = outlineRef.current.find(s => s.id === item.id) || item;
+                 const title = await regenerateTitleForScene(freshScene);
+                 
+                 setLocalOutline(prev => {
+                    const newOutline = prev.map(s => s.id === item.id ? { ...s, title } : s);
+                    outlineRef.current = newOutline;
+                    save(newOutline);
+                    return newOutline;
+                 });
+            }, 3, 500);
+             setRefineTitlesState({ status: 'complete' });
+        } catch (e) {
+            setRefineTitlesState({ status: 'error', error: 'Failed to refine titles.' });
+        } finally {
+            setTimeout(() => setRefineTitlesState({ status: 'idle' }), 3000);
+        }
+    };
+    
     const handleRefineAllPrompts = async () => {
         setRefinePromptsState({ status: 'running' });
         try {
             // Iterate over localOutline IDs but fetch fresh scenes to ensure updates are caught
             await processInBatches<Scene, void>(localOutline, async (item) => {
                  const freshScene = outlineRef.current.find(s => s.id === item.id) || item;
-                 const videoPrompt = await regenerateVideoPromptForScene(freshScene, visualStyle);
+                 
+                 // Regenerate BOTH prompts to align with "Optimize All Prompts" button intent
+                 const [videoPrompt, imagePrompt] = await Promise.all([
+                     regenerateVideoPromptForScene(freshScene, visualStyle),
+                     regenerateImagePromptForScene(freshScene, visualStyle)
+                 ]);
                  
                  setLocalOutline(prev => {
-                    const newOutline = prev.map(s => s.id === item.id ? { ...s, videoPrompt } : s);
+                    const newOutline = prev.map(s => s.id === item.id ? { ...s, videoPrompt, imagePrompt } : s);
                     outlineRef.current = newOutline;
                     save(newOutline);
                     return newOutline;
@@ -915,6 +971,10 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                 refinePromptsState={refinePromptsState}
                 onRefineAllPrompts={handleRefineAllPrompts}
                 onDismissRefinePromptsError={() => setRefinePromptsState(prev => ({...prev, status: 'idle'}))}
+
+                refineTitlesState={refineTitlesState}
+                onRefineTitles={handleRefineTitles}
+                onDismissRefineTitlesError={() => setRefineTitlesState(prev => ({...prev, status: 'idle'}))}
 
                 refineTransitionsState={refineTransitionsState}
                 onRefineAllTransitions={handleRefineAllTransitions}

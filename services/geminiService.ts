@@ -181,7 +181,10 @@ Generate the core creative concept for this film.
 
 1.  **Logline:** Write a compelling, one-sentence summary of the film's central conflict and story.
 2.  **Synopsis:** Write a concise, one-paragraph synopsis that outlines the film's plot from beginning to end, including the main character's journey and the central theme.
-3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide a name, a brief, one-sentence description of their essence, and a specific role (e.g., 'Protagonist', 'Mentor').
+3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide:
+    - **Name:** A fitting name.
+    - **Role:** Specific role (e.g., 'Protagonist', 'Mentor').
+    - **Description:** A rich, evocative, and multi-sentence description (3-4 sentences) that details their personality, deeper motivations, and visual appearance. Ensure the description captures their unique essence and aligns with the positive future theme of "${theme}".
 
 **Output Format:**
 Return a single, valid JSON object with three keys: "logline", "synopsis", and "characters".
@@ -246,7 +249,7 @@ ${fullScript}
 
 **Your Task:**
 Break the script down into a sequence of scenes. For each scene, define the visual and cinematic elements.
-1. **Scene Title:** Create a concise, descriptive title for the scene (e.g., "The Solar Harvest", "Reunion at the Hub"). It must reflect the positive future narrative.
+1. **Scene Title:** Create a concise, evocative, and poetic title for the scene (e.g., "The Solar Harvest", "Echoes of the Hub").
 2. **Location & Atmosphere:** Describe the setting and the mood (e.g., lighting, weather, feeling).
 3. **Action & Visuals:** Describe what happens and what we see. Focus on imagery.
 4. **Cinematography:** Suggest a specific camera angle or movement (e.g., "Wide drone shot", "Close-up on eyes").
@@ -269,8 +272,8 @@ Return a single, valid JSON object with a single key: "visualOutline".
     - "visuals" (string, description of the shot composition)
     - "transition" (string, edit to next scene)
     - "pacingEmotion" (string)
-    - "videoPrompt" (string, optimized for Veo)
-    - "imagePrompt" (string, optimized for Imagen)
+    - "videoPrompt" (string, highly evocative, cinematic description of the shot for Veo, including camera movement and lighting)
+    - "imagePrompt" (string, detailed photorealistic prompt for Imagen)
 `;
 };
 
@@ -296,7 +299,7 @@ const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyl
     return `
 You are a world-class cinematographer and prompt engineer for Google's **Veo** generative video model.
 
-**Goal:** Transform the following scene description into a highly evocative, cinematic video generation prompt.
+**Goal:** Transform the following scene description into a highly evocative, cinematic, and visually stunning video generation prompt.
 
 **Scene Details:**
 - **Action:** ${scene.description}
@@ -307,31 +310,36 @@ You are a world-class cinematographer and prompt engineer for Google's **Veo** g
 **Visual Style:** ${styleDescription}
 
 **Instructions:**
-1.  **Cinematography:** Specify camera movement (e.g., "Slow push-in," "Aerial drone shot," "Low angle tracking"), lighting (e.g., "Soft golden hour backlighting," "Neon noir," "High contrast chiaroscuro"), and lens character (e.g., "Anamorphic bokeh," "Wide angle 24mm").
-2.  **Realism:** Emphasize textures, depth of field, and photorealism (e.g., "8k resolution," "Highly detailed," "Film grain").
-3.  **Clarity:** Be concise but descriptive. Focus on what is visibly happening.
-
-**Output:**
-Return ONLY the refined video prompt string. Keep it under 75 words.
+1.  **Cinematic Language:** Use professional terminology to describe camera movement (e.g., "Slow push-in," "Aerial drone shot," "Low angle tracking," "Rack focus"), lighting (e.g., "Volumetric lighting," "Rim lighting," "Subsurface scattering"), and lens choice (e.g., "Anamorphic," "Telephoto," "Macro").
+2.  **Evocative Detail:** Do not just describe the action; describe the *feeling* of the image through texture, light, and motion. Use sensory words.
+3.  **Visual Style Alignment:** Strictly adhere to the "${visualStyle}" aesthetic.
+4.  **Format:** Return ONLY the refined video prompt string. Keep it under 80 words. Focus on visual fidelity and motion.
 `;
 }
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-Refine the following image prompt for Google's **Imagen** model.
-**Goal:** Create a hyper-realistic, high-resolution concept art piece.
-**Visual Style:** ${styleDescription}
-**Scene Context:** ${scene.description}
-**Current Prompt:** ${scene.imagePrompt || scene.description}
+You are a world-class prompt engineer for Google's **Imagen** model, specializing in cinematic and photorealistic imagery.
+
+**Goal:** Refine the following image prompt to ensure the output is a breathtaking, high-resolution, photorealistic image that aligns perfectly with the film's visual style.
+
+**Scene Details:**
+- **Action:** ${scene.description}
+- **Location:** ${scene.location}
+- **Atmosphere:** ${scene.atmosphere}
+- **Visual Style:** ${styleDescription}
 
 **Instructions:**
-- Focus on composition, texture, lighting, and color palette.
-- Mention specific camera lenses or artistic references if applicable to the style.
-- Ensure it is safe and suitable for a general audience.
-- Safe Prompting: Avoid generating images of children in realistic settings to prevent safety filter triggers. Use "figures", "silhouettes", or "characters" if age is ambiguous.
+1.  **Enhance Visual Fidelity:** Incorporate terms like "8k resolution", "hyper-realistic", "highly detailed", "cinematic lighting", "unreal engine 5 render style", "volumetric fog", and "intricate textures".
+2.  **Specific Camera Work:** Suggest a camera angle and lens type (e.g., "35mm lens", "Wide angle", "Depth of field") to give it a photographic look.
+3.  **Lighting & Mood:** Be specific about the light source (e.g., "Soft morning light", "Neon backlighting", "God rays") and color palette.
+4.  **Style Alignment:** Ensure the description matches the "${visualStyle}" aesthetic (e.g., if Solarpunk, emphasize plants and glass; if Noir, emphasize shadows).
+5.  **Safety:** Do not use names of real people. Avoid generating images of children in realistic settings; use "figures" or "silhouettes" instead.
 
-**Output:** Return ONLY the refined prompt string.
+**Current Draft:** ${scene.imagePrompt || scene.description}
+
+**Output:** Return ONLY the refined prompt text.
 `;
 }
 
@@ -343,6 +351,21 @@ Suggest a cinematic transition from Scene ${currentScene.sceneNumber} (${current
 **Next Action:** ${nextScene ? nextScene.description : 'Fade out'}
 
 **Output:** Return ONLY the transition description (e.g., "Match cut on the rising sun...").
+`;
+}
+
+const createTitleRefinementPrompt = (scene: Scene): string => {
+    return `
+You are a film editor and poet.
+Create a **concise, evocative, and unique** title for this scene.
+It should be 2-5 words long.
+It must align with a "positive future" narrative.
+
+**Scene:**
+${scene.description}
+${scene.location}
+
+**Output:** Return ONLY the title string.
 `;
 }
 
@@ -471,9 +494,14 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
 };
 
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    // Simple sanitization to avoid common safety triggers
+    let sanitizedPrompt = scene.imagePrompt || `${scene.description}. Visual Style: ${visualStyle}. Photorealistic, cinematic, 8k.`;
+    sanitizedPrompt = sanitizedPrompt.replace(/\b(child|children|kid|kids|toddler|baby)\b/gi, 'figure');
+    sanitizedPrompt = sanitizedPrompt.replace(/\b(boy|girl)\b/gi, 'character');
+
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image', // Recommended model for speed/quality balance in this app context
-        contents: scene.imagePrompt || `${scene.description}. Visual Style: ${visualStyle}. Photorealistic, cinematic, 8k.`,
+        contents: sanitizedPrompt,
     });
 
     const parts = response.candidates?.[0]?.content?.parts;
@@ -523,6 +551,20 @@ export const refineSceneTransitions = async (outline: Scene[], visualStyle: Visu
         }
     }
     return results;
+};
+
+export const regenerateTitleForScene = async (scene: Scene): Promise<string> => {
+    const prompt = createTitleRefinementPrompt(scene);
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt
+        });
+        return response.text?.trim() || scene.title;
+    } catch (e) {
+        console.error("Failed to regenerate title", e);
+        return scene.title;
+    }
 };
 
 export const regenerateBTS = async (
