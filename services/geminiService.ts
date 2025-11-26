@@ -272,7 +272,7 @@ Return a single, valid JSON object with a single key: "visualOutline".
     - "visuals" (string, description of the shot composition)
     - "transition" (string, edit to next scene)
     - "pacingEmotion" (string)
-    - "videoPrompt" (string, highly evocative, cinematic description of the shot for Veo, including camera movement and lighting)
+    - "videoPrompt" (string, highly evocative, cinematic description of the shot for Veo. Include camera movement, lighting, and style keywords like "cinematic", "4k".)
     - "imagePrompt" (string, detailed photorealistic prompt for Imagen)
 `;
 };
@@ -297,22 +297,26 @@ Return a raw string (Markdown formatted).
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are a world-class cinematographer and prompt engineer for Google's **Veo** generative video model.
+You are a visionary cinematographer and expert prompt engineer for Google's **Veo** generative video model.
 
-**Goal:** Create a highly evocative, cinematic video generation prompt for this scene.
+**Goal:** Transform the scene description into a **highly evocative, cinematic, and photorealistic** video prompt.
 
-**Input Context:**
-- **Action:** ${scene.description}
+**Scene Context:**
+- **Action/Movement:** ${scene.description}
 - **Location:** ${scene.location}
 - **Atmosphere:** ${scene.atmosphere}
 - **Time:** ${scene.timeOfDay}
 - **Visual Style:** ${styleDescription}
 
-**Instructions:**
-1.  **Cinematic Fidelity:** Use specific camera language (e.g., "Low angle push-in," "Aerial drone establish," "Anamorphic depth of field", "Rack focus").
-2.  **Sensory Detail:** Describe the texture of materials, the quality of light (e.g., "volumetric god rays," "neon reflections," "soft diffused glow"), and the specific motion in the shot.
-3.  **Style Enforcement:** Ensure the output strictly adheres to the "${visualStyle}" aesthetic.
-4.  **Format:** Return ONLY the raw prompt string. Keep it concise (approx 50-75 words) but dense with visual information.
+**Strict Prompting Guidelines:**
+1.  **Camera Movement & Angle:** You MUST specify the camera movement (e.g., "Slow push-in," "Tracking shot," "Low angle," "Aerial drone," "Handheld shake"). This is crucial for Veo.
+2.  **Lighting & Atmosphere:** Use sensory details to describe light (e.g., "volumetric god rays piercing through fog," "soft diffused golden hour light," "neon reflections on wet pavement").
+3.  **Texture & Detail:** Focus on tangible textures (e.g., "weathered rust," "glassy surfaces," "dust motes dancing in the air").
+4.  **Style Alignment:** The prompt must embody the "${visualStyle}" aesthetic perfectly.
+5.  **Quality Keywords:** Include: "cinematic", "photorealistic", "4k", "high fidelity", "film grain", "depth of field".
+6.  **Conciseness:** Keep it under 80 words. Dense and descriptive.
+
+**Output:** Return ONLY the raw prompt string. Do not add labels.
 `;
 }
 
