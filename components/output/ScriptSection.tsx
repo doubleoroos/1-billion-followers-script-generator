@@ -4,7 +4,7 @@ import type { ScriptBlock, Character } from '../../types';
 import { CopyButton } from '../ui/CopyButton';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { useSound } from '../hooks/useSound';
-import { generateScriptAudio } from '../../services/geminiService';
+import { generateScriptAudio, processInBatches } from '../../services/geminiService';
 
 interface ScriptSectionProps {
     script: ScriptBlock[];
@@ -16,6 +16,8 @@ const CheckmarkIcon = () => <svg className="h-4 w-4 text-green-600" xmlns="http:
 const SpeakerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>;
 const PlayIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>;
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+const MagicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>;
+
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     let content: React.ReactNode = null;
@@ -93,6 +95,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
     const [editedScript, setEditedScript] = useState<ScriptBlock[]>(processedScript);
     const { status, save } = useAutosave({ onSave, onSuccess: () => playSound('success') });
     const [generatingAudio, setGeneratingAudio] = useState<Set<string>>(new Set());
+    const [isBulkGenerating, setIsBulkGenerating] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
@@ -146,6 +149,53 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
         }
     };
 
+    const handleGenerateAllNarration = async () => {
+        const narrationBlocks = editedScript.filter(b => b.type === 'narration' && !b.audioUrl);
+        if (narrationBlocks.length === 0) return;
+
+        setIsBulkGenerating(true);
+        playSound();
+
+        try {
+            const results = await processInBatches<ScriptBlock, { id: string, audioUrl: string } | null>(
+                narrationBlocks, 
+                async (block) => {
+                    try {
+                         const audioUrl = await generateScriptAudio(block.content, 'Kore');
+                         return { id: block.id, audioUrl };
+                    } catch (e) {
+                        console.error(`Failed to generate audio for block ${block.id}`, e);
+                        return null;
+                    }
+                }, 
+                3, 
+                500
+            ); // Batch size 3, delay 500ms
+
+            setEditedScript(prev => {
+                const newScript = [...prev];
+                let hasChanges = false;
+                results.forEach(res => {
+                    if (res) {
+                        const index = newScript.findIndex(b => b.id === res.id);
+                        if (index !== -1) {
+                            newScript[index] = { ...newScript[index], audioUrl: res.audioUrl };
+                            hasChanges = true;
+                        }
+                    }
+                });
+                if (hasChanges) save(newScript);
+                return newScript;
+            });
+            playSound('success');
+        } catch (error) {
+            console.error("Bulk generation failed", error);
+            alert("Some narration audio failed to generate.");
+        } finally {
+            setIsBulkGenerating(false);
+        }
+    };
+
     const handlePlayAudio = (url: string) => {
         if (audioRef.current) {
             audioRef.current.pause();
@@ -165,6 +215,8 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
         }).join('\n\n');
     };
     
+    const missingNarrationCount = editedScript.filter(b => b.type === 'narration' && !b.audioUrl).length;
+
     return (
         <div className="relative w-full max-w-4xl mx-auto">
              <div className="absolute top-0 right-0 transform translate-y-[-120%] flex items-center gap-3">
@@ -178,6 +230,27 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                 <div className="absolute left-4 top-1/4 w-4 h-4 rounded-full bg-slate-900/10 shadow-inner"></div>
                 <div className="absolute left-4 top-1/2 w-4 h-4 rounded-full bg-slate-900/10 shadow-inner"></div>
                 <div className="absolute left-4 top-3/4 w-4 h-4 rounded-full bg-slate-900/10 shadow-inner"></div>
+
+                {/* Bulk Actions Header */}
+                <div className="flex justify-end mb-8 pb-4 border-b border-slate-200">
+                    <button
+                        onClick={handleGenerateAllNarration}
+                        disabled={isBulkGenerating || missingNarrationCount === 0}
+                        className="text-xs uppercase tracking-widest font-bold text-violet-600 hover:text-violet-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
+                        title={missingNarrationCount > 0 ? `Generate audio for ${missingNarrationCount} narration blocks` : 'All narration has audio'}
+                    >
+                        {isBulkGenerating ? (
+                             <>
+                                <div className="animate-spin h-3 w-3 border-2 border-violet-600 border-t-transparent rounded-full"></div>
+                                <span className="animate-pulse">Generating Audio...</span>
+                             </>
+                        ) : (
+                             <>
+                                <MagicIcon /> Generate All Narration ({missingNarrationCount})
+                             </>
+                        )}
+                    </button>
+                </div>
 
                 <div className="space-y-8 max-w-3xl mx-auto">
                     {editedScript.map((block) => (

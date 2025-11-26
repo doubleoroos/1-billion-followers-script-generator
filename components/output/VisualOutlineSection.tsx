@@ -624,6 +624,22 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
         }
     }
 
+    const hasAttemptedHeroGeneration = useRef(false);
+
+    // Auto-generate the first scene's image as a hero preview
+    useEffect(() => {
+        if (!hasAttemptedHeroGeneration.current && localOutline.length > 0) {
+            const firstScene = localOutline[0];
+            if (firstScene && !firstScene.imageUrl && firstScene.imagePrompt) {
+                hasAttemptedHeroGeneration.current = true;
+                // Add a small delay to ensure UI renders first
+                setTimeout(() => {
+                    handleGenerateImage(firstScene);
+                }, 1000);
+            }
+        }
+    }, [localOutline]);
+
     const handleRegenerateVideoPrompt = async (scene: Scene) => {
         setRegeneratingPrompts(prev => new Set(prev).add(scene.id));
         try {
