@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -207,10 +208,16 @@ Generate the core creative concept for this film.
     - **Name:** A fitting name.
     - **Role:** Specific role (e.g., 'Protagonist', 'Mentor').
     - **Description:** A rich, evocative, and detailed description (3-4 sentences) that captures their personality, inner motivation, and physical appearance. Ensure the description reflects the positive future theme of "${theme}".
+    - **VoicePreference:** Select the most suitable voice model from this list based on the character's gender and persona:
+        - 'Kore' (Female, Balanced)
+        - 'Zephyr' (Female, Soft)
+        - 'Puck' (Male, Resonant)
+        - 'Fenrir' (Male, Deep)
+        - 'Charon' (Male, Authoritative)
 
 **Output Format:**
 Return a single, valid JSON object with three keys: "logline", "synopsis", and "characters".
-- "characters" must be an array of objects, each with "name", "description", and "role" keys.
+- "characters" must be an array of objects, each with "name", "description", "role", and "voicePreference" keys.
 `;
 }
 
@@ -295,7 +302,7 @@ Return a single, valid JSON object with a single key: "visualOutline".
     - "transition" (string, edit to next scene)
     - "pacingEmotion" (string)
     - "videoPrompt" (string, highly evocative, cinematic description of the shot for Veo. Include camera movement, lighting, and style keywords like "cinematic", "4k".)
-    - "imagePrompt" (string, highly detailed, photorealistic, 8k prompt for Imagen. Focus on cinematic lighting, composition, and texture.)
+    - "imagePrompt" (string, detailed, photorealistic, 8k prompt for Imagen. Focus on cinematic lighting, composition, and texture. Avoid 'concept art' style.)
 `;
 };
 
@@ -319,52 +326,49 @@ Return a raw string (Markdown formatted).
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are a visionary cinematographer and expert prompt engineer for Google's **Veo** generative video model.
+You are a master cinematographer and expert prompt engineer for Google's **Veo** AI video model.
 
-**Goal:** Transform the scene description into a **highly evocative, cinematic, and photorealistic** video prompt.
+**Task:** Write a highly evocative, cinematic video generation prompt for the following scene.
+**Visual Style:** ${visualStyle} (${styleDescription})
 
-**Scene Context:**
-- **Action/Movement:** ${scene.description}
+**Scene Details:**
+- **Action:** ${scene.description}
 - **Location:** ${scene.location}
-- **Atmosphere:** ${scene.atmosphere}
-- **Time:** ${scene.timeOfDay}
-- **Visual Style:** ${styleDescription}
+- **Mood:** ${scene.atmosphere}
 
-**Strict Prompting Guidelines:**
-1.  **Camera Movement & Angle:** You MUST specify the camera movement (e.g., "Slow push-in," "Tracking shot," "Low angle," "Aerial drone," "Handheld shake"). This is crucial for Veo.
-2.  **Lighting & Atmosphere:** Use sensory details to describe light (e.g., "volumetric god rays piercing through fog," "soft diffused golden hour light," "neon reflections on wet pavement").
-3.  **Texture & Detail:** Focus on tangible textures (e.g., "weathered rust," "glassy surfaces," "dust motes dancing in the air").
-4.  **Style Alignment:** The prompt must embody the "${visualStyle}" aesthetic perfectly.
-5.  **Quality Keywords:** Include: "cinematic", "photorealistic", "4k", "high fidelity", "film grain", "depth of field".
-6.  **Conciseness:** Keep it under 80 words. Dense and descriptive.
+**Prompting Requirements:**
+1.  **Cinematic Opening:** Start with "Cinematic shot of..." or "Wide angle shot of...".
+2.  **Dynamic Camera:** Mandatory description of camera movement (e.g., "Camera tracks forward...", "Slow pan right...", "Aerial drone shot establishing...").
+3.  **Lighting & Atmosphere:** Describe the light quality (e.g., "dappled sunlight," "harsh neon," "soft volumetric fog") and atmospheric particles.
+4.  **Sensory Details:** Focus on textures and micro-movements (e.g., "wind rippling the grass," "rain dripping from metal").
+5.  **Keywords:** "Photorealistic", "4k", "35mm film grain", "high budget", "masterpiece".
 
-**Output:** Return ONLY the raw prompt string. Do not add labels.
+**Output:** A single, concise paragraph (max 80 words). No headers.
 `;
 }
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are a world-class cinematographer and prompt engineer for Google's **Imagen** model.
+You are a specialist Prompt Engineer for high-fidelity, photorealistic AI image generation (Imagen 3).
 
-**Goal:** Create a prompt for a **Hyper-Realistic Cinematic Film Still** that aligns perfectly with the film's visual style. DO NOT describe it as a drawing, painting, or concept art. It must look like a photograph from a high-budget movie.
+**Task:** Write a refined, highly evocative image prompt for this film scene.
+**Goal:** The result must be a **Hyper-Realistic, Cinematic 8K Film Still**. It should look like a frame from a high-budget feature film, not concept art.
 
 **Scene Context:**
 - **Action:** ${scene.description}
 - **Location:** ${scene.location}
 - **Atmosphere:** ${scene.atmosphere}
-- **Visual Style:** ${styleDescription}
+- **Visual Style:** ${visualStyle} (${styleDescription})
 
-**Strict Prompting Guidelines:**
-1.  **Photorealism is Paramount:** Use keywords: "Hyper-realistic", "Cinematic Film Still", "8k resolution", "Shot on Arri Alexa", "Anamorphic Lens", "35mm film grain", "Depth of Field", "Ray Tracing", "Global Illumination".
-2.  **Lighting & Composition:** Specify dramatic, cinematic lighting (e.g., "Rembrandt lighting", "Volumetric fog", "Bioluminescent accents", "Lens flare").
-3.  **No Artistic Abstractions:** Avoid "painterly", "brushstrokes", "illustration", "sketch".
-4.  **Evocative Detail:** Describe the texture of materials (skin pores, fabric weave, metal oxidation).
-5.  **Safety:** Do not use real names. Avoid generating children in realistic scenarios; use "figures" or silhouettes.
+**Refinement Strategy:**
+1.  **Photorealism Keywords:** "Hyper-realistic", "Cinematic", "8k", "Raw photo", "Color graded", "Shot on Arri Alexa", "35mm film grain".
+2.  **Cinematography:** Describe the camera angle (e.g., "Low angle", "Wide shot"), lens choice (e.g., "50mm prime", "Anamorphic"), and depth of field.
+3.  **Lighting:** Be specific about light sources and quality (e.g., "Soft volumetric fog", "Harsh rim light", "Bioluminescent glow", "Natural golden hour").
+4.  **Texture:** Emphasize material textures (skin, metal, cloth, nature) to ground the image in reality.
+5.  **Negative Constraints:** Ensure the prompt discourages "illustration", "painting", "drawing", "cartoon", "text", "watermark".
 
-**Current Draft:** ${scene.imagePrompt || scene.description}
-
-**Output:** Return ONLY the refined prompt string.
+**Output:** A single, concise, comma-separated list of descriptive phrases.
 `;
 }
 
@@ -504,12 +508,15 @@ export const generateCreativeAssets = async (
 
     const refImages = await Promise.all(refImagesPromises);
 
-    // Assign voices to characters roughly
+    // Assign voices to characters
     const voices = ['Kore', 'Fenrir', 'Puck', 'Zephyr', 'Charon'];
     const charactersWithVoices = (concept.characters as Character[]).map((c, i) => ({
         ...c,
         id: `char-${i}`,
-        voicePreference: voices[i % voices.length]
+        // Use the AI generated preference if valid, otherwise fallback to round-robin
+        voicePreference: (c.voicePreference && voices.includes(c.voicePreference)) 
+            ? c.voicePreference 
+            : voices[i % voices.length]
     }));
     
     // Process Script with IDs
