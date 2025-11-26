@@ -134,9 +134,9 @@ const getIntensityDescription = (intensity: EmotionalArcIntensity): string => {
 
 const getVisualStyleDescription = (style: VisualStyle): string => {
     switch (style) {
-        case 'solarpunk': return "The visual style is Solarpunk: optimistic, eco-conscious, and technologically advanced, featuring lush greenery integrated with elegant, organic architecture and a focus on community and nature.";
-        case 'minimalist': return "The visual style is Minimalist: clean, abstract, and symbolic. It uses simple geometric forms, a limited color palette, and ample negative space to convey complex ideas with clarity and focus.";
-        case 'biomorphic': return "The visual style is Biomorphic: fluid, organic, and abstract shapes inspired by the curves and patterns found in nature. The aesthetic is flowing, elegant, and interconnected.";
+        case 'solarpunk': return "The visual style is Solarpunk: optimistic, eco-conscious, and technologically advanced, featuring lush greenery integrated with elegant, organic architecture and a focus on community and nature. Photorealistic.";
+        case 'minimalist': return "The visual style is Minimalist: clean, abstract, and symbolic. It uses simple geometric forms, a limited color palette, and ample negative space to convey complex ideas with clarity and focus. Photorealistic.";
+        case 'biomorphic': return "The visual style is Biomorphic: fluid, organic, and abstract shapes inspired by the curves and patterns found in nature. The aesthetic is flowing, elegant, and interconnected. Photorealistic.";
         case 'abstract': return "The visual style is Abstract: non-representational and emotionally driven. It uses color, light, shape, and texture to create a visceral experience and explore inner landscapes of feeling and thought, rather than depicting external reality.";
         default: return "The visual style is highly Cinematic and Photorealistic: emotionally resonant, with dramatic lighting, a grand sense of scale, and hyper-detailed textures to create a deeply immersive experience.";
     }
@@ -323,9 +323,9 @@ You are a visionary cinematographer and expert prompt engineer for Google's **Ve
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are a world-class prompt engineer for Google's **Imagen** model, specializing in cinematic and photorealistic imagery.
+You are a world-class cinematographer and prompt engineer for Google's **Imagen** model.
 
-**Goal:** Refine the following image prompt to ensure the output is a breathtaking, high-resolution, photorealistic image that aligns perfectly with the film's visual style.
+**Goal:** Create a prompt for a **Hyper-Realistic Cinematic Film Still** that aligns perfectly with the film's visual style. DO NOT describe it as a drawing, painting, or concept art. It must look like a photograph from a high-budget movie.
 
 **Scene Context:**
 - **Action:** ${scene.description}
@@ -334,10 +334,10 @@ You are a world-class prompt engineer for Google's **Imagen** model, specializin
 - **Visual Style:** ${styleDescription}
 
 **Strict Prompting Guidelines:**
-1.  **Photorealism:** Use keywords: "photorealistic", "8k", "highly detailed", "cinematic lighting", "35mm photography", "film grain", "sharp focus", "depth of field", "Unreal Engine 5 render style".
-2.  **Lighting & Composition:** Specify the lighting (e.g., "golden hour", "volumetric fog", "chiaroscuro", "neon rim light") and camera angle (e.g., "wide angle", "low angle", "close-up", "telephoto").
-3.  **Visual Style:** The image must embody the "${visualStyle}" aesthetic.
-4.  **Evocative Detail:** Describe textures and materials (e.g., "rust on metal", "rain on glass", "fabric texture").
+1.  **Photorealism is Paramount:** Use keywords: "Hyper-realistic", "Cinematic Film Still", "8k resolution", "Shot on Arri Alexa", "Anamorphic Lens", "35mm film grain", "Depth of Field", "Ray Tracing", "Global Illumination".
+2.  **Lighting & Composition:** Specify dramatic, cinematic lighting (e.g., "Rembrandt lighting", "Volumetric fog", "Bioluminescent accents", "Lens flare").
+3.  **No Artistic Abstractions:** Avoid "painterly", "brushstrokes", "illustration", "sketch".
+4.  **Evocative Detail:** Describe the texture of materials (skin pores, fabric weave, metal oxidation).
 5.  **Safety:** Do not use real names. Avoid generating children in realistic scenarios; use "figures" or silhouettes.
 
 **Current Draft:** ${scene.imagePrompt || scene.description}
@@ -373,6 +373,28 @@ ${scene.location}
 }
 
 // --- API INTERACTION ---
+
+const generateRawImage = async (prompt: string): Promise<string | null> => {
+    // Basic sanitization to avoid common safety triggers
+    let sanitizedPrompt = prompt.replace(/\b(child|children|kid|kids|toddler|baby)\b/gi, 'figure');
+    sanitizedPrompt = sanitizedPrompt.replace(/\b(boy|girl)\b/gi, 'character');
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: sanitizedPrompt,
+        });
+
+        const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+        if (part && part.inlineData) {
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        }
+        return null;
+    } catch (e) {
+        console.error("Image generation failed:", e);
+        return null;
+    }
+};
 
 export const generateCreativeAssets = async (
     theme: RewriteTomorrowTheme,
@@ -416,13 +438,35 @@ export const generateCreativeAssets = async (
         contents: btsPrompt
     });
 
-    // 5. Reference Images (Simple placeholder generation for moodboard based on style)
-    const refImages: ReferenceImage[] = [
-        { title: "Visual Style Reference", imageUrl: "https://placehold.co/600x400/1a1a2e/FFF?text=Style+Ref" },
-        { title: "Key Location Atmosphere", imageUrl: "https://placehold.co/600x400/16213e/FFF?text=Location+Ref" },
-        { title: "Character Concept", imageUrl: "https://placehold.co/600x400/0f3460/FFF?text=Character+Ref" },
-        { title: "Lighting Reference", imageUrl: "https://placehold.co/600x400/533483/FFF?text=Lighting+Ref" }
+    // 5. Moodboard Generation (Real Images - Hyper-Realistic)
+    const moodboardPrompts = [
+        { 
+            title: "Cinematic Style", 
+            prompt: `A hyper-realistic cinematic film still demonstrating the ${visualStyle} visual style. ${getVisualStyleDescription(visualStyle)}. Shot on Arri Alexa, Anamorphic lens, 8k, highly detailed, professional color grading, depth of field.` 
+        },
+        { 
+            title: "The World", 
+            prompt: `Wide establishing film still of the film's setting. Theme: ${theme}. ${concept.synopsis.substring(0, 150)}. Visual Style: ${visualStyle}. Hyper-realistic, atmospheric, futuristic city or landscape, photorealistic lighting, 8k.` 
+        },
+        { 
+            title: "Protagonist Concept", 
+            prompt: `Cinematic close-up portrait of a character named ${concept.characters[0]?.name || 'Protagonist'}. ${concept.characters[0]?.description || 'A futuristic hero'}. Visual Style: ${visualStyle}. Hyper-realistic, shot on 35mm film, skin texture, expressive eyes, professional lighting.` 
+        },
+        { 
+            title: "Key Moment", 
+            prompt: `A key dramatic film still from the scene: ${concept.logline}. Visual Style: ${visualStyle}. Dynamic composition, motion blur, photorealistic, 8k resolution, cinematic lighting.` 
+        }
     ];
+
+    const refImagesPromises = moodboardPrompts.map(async (item) => {
+        const imageUrl = await generateRawImage(item.prompt);
+        return {
+            title: item.title,
+            imageUrl: imageUrl || `https://placehold.co/600x600/1a1a2e/FFF?text=${encodeURIComponent(item.title)}`
+        };
+    });
+
+    const refImages = await Promise.all(refImagesPromises);
 
     // Assign voices to characters roughly
     const voices = ['Kore', 'Fenrir', 'Puck', 'Zephyr', 'Charon'];
@@ -498,24 +542,25 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
 
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     // Simple sanitization to avoid common safety triggers
-    let sanitizedPrompt = scene.imagePrompt || `${scene.description}. Visual Style: ${visualStyle}. Photorealistic, cinematic, 8k.`;
+    let sanitizedPrompt = scene.imagePrompt || `${scene.description}. Visual Style: ${visualStyle}. Hyper-realistic, cinematic film still, 8k, shot on Arri Alexa.`;
     sanitizedPrompt = sanitizedPrompt.replace(/\b(child|children|kid|kids|toddler|baby)\b/gi, 'figure');
     sanitizedPrompt = sanitizedPrompt.replace(/\b(boy|girl)\b/gi, 'character');
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image', // Recommended model for speed/quality balance in this app context
-        contents: sanitizedPrompt,
-    });
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image', // Recommended model for speed/quality balance in this app context
+            contents: sanitizedPrompt,
+        });
 
-    const parts = response.candidates?.[0]?.content?.parts;
-    if (!parts) throw new Error("No content returned");
-
-    for (const part of parts) {
-        if (part.inlineData) {
+        const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+        if (part && part.inlineData) {
             return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
+        throw new Error("No image data found in response");
+    } catch (e) {
+        console.error("Scene image generation failed", e);
+        throw e;
     }
-    throw new Error("No image data found in response");
 };
 
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {

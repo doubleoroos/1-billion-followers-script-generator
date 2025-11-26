@@ -141,7 +141,8 @@ const CinematicSceneCard: React.FC<{
   scene, characters, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
   isVideoGenerating, isImageGenerating, isPromptRegenerating, isVeoKeySelected
 }) => {
-    const [activeTab, setActiveTab] = useState<'video' | 'image'>('video');
+    // Default to Image tab if no video exists, otherwise default to Video
+    const [activeTab, setActiveTab] = useState<'video' | 'image'>(scene.videoUrl ? 'video' : 'image');
     const playSound = useSound();
 
     const atmosphereOptions = ['Misty', 'Golden Hour', 'Stormy', 'Serene', 'Eerie', 'Bustling', 'Oppressive', 'Tranquil', 'Vibrant', 'Desolate', 'Futuristic', 'Nostalgic'];
@@ -241,7 +242,7 @@ const CinematicSceneCard: React.FC<{
                                     <div className={`mb-6 inline-flex items-center justify-center w-16 h-16 rounded-2xl ${isVideoGenerating ? 'animate-pulse bg-violet-500/20' : 'bg-slate-900 border border-white/10'}`}>
                                         {isVideoGenerating ? <div className="animate-spin h-6 w-6 border-2 border-violet-500 border-t-transparent rounded-full" /> : <VideoIcon />}
                                     </div>
-                                    <h4 className="text-white font-bold mb-2">Cinematic Preview</h4>
+                                    <h4 className="text-white font-bold mb-2">Cinematic Video</h4>
                                     <p className="text-slate-400 text-xs mb-6 leading-relaxed">Generate a high-fidelity video clip using Google Veo to visualize this scene's motion and atmosphere.</p>
                                     <button 
                                         onClick={() => { playSound(); onGenerateVideo(scene); }}
@@ -273,14 +274,14 @@ const CinematicSceneCard: React.FC<{
                                     <div className={`mb-6 inline-flex items-center justify-center w-16 h-16 rounded-2xl ${isImageGenerating ? 'animate-pulse bg-cyan-500/20' : 'bg-slate-900 border border-white/10'}`}>
                                         {isImageGenerating ? <div className="animate-spin h-6 w-6 border-2 border-cyan-500 border-t-transparent rounded-full" /> : <ImageIcon />}
                                     </div>
-                                    <h4 className="text-white font-bold mb-2">Concept Art</h4>
-                                    <p className="text-slate-400 text-xs mb-6 leading-relaxed">Generate a photorealistic still image using Imagen to establish the lighting and composition.</p>
+                                    <h4 className="text-white font-bold mb-2">Cinematic Still</h4>
+                                    <p className="text-slate-400 text-xs mb-6 leading-relaxed">Generate a photorealistic preview photo of this scene to visualize the lighting and composition.</p>
                                     <button 
                                         onClick={() => { playSound(); onGenerateImage(scene); }}
                                         disabled={isImageGenerating}
                                         className="btn-glass flex items-center gap-2 mx-auto bg-cyan-600/10 text-cyan-300 border-cyan-500/30 hover:bg-cyan-600 hover:text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-wide transition-all"
                                     >
-                                        <SparklesIcon /> {isImageGenerating ? 'Painting...' : 'Generate with Imagen'}
+                                        <SparklesIcon /> {isImageGenerating ? 'Developing...' : 'Generate Photo'}
                                     </button>
                                 </div>
                             )}
@@ -503,13 +504,13 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                  {/* Preview Images Control */}
                   <div className="panel-glass p-5 rounded-2xl flex flex-col justify-between hover:bg-white/5 transition-colors">
                      <div>
-                        <h4 className="font-bold text-white text-sm mb-1 flex items-center gap-2"><ImageIcon /> Batch Previews</h4>
-                        <p className="text-xs text-slate-400 mb-4">Create preview images for {scenesWithoutImageCount} scenes.</p>
+                        <h4 className="font-bold text-white text-sm mb-1 flex items-center gap-2"><ImageIcon /> Batch Photos</h4>
+                        <p className="text-xs text-slate-400 mb-4">Create cinematic stills for {scenesWithoutImageCount} scenes.</p>
                      </div>
                       {previewGenState.status === 'running' ? (
                          <div className="text-center">
                              <div className="animate-spin h-5 w-5 border-2 border-cyan-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                             <span className="text-xs text-slate-400">Generating...</span>
+                             <span className="text-xs text-slate-400">Developing...</span>
                          </div>
                      ) : (
                         <button
@@ -517,7 +518,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                             disabled={scenesWithoutImageCount === 0 || isAnyProcessRunning}
                             className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2.5 rounded-xl border border-white/10 disabled:opacity-30 uppercase tracking-wide"
                         >
-                            Generate Images
+                            Generate Photos
                         </button>
                      )}
                  </div>
