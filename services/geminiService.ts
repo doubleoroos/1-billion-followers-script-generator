@@ -282,7 +282,8 @@ Break the script down into a sequence of scenes. For each scene, define the visu
 2. **Location & Atmosphere:** Describe the setting and the mood (e.g., lighting, weather, feeling).
 3. **Action & Visuals:** Describe what happens and what we see. **Do not just list actions.** Use evocative, sensory language to describe the scene. Focus on textures, lighting, specific movements, and the emotional resonance of the moment. Make it read like a novel.
 4. **Cinematography:** Suggest a specific camera angle or movement (e.g., "Wide drone shot", "Close-up on eyes").
-5. **Prompts:** Create distinct, detailed prompts for generating the visual assets (Video and Image).
+5. **Pacing & Emotion:** Describe the desired pacing and emotional tone (e.g., "Slow and melancholic", "Fast-paced and urgent", "Calm and contemplative").
+6. **Prompts:** Create distinct, detailed prompts for generating the visual assets (Video and Image).
 
 **Output Format:**
 Return a single, valid JSON object with a single key: "visualOutline".
@@ -300,7 +301,7 @@ Return a single, valid JSON object with a single key: "visualOutline".
     - "keyVisualElements" (string, specific details to capture)
     - "visuals" (string, description of the shot composition)
     - "transition" (string, edit to next scene)
-    - "pacingEmotion" (string)
+    - "pacingEmotion" (string, e.g. "Slow and melancholic", "Fast-paced and urgent")
     - "videoPrompt" (string, highly evocative, cinematic description of the shot for Veo. Include camera movement, lighting, and style keywords like "cinematic", "4k".)
     - "imagePrompt" (string, detailed, photorealistic, 8k prompt for Imagen. Focus on cinematic lighting, composition, and texture. Avoid 'concept art' style.)
 `;
