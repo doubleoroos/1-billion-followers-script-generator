@@ -135,6 +135,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             <StoryboardSection id="outline" title="Visual Outline" style={{ animationDelay: '600ms' }}>
                 <VisualOutlineSection 
                     outline={visualOutline} 
+                    characters={characters}
                     onSave={onOutlineSave} 
                     onVideoSave={onVideoSave} 
                     visualStyle={visualStyle} 

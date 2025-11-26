@@ -273,7 +273,7 @@ Return a single, valid JSON object with a single key: "visualOutline".
     - "transition" (string, edit to next scene)
     - "pacingEmotion" (string)
     - "videoPrompt" (string, highly evocative, cinematic description of the shot for Veo. Include camera movement, lighting, and style keywords like "cinematic", "4k".)
-    - "imagePrompt" (string, detailed photorealistic prompt for Imagen)
+    - "imagePrompt" (string, highly detailed, photorealistic, 8k prompt for Imagen. Focus on cinematic lighting, composition, and texture.)
 `;
 };
 
@@ -327,22 +327,22 @@ You are a world-class prompt engineer for Google's **Imagen** model, specializin
 
 **Goal:** Refine the following image prompt to ensure the output is a breathtaking, high-resolution, photorealistic image that aligns perfectly with the film's visual style.
 
-**Scene Details:**
+**Scene Context:**
 - **Action:** ${scene.description}
 - **Location:** ${scene.location}
 - **Atmosphere:** ${scene.atmosphere}
 - **Visual Style:** ${styleDescription}
 
-**Instructions:**
-1.  **Enhance Visual Fidelity:** Incorporate terms like "8k resolution", "hyper-realistic", "highly detailed", "cinematic lighting", "unreal engine 5 render style", "volumetric fog", and "intricate textures".
-2.  **Specific Camera Work:** Suggest a camera angle and lens type (e.g., "35mm lens", "Wide angle", "Depth of field") to give it a photographic look.
-3.  **Lighting & Mood:** Be specific about the light source (e.g., "Soft morning light", "Neon backlighting", "God rays") and color palette.
-4.  **Style Alignment:** Ensure the description matches the "${visualStyle}" aesthetic (e.g., if Solarpunk, emphasize plants and glass; if Noir, emphasize shadows).
-5.  **Safety:** Do not use names of real people. Avoid generating images of children in realistic settings; use "figures" or "silhouettes" instead.
+**Strict Prompting Guidelines:**
+1.  **Photorealism:** Use keywords: "photorealistic", "8k", "highly detailed", "cinematic lighting", "35mm photography", "film grain", "sharp focus", "depth of field", "Unreal Engine 5 render style".
+2.  **Lighting & Composition:** Specify the lighting (e.g., "golden hour", "volumetric fog", "chiaroscuro", "neon rim light") and camera angle (e.g., "wide angle", "low angle", "close-up", "telephoto").
+3.  **Visual Style:** The image must embody the "${visualStyle}" aesthetic.
+4.  **Evocative Detail:** Describe textures and materials (e.g., "rust on metal", "rain on glass", "fabric texture").
+5.  **Safety:** Do not use real names. Avoid generating children in realistic scenarios; use "figures" or silhouettes.
 
 **Current Draft:** ${scene.imagePrompt || scene.description}
 
-**Output:** Return ONLY the refined prompt text.
+**Output:** Return ONLY the refined prompt string.
 `;
 }
 

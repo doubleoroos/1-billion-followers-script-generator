@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import type { Scene, VisualStyle } from '../../types';
+import type { Scene, VisualStyle, Character } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
@@ -50,6 +50,7 @@ const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
 
 interface VisualOutlineSectionProps {
   outline: Scene[];
+  characters: Character[];
   onSave: (newOutline: Scene[]) => void;
   onVideoSave: (scene: Scene) => void;
   visualStyle: VisualStyle;
@@ -116,6 +117,7 @@ const DatalistInput: React.FC<{
 // Cinematic Scene Card
 const CinematicSceneCard: React.FC<{
   scene: Scene;
+  characters: Character[];
   visualStyle: VisualStyle;
   onUpdate: (scene: Scene) => void;
   onGenerateVideo: (scene: Scene) => void;
@@ -127,7 +129,7 @@ const CinematicSceneCard: React.FC<{
   isPromptRegenerating: boolean;
   isVeoKeySelected: boolean | null;
 }> = ({
-  scene, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
+  scene, characters, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
   isVideoGenerating, isImageGenerating, isPromptRegenerating, isVeoKeySelected
 }) => {
     const [activeTab, setActiveTab] = useState<'video' | 'image'>('video');
@@ -136,18 +138,66 @@ const CinematicSceneCard: React.FC<{
     const atmosphereOptions = ['Misty', 'Golden Hour', 'Stormy', 'Serene', 'Eerie', 'Bustling', 'Oppressive', 'Tranquil', 'Vibrant', 'Desolate', 'Futuristic', 'Nostalgic'];
     const transitionOptions = ['Cut to:', 'Cross-dissolve to:', 'Fade to Black.', 'Match cut on action to:', 'Jump cut to:', 'Smash cut to black.'];
 
+    const sceneCharNames = useMemo(() => {
+        return scene.charactersInScene.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    }, [scene.charactersInScene]);
+
+    const getCharacter = (name: string) => characters.find(c => c.name.toLowerCase() === name.toLowerCase());
+
+    const scrollToCharacter = (charId: string) => {
+        const el = document.getElementById(`character-card-${charId}`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add a temporary highlight effect
+            el.classList.add('ring-2', 'ring-violet-500', 'shadow-[0_0_30px_rgba(139,92,246,0.5)]');
+            setTimeout(() => el.classList.remove('ring-2', 'ring-violet-500', 'shadow-[0_0_30px_rgba(139,92,246,0.5)]'), 2000);
+        }
+    };
+
     return (
         <div className="panel-glass-strong rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-glow-violet/20 border border-white/10 group">
             
             {/* Header / Metadata Strip */}
-            <div className="bg-slate-900/80 border-b border-white/5 p-4 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-300 font-bold font-mono">
+            <div className="bg-slate-900/80 border-b border-white/5 p-4 flex justify-between items-start">
+                <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-300 font-bold font-mono shrink-0 mt-1">
                         {scene.sceneNumber}
                     </div>
                     <div>
                         <h3 className="text-white font-bold text-sm tracking-wide">{scene.title}</h3>
-                        <p className="text-xs text-slate-400">{scene.location} • {scene.timeOfDay} • {scene.duration}</p>
+                        <p className="text-xs text-slate-400 mb-2">{scene.location} • {scene.timeOfDay} • {scene.duration}</p>
+                        
+                        {/* Character Chips */}
+                        <div className="flex flex-wrap gap-2">
+                            {sceneCharNames.map((name, idx) => {
+                                const char = getCharacter(name);
+                                return (
+                                    <button 
+                                        key={idx}
+                                        onClick={(e) => {
+                                            if (char) {
+                                                e.stopPropagation();
+                                                playSound();
+                                                scrollToCharacter(char.id);
+                                            }
+                                        }}
+                                        disabled={!char}
+                                        className={`
+                                            flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all
+                                            ${char 
+                                                ? 'bg-violet-500/10 border-violet-500/20 text-violet-200 hover:bg-violet-500/20 hover:border-violet-500/50 cursor-pointer' 
+                                                : 'bg-slate-800 border-white/5 text-slate-500 cursor-default'}
+                                        `}
+                                        title={char ? `Jump to ${char.name}` : 'Character not found in cast list'}
+                                    >
+                                        <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold ${char ? 'bg-violet-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
+                                            {name.charAt(0).toUpperCase()}
+                                        </div>
+                                        {name}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -524,7 +574,7 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
 }
 
 export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
-  outline, onSave, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError
+  outline, characters, onSave, onVideoSave, visualStyle, isVeoKeySelected, onSelectKey, onInvalidKeyError
 }) => {
     const [localOutline, setLocalOutline] = useState<Scene[]>(outline);
     const outlineRef = useRef<Scene[]>(outline);
@@ -1047,6 +1097,7 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                         <CinematicSceneCard
                             key={scene.id}
                             scene={scene}
+                            characters={characters}
                             visualStyle={visualStyle}
                             onUpdate={handleSceneUpdate}
                             onGenerateVideo={handleGenerateVideo}
