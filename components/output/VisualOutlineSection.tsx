@@ -8,15 +8,24 @@ import { CopyButton } from '../ui/CopyButton';
 import { useSound } from '../hooks/useSound';
 
 // Re-usable Icons
-const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const VideoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>;
 const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
-const PlaceholderImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const CheckmarkIcon = () => <svg className="h-4 w-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path className="animate-draw-checkmark" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" style={{ strokeDasharray: 24, strokeDashoffset: 24 }} /></svg>;
 const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2l1-1 1-1-1.257-.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>;
-const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>;
+const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>;
 const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>;
 const SearchIcon = () => <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+
+const EmptyStatePattern = () => (
+    <svg className="absolute inset-0 w-full h-full opacity-10" width="100%" height="100%">
+        <pattern id="pattern-circles" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="20" cy="20" r="1.5" className="text-white" fill="currentColor" />
+        </pattern>
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#pattern-circles)" />
+    </svg>
+);
+
 
 const parseVideoGenerationError = (error: unknown): { userMessage: string; isApiKeyError: boolean } => {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -41,9 +50,9 @@ const parseVideoGenerationError = (error: unknown): { userMessage: string; isApi
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     let content: React.ReactNode = null;
-    if (status === 'dirty') content = <span className="text-cyan">Unsaved changes...</span>;
-    else if (status === 'saving') content = <span className="text-cyan flex items-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>;
-    else if (status === 'saved') content = <span className="text-green-400 flex items-center gap-2"><CheckmarkIcon />Synced.</span>;
+    if (status === 'dirty') content = <span className="text-cyan-300">Unsaved changes...</span>;
+    else if (status === 'saving') content = <span className="text-cyan-300 flex items-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>;
+    else if (status === 'saved') content = <span className="text-green-400 flex items-center gap-2"><CheckmarkIcon />Synced</span>;
     else return <div className="h-5"></div>;
     return <div className="h-5 text-sm transition-opacity duration-300">{content}</div>;
 };
@@ -103,10 +112,10 @@ const DatalistInput: React.FC<{
   const datalistId = `${id}-list`;
   return (
     <div>
-      <label htmlFor={id} className="block text-slate-400 font-medium mb-1 text-xs uppercase tracking-wide">{label}</label>
+      <label htmlFor={id} className="block text-slate-500 font-bold mb-1 text-[10px] uppercase tracking-wider">{label}</label>
       <input
         id={id} type="text" value={value} onChange={(e) => onChange(e.target.value)} list={datalistId}
-        className="w-full bg-slate-900/50 p-2.5 rounded-lg text-white text-sm border border-white/10 hover:border-violet-500/50 focus:border-violet-500 focus:bg-slate-900 transition disabled:opacity-50"
+        className="w-full bg-slate-900/50 p-2 rounded-lg text-white text-xs border border-white/10 hover:border-violet-500/50 focus:border-violet-500 focus:bg-slate-900 transition disabled:opacity-50"
         placeholder={placeholder} disabled={disabled}
       />
       <datalist id={datalistId}>{options.map(option => (<option key={option} value={option} />))}</datalist>
@@ -155,20 +164,28 @@ const CinematicSceneCard: React.FC<{
     };
 
     return (
-        <div className="panel-glass-strong rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-glow-violet/20 border border-white/10 group">
+        <div className="bg-slate-900/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl border border-white/5 transition-all duration-300 hover:border-violet-500/30 group">
             
-            {/* Header / Metadata Strip */}
-            <div className="bg-slate-900/80 border-b border-white/5 p-4 flex justify-between items-start">
-                <div className="flex items-start gap-3">
-                    <div className="h-8 w-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-300 font-bold font-mono shrink-0 mt-1">
-                        {scene.sceneNumber}
+            {/* Metadata Strip */}
+            <div className="bg-slate-950/50 border-b border-white/5 p-4 flex flex-wrap gap-4 justify-between items-center">
+                <div className="flex items-start gap-4">
+                    <div className="flex flex-col items-center">
+                        <div className="h-8 w-8 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-200 font-bold font-mono text-lg">
+                            {scene.sceneNumber}
+                        </div>
                     </div>
                     <div>
-                        <h3 className="text-white font-bold text-sm tracking-wide">{scene.title}</h3>
-                        <p className="text-xs text-slate-400 mb-2">{scene.location} • {scene.timeOfDay} • {scene.duration}</p>
+                        <h3 className="text-white font-bold text-base tracking-wide leading-tight">{scene.title}</h3>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold">
+                            <span>{scene.location}</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                            <span>{scene.timeOfDay}</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                            <span>{scene.duration}</span>
+                        </div>
                         
                         {/* Character Chips */}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5 mt-2">
                             {sceneCharNames.map((name, idx) => {
                                 const char = getCharacter(name);
                                 return (
@@ -183,16 +200,12 @@ const CinematicSceneCard: React.FC<{
                                         }}
                                         disabled={!char}
                                         className={`
-                                            flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all
+                                            flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold border transition-all uppercase tracking-wide
                                             ${char 
-                                                ? 'bg-violet-500/10 border-violet-500/20 text-violet-200 hover:bg-violet-500/20 hover:border-violet-500/50 cursor-pointer' 
+                                                ? 'bg-violet-900/30 border-violet-500/30 text-violet-200 hover:bg-violet-500/20 hover:border-violet-500/50 cursor-pointer' 
                                                 : 'bg-slate-800 border-white/5 text-slate-500 cursor-default'}
                                         `}
-                                        title={char ? `Jump to ${char.name}` : 'Character not found in cast list'}
                                     >
-                                        <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold ${char ? 'bg-violet-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
-                                            {name.charAt(0).toUpperCase()}
-                                        </div>
                                         {name}
                                     </button>
                                 );
@@ -200,108 +213,114 @@ const CinematicSceneCard: React.FC<{
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button onClick={() => setActiveTab('video')} className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors ${activeTab === 'video' ? 'bg-violet-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:text-white'}`}>
+                
+                {/* Segmented Controller */}
+                <div className="bg-slate-950 p-1 rounded-lg border border-white/5 flex gap-1">
+                    <button onClick={() => setActiveTab('video')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'video' ? 'bg-violet-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>
                         <VideoIcon /> Video
                     </button>
-                    <button onClick={() => setActiveTab('image')} className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors ${activeTab === 'image' ? 'bg-cyan-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:text-white'}`}>
+                    <button onClick={() => setActiveTab('image')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'image' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>
                         <ImageIcon /> Image
                     </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[400px]">
                 
                 {/* Visual Preview Area (Left / Top) */}
-                <div className="lg:col-span-7 bg-black relative min-h-[300px] flex items-center justify-center border-b lg:border-b-0 lg:border-r border-white/10">
+                <div className="lg:col-span-8 bg-black relative flex items-center justify-center border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden">
+                    <EmptyStatePattern />
                     
                     {/* VIDEO TAB CONTENT */}
                     {activeTab === 'video' && (
-                        <>
+                        <div className="relative w-full h-full flex items-center justify-center p-8 z-10">
                             {scene.videoUrl ? (
-                                <video src={scene.videoUrl} controls className="w-full h-full object-contain max-h-[400px]" />
+                                <video src={scene.videoUrl} controls className="w-full h-full object-contain shadow-2xl rounded-lg" />
                             ) : (
-                                <div className="text-center p-8">
-                                    <div className={`mb-4 inline-block p-4 rounded-full ${isVideoGenerating ? 'animate-pulse bg-violet-900/20' : 'bg-white/5'}`}>
-                                        {isVideoGenerating ? <div className="animate-spin h-8 w-8 border-2 border-violet-500 border-t-transparent rounded-full" /> : <VideoIcon />}
+                                <div className="text-center max-w-sm">
+                                    <div className={`mb-6 inline-flex items-center justify-center w-16 h-16 rounded-2xl ${isVideoGenerating ? 'animate-pulse bg-violet-500/20' : 'bg-slate-900 border border-white/10'}`}>
+                                        {isVideoGenerating ? <div className="animate-spin h-6 w-6 border-2 border-violet-500 border-t-transparent rounded-full" /> : <VideoIcon />}
                                     </div>
-                                    <p className="text-slate-400 text-sm mb-4">{isVideoGenerating ? 'Rendering cinematic clip...' : 'No video generated yet.'}</p>
+                                    <h4 className="text-white font-bold mb-2">Cinematic Preview</h4>
+                                    <p className="text-slate-400 text-xs mb-6 leading-relaxed">Generate a high-fidelity video clip using Google Veo to visualize this scene's motion and atmosphere.</p>
                                     <button 
                                         onClick={() => { playSound(); onGenerateVideo(scene); }}
                                         disabled={isVideoGenerating || isVeoKeySelected === null}
-                                        className="btn-glow flex items-center gap-2 mx-auto bg-primary-action-gradient text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg disabled:opacity-50 disabled:grayscale"
+                                        className="btn-glow flex items-center gap-2 mx-auto bg-primary-action-gradient text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-wide shadow-lg disabled:opacity-50 disabled:grayscale transition-transform hover:scale-105 active:scale-95"
                                     >
                                         {isVeoKeySelected === false && <LockIcon />}
-                                        {isVideoGenerating ? 'Generating...' : (isVeoKeySelected ? 'Generate with Veo' : 'Unlock & Generate')}
+                                        {isVideoGenerating ? 'Rendering...' : (isVeoKeySelected ? 'Generate with Veo' : 'Unlock & Generate')}
                                     </button>
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
 
                     {/* IMAGE TAB CONTENT */}
                     {activeTab === 'image' && (
-                        <>
+                        <div className="relative w-full h-full flex items-center justify-center p-8 z-10">
                             {scene.imageUrl ? (
-                                <div className="relative w-full h-full group/img">
-                                    <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-contain max-h-[400px]" />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                        <a href={scene.imageUrl} download className="btn-glass flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-full hover:bg-black/80">
-                                            <DownloadIcon /> Download
+                                <div className="relative w-full h-full group/img flex items-center justify-center">
+                                    <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-contain shadow-2xl rounded-lg" />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm rounded-lg">
+                                        <a href={scene.imageUrl} download className="btn-glass flex items-center gap-2 bg-white/10 text-white px-6 py-3 rounded-full hover:bg-white/20 font-bold text-sm border border-white/20">
+                                            <DownloadIcon /> Download 8K Image
                                         </a>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center p-8">
-                                    <div className={`mb-4 inline-block p-4 rounded-full ${isImageGenerating ? 'animate-pulse bg-cyan-900/20' : 'bg-white/5'}`}>
-                                        {isImageGenerating ? <div className="animate-spin h-8 w-8 border-2 border-cyan-500 border-t-transparent rounded-full" /> : <PlaceholderImageIcon />}
+                                <div className="text-center max-w-sm">
+                                    <div className={`mb-6 inline-flex items-center justify-center w-16 h-16 rounded-2xl ${isImageGenerating ? 'animate-pulse bg-cyan-500/20' : 'bg-slate-900 border border-white/10'}`}>
+                                        {isImageGenerating ? <div className="animate-spin h-6 w-6 border-2 border-cyan-500 border-t-transparent rounded-full" /> : <ImageIcon />}
                                     </div>
-                                    <p className="text-slate-400 text-sm mb-4">{isImageGenerating ? 'Creating concept art...' : 'No image generated yet.'}</p>
+                                    <h4 className="text-white font-bold mb-2">Concept Art</h4>
+                                    <p className="text-slate-400 text-xs mb-6 leading-relaxed">Generate a photorealistic still image using Imagen to establish the lighting and composition.</p>
                                     <button 
                                         onClick={() => { playSound(); onGenerateImage(scene); }}
                                         disabled={isImageGenerating}
-                                        className="btn-glass flex items-center gap-2 mx-auto bg-cyan-600/20 text-cyan-200 border-cyan-500/50 hover:bg-cyan-600 hover:text-white px-6 py-2 rounded-full font-bold text-sm"
+                                        className="btn-glass flex items-center gap-2 mx-auto bg-cyan-600/10 text-cyan-300 border-cyan-500/30 hover:bg-cyan-600 hover:text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-wide transition-all"
                                     >
                                         <SparklesIcon /> {isImageGenerating ? 'Painting...' : 'Generate with Imagen'}
                                     </button>
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
 
                 {/* Controls Area (Right / Bottom) */}
-                <div className="lg:col-span-5 p-6 space-y-5 bg-slate-900/20">
-                    
-                    {/* Description Edit */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Action</label>
-                            <CopyButton textToCopy={scene.description} className="scale-75 origin-right" />
+                <div className="lg:col-span-4 bg-slate-950/30 flex flex-col border-l border-white/5">
+                    <div className="p-5 space-y-5 flex-grow">
+                        {/* Description Edit */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Action Description</label>
+                                <CopyButton textToCopy={scene.description} className="scale-75 origin-right" />
+                            </div>
+                            <textarea
+                                value={scene.description}
+                                onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
+                                className="w-full bg-slate-900/50 p-3 rounded-xl text-xs text-slate-300 border border-white/10 focus:border-violet-500/50 focus:ring-0 transition resize-none h-28 leading-relaxed"
+                            />
                         </div>
-                        <textarea
-                            value={scene.description}
-                            onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
-                            className="w-full bg-slate-950/50 p-3 rounded-lg text-sm text-slate-200 border border-white/5 focus:border-violet-500/50 focus:ring-0 transition resize-none h-24 leading-relaxed"
-                        />
-                    </div>
 
-                    {/* Dropdowns */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <DatalistInput label="Atmosphere" id={`atm-${scene.id}`} value={scene.atmosphere} onChange={(v) => onUpdate({...scene, atmosphere: v})} options={atmosphereOptions} />
-                        <DatalistInput label="Transition" id={`trans-${scene.id}`} value={scene.transition} onChange={(v) => onUpdate({...scene, transition: v})} options={transitionOptions} />
+                        {/* Dropdowns */}
+                        <div className="space-y-3">
+                            <DatalistInput label="Atmosphere" id={`atm-${scene.id}`} value={scene.atmosphere} onChange={(v) => onUpdate({...scene, atmosphere: v})} options={atmosphereOptions} />
+                            <DatalistInput label="Transition" id={`trans-${scene.id}`} value={scene.transition} onChange={(v) => onUpdate({...scene, transition: v})} options={transitionOptions} />
+                        </div>
                     </div>
 
                     {/* Prompt Refiner */}
-                    <div className="pt-4 border-t border-white/5">
+                    <div className="p-5 border-t border-white/5 bg-black/20">
                         <div className="flex justify-between items-center mb-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                 {activeTab === 'video' ? 'Video Prompt' : 'Image Prompt'}
                             </label>
                             <button 
                                 onClick={() => { playSound(); activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene); }}
                                 disabled={isPromptRegenerating}
-                                className="text-xs text-violet-400 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
+                                className="text-[10px] font-bold text-violet-400 hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50 uppercase tracking-wide"
                             >
                                 <SparklesIcon /> {isPromptRegenerating ? 'Refining...' : 'AI Refine'}
                             </button>
@@ -309,7 +328,7 @@ const CinematicSceneCard: React.FC<{
                         <textarea
                             value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
                             onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
-                            className="w-full bg-slate-950/30 p-3 rounded-lg text-xs text-slate-400 border border-white/5 focus:border-violet-500/50 focus:text-white transition resize-none h-20"
+                            className="w-full bg-slate-900 p-3 rounded-xl text-[10px] font-mono text-slate-400 border border-white/10 focus:border-violet-500/50 focus:text-white transition resize-none h-24"
                         />
                     </div>
                 </div>
@@ -405,76 +424,76 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
             const description = `Processing scene ${masterState.progress.current} of ${masterState.progress.total}...`;
             const progressPercentage = masterState.progress.total > 0 ? (masterState.progress.current / masterState.progress.total) * 100 : 0;
             return (
-                <div className="w-full h-full p-4 bg-indigo-500/20 rounded-2xl border border-violet-500/30 animate-fade-in text-center flex flex-col justify-center">
-                    <h4 className="font-bold text-text-primary">{title}</h4>
-                    <p className="text-sm text-text-secondary my-2">{description}</p>
-                    <div className="w-full bg-black/30 rounded-full h-2.5 my-3 overflow-hidden">
-                        <div className="bg-primary-action-gradient h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                <div className="w-full h-full p-6 bg-indigo-500/10 rounded-2xl border border-violet-500/30 animate-fade-in text-center flex flex-col justify-center shadow-[0_0_30px_rgba(139,92,246,0.1)]">
+                    <h4 className="font-bold text-white mb-1">{title}</h4>
+                    <p className="text-xs text-violet-200 mb-4 font-mono">{description}</p>
+                    <div className="w-full bg-slate-900 rounded-full h-2 mb-4 overflow-hidden border border-white/5">
+                        <div className="bg-primary-action-gradient h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style={{ width: `${progressPercentage}%` }}></div>
                     </div>
-                    <button onClick={() => { playSound(); onCancelAll(); }} className="btn-glass bg-white/5 text-text-primary font-semibold py-2 px-4 rounded-full text-sm self-center border border-white/10">Cancel</button>
+                    <button onClick={() => { playSound(); onCancelAll(); }} className="text-xs font-bold text-slate-400 hover:text-white uppercase tracking-wider">Cancel Operation</button>
                 </div>
             );
         }
 
         if (masterState.status === 'error') {
             return (
-                 <div className="w-full h-full p-4 bg-red-900/40 rounded-2xl border border-red-500/50 animate-fade-in text-center flex flex-col justify-center">
-                    <h4 className="font-bold text-red-200">Generation Paused</h4>
-                    <p className="text-sm text-red-300 my-2">{masterState.error}</p>
-                    <div className="flex gap-2 justify-center">
-                        <button onClick={() => { playSound(); onDismissAllError(); }} className="btn-glass bg-white/5 text-white font-semibold py-1 px-3 rounded-full text-xs">Dismiss</button>
-                        <button onClick={() => { playSound(); onGenerateAll(); }} className="btn-glow bg-red-500/20 text-white font-semibold py-1 px-3 rounded-full text-xs border border-red-500/50">Retry</button>
+                 <div className="w-full h-full p-6 bg-red-900/20 rounded-2xl border border-red-500/30 animate-fade-in text-center flex flex-col justify-center">
+                    <h4 className="font-bold text-red-200 mb-2">Generation Paused</h4>
+                    <p className="text-xs text-red-300 mb-4">{masterState.error}</p>
+                    <div className="flex gap-3 justify-center">
+                        <button onClick={() => { playSound(); onDismissAllError(); }} className="btn-glass bg-white/5 text-white font-semibold py-1.5 px-4 rounded-full text-xs">Dismiss</button>
+                        <button onClick={() => { playSound(); onGenerateAll(); }} className="btn-glow bg-red-500/20 text-white font-semibold py-1.5 px-4 rounded-full text-xs border border-red-500/50">Retry</button>
                     </div>
                 </div>
             );
         }
 
         return (
-             <div className="w-full h-full p-6 bg-gradient-to-br from-violet-900/40 to-indigo-900/40 rounded-2xl border border-white/10 text-center flex flex-col justify-center items-center gap-4 relative overflow-hidden group">
-                 <div className="absolute inset-0 bg-primary-action-gradient opacity-0 group-hover:opacity-5 transition-opacity duration-500"></div>
+             <div className="w-full h-full p-8 bg-gradient-to-br from-violet-900/20 to-indigo-900/20 rounded-2xl border border-violet-500/20 text-center flex flex-col justify-center items-center gap-6 relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+                 <div className="absolute inset-0 bg-primary-action-gradient opacity-0 group-hover:opacity-5 transition-opacity duration-700"></div>
                  <div className="relative z-10">
-                    <h3 className="text-2xl font-bold text-white mb-2">Master Generate</h3>
-                    <p className="text-sm text-text-secondary mb-4 max-w-xs mx-auto">Automatically regenerate prompts and create videos & images for all scenes.</p>
+                    <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Master Generate</h3>
+                    <p className="text-sm text-slate-400 mb-6 max-w-[200px] mx-auto leading-relaxed">Automatically regenerate prompts and create videos & images for all scenes.</p>
                     <button
                         onClick={() => { playSound(); onGenerateAll(); }}
                         disabled={isDisabled}
                         title={disabledTooltip}
-                        className="btn-glow bg-primary-action-gradient text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-violet-500/30 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        className="btn-glow bg-primary-action-gradient text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-violet-900/20 hover:shadow-violet-500/40 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2 uppercase tracking-wide text-xs">
                             <SparklesIcon /> Generate All Assets
                         </span>
                     </button>
-                    {missingAssetsCount > 0 && <p className="text-xs text-text-secondary mt-2">{missingAssetsCount} assets pending</p>}
+                    {missingAssetsCount > 0 && <p className="text-[10px] font-bold uppercase tracking-wider text-violet-400 mt-4">{missingAssetsCount} assets pending</p>}
                  </div>
             </div>
         );
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-6xl mx-auto">
-            <div className="md:col-span-1 min-h-[200px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 max-w-7xl mx-auto">
+            <div className="md:col-span-1 min-h-[240px]">
                 {renderMasterUI()}
             </div>
             
             <div className="md:col-span-2 grid grid-cols-2 gap-4">
                  {/* Video Generation Control */}
-                 <div className="panel-glass p-4 rounded-xl flex flex-col justify-between">
+                 <div className="panel-glass p-5 rounded-2xl flex flex-col justify-between hover:bg-white/5 transition-colors">
                      <div>
-                        <h4 className="font-bold text-text-primary text-sm mb-1 flex items-center gap-2"><VideoIcon /> Batch Video</h4>
-                        <p className="text-xs text-text-secondary mb-3">Generate videos for {scenesReadyForVideoCount} ready scenes.</p>
+                        <h4 className="font-bold text-white text-sm mb-1 flex items-center gap-2"><VideoIcon /> Batch Video</h4>
+                        <p className="text-xs text-slate-400 mb-4">Generate videos for {scenesReadyForVideoCount} ready scenes.</p>
                      </div>
                      {videoGenState.status === 'generating_videos' ? (
                          <div className="text-center">
                              <div className="animate-spin h-5 w-5 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                             <span className="text-xs text-text-secondary">Processing {videoGenState.progress.current}/{videoGenState.progress.total}</span>
-                             <button onClick={onCancelVideosOnly} className="block w-full text-xs text-red-300 hover:text-red-200 mt-2">Cancel</button>
+                             <span className="text-xs text-slate-400 font-mono">{videoGenState.progress.current}/{videoGenState.progress.total}</span>
+                             <button onClick={onCancelVideosOnly} className="block w-full text-[10px] font-bold text-red-400 hover:text-red-300 mt-2 uppercase">Cancel</button>
                          </div>
                      ) : (
                          <button
                             onClick={() => { playSound(); onGenerateVideosOnly(); }}
                             disabled={!isVeoKeySelected || scenesReadyForVideoCount === 0 || isAnyProcessRunning}
-                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg border border-white/10 disabled:opacity-50"
+                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2.5 rounded-xl border border-white/10 disabled:opacity-30 uppercase tracking-wide"
                          >
                             Generate Videos
                          </button>
@@ -482,21 +501,21 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                  </div>
 
                  {/* Preview Images Control */}
-                  <div className="panel-glass p-4 rounded-xl flex flex-col justify-between">
+                  <div className="panel-glass p-5 rounded-2xl flex flex-col justify-between hover:bg-white/5 transition-colors">
                      <div>
-                        <h4 className="font-bold text-text-primary text-sm mb-1 flex items-center gap-2"><ImageIcon /> Batch Previews</h4>
-                        <p className="text-xs text-text-secondary mb-3">Create preview images for {scenesWithoutImageCount} scenes.</p>
+                        <h4 className="font-bold text-white text-sm mb-1 flex items-center gap-2"><ImageIcon /> Batch Previews</h4>
+                        <p className="text-xs text-slate-400 mb-4">Create preview images for {scenesWithoutImageCount} scenes.</p>
                      </div>
                       {previewGenState.status === 'running' ? (
                          <div className="text-center">
-                             <div className="animate-spin h-5 w-5 border-2 border-cyan border-t-transparent rounded-full mx-auto mb-2"></div>
-                             <span className="text-xs text-text-secondary">Generating...</span>
+                             <div className="animate-spin h-5 w-5 border-2 border-cyan-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                             <span className="text-xs text-slate-400">Generating...</span>
                          </div>
                      ) : (
                         <button
                             onClick={() => { playSound(); onGenerateAllPreviews(); }}
                             disabled={scenesWithoutImageCount === 0 || isAnyProcessRunning}
-                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg border border-white/10 disabled:opacity-50"
+                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2.5 rounded-xl border border-white/10 disabled:opacity-30 uppercase tracking-wide"
                         >
                             Generate Images
                         </button>
@@ -504,21 +523,21 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                  </div>
 
                  {/* Refine Prompts */}
-                 <div className="panel-glass p-4 rounded-xl flex flex-col justify-between">
+                 <div className="panel-glass p-5 rounded-2xl flex flex-col justify-between hover:bg-white/5 transition-colors">
                      <div>
-                        <h4 className="font-bold text-text-primary text-sm mb-1">Refine Prompts</h4>
-                        <p className="text-xs text-text-secondary mb-3">AI-optimize prompts for better results.</p>
+                        <h4 className="font-bold text-white text-sm mb-1">Refine Prompts</h4>
+                        <p className="text-xs text-slate-400 mb-4">AI-optimize prompts for cinematic results.</p>
                      </div>
                       {refinePromptsState.status === 'running' ? (
                          <div className="text-center">
                              <div className="animate-spin h-5 w-5 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                             <span className="text-xs text-text-secondary">Refining...</span>
+                             <span className="text-xs text-slate-400">Refining...</span>
                          </div>
                      ) : (
                          <button
                             onClick={() => { playSound(); onRefineAllPrompts(); }}
                             disabled={isAnyProcessRunning}
-                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg border border-white/10 disabled:opacity-50"
+                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2.5 rounded-xl border border-white/10 disabled:opacity-30 uppercase tracking-wide"
                          >
                             Optimize All Prompts
                          </button>
@@ -526,21 +545,21 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                  </div>
 
                  {/* Refine Titles */}
-                 <div className="panel-glass p-4 rounded-xl flex flex-col justify-between">
+                 <div className="panel-glass p-5 rounded-2xl flex flex-col justify-between hover:bg-white/5 transition-colors">
                      <div>
-                        <h4 className="font-bold text-text-primary text-sm mb-1">Refine Titles</h4>
-                        <p className="text-xs text-text-secondary mb-3">Generate evocative titles.</p>
+                        <h4 className="font-bold text-white text-sm mb-1">Refine Titles</h4>
+                        <p className="text-xs text-slate-400 mb-4">Generate evocative scene titles.</p>
                      </div>
                       {refineTitlesState.status === 'running' ? (
                          <div className="text-center">
                              <div className="animate-spin h-5 w-5 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                             <span className="text-xs text-text-secondary">Refining...</span>
+                             <span className="text-xs text-slate-400">Refining...</span>
                          </div>
                      ) : (
                          <button
                             onClick={() => { playSound(); onRefineTitles(); }}
                             disabled={isAnyProcessRunning}
-                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg border border-white/10 disabled:opacity-50"
+                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2.5 rounded-xl border border-white/10 disabled:opacity-30 uppercase tracking-wide"
                          >
                             Refine Titles
                          </button>
@@ -548,25 +567,27 @@ const BulkGenerationControls: React.FC<BulkGenerationControlsProps> = ({
                  </div>
 
                  {/* Refine Transitions */}
-                 <div className="panel-glass p-4 rounded-xl flex flex-col justify-between">
-                     <div>
-                        <h4 className="font-bold text-text-primary text-sm mb-1">Smooth Edits</h4>
-                        <p className="text-xs text-text-secondary mb-3">AI-rewrite transitions for flow.</p>
-                     </div>
-                      {refineTransitionsState.status === 'running' ? (
-                         <div className="text-center">
-                             <div className="animate-spin h-5 w-5 border-2 border-cyan border-t-transparent rounded-full mx-auto mb-2"></div>
-                             <span className="text-xs text-text-secondary">Smoothing...</span>
+                 <div className="panel-glass p-5 rounded-2xl flex flex-col justify-between hover:bg-white/5 transition-colors col-span-2">
+                     <div className="flex justify-between items-center">
+                         <div>
+                            <h4 className="font-bold text-white text-sm mb-1">Smooth Edits</h4>
+                            <p className="text-xs text-slate-400">AI-rewrite transitions for flow.</p>
                          </div>
-                     ) : (
-                        <button
-                            onClick={() => { playSound(); onRefineAllTransitions(); }}
-                            disabled={isAnyProcessRunning}
-                            className="btn-glass w-full bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg border border-white/10 disabled:opacity-50"
-                        >
-                            Refine Transitions
-                        </button>
-                     )}
+                          {refineTransitionsState.status === 'running' ? (
+                             <div className="flex items-center gap-2">
+                                 <div className="animate-spin h-4 w-4 border-2 border-cyan-500 border-t-transparent rounded-full"></div>
+                                 <span className="text-xs text-slate-400">Smoothing...</span>
+                             </div>
+                         ) : (
+                            <button
+                                onClick={() => { playSound(); onRefineAllTransitions(); }}
+                                disabled={isAnyProcessRunning}
+                                className="btn-glass bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-2 px-6 rounded-xl border border-white/10 disabled:opacity-30 uppercase tracking-wide"
+                            >
+                                Refine Transitions
+                            </button>
+                         )}
+                     </div>
                  </div>
             </div>
         </div>
@@ -818,12 +839,9 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     const handleRefineAllPrompts = async () => {
         setRefinePromptsState({ status: 'running' });
         try {
-            // Iterate over localOutline IDs but fetch fresh scenes to ensure updates are caught
             await processInBatches<Scene, void>(localOutline, async (item) => {
                  const freshScene = outlineRef.current.find(s => s.id === item.id) || item;
                  
-                 // Regenerate BOTH prompts to align with "Optimize All Prompts" button intent
-                 // The service has been updated to produce cinematic and evocative video prompts.
                  const [videoPrompt, imagePrompt] = await Promise.all([
                      regenerateVideoPromptForScene(freshScene, visualStyle),
                      regenerateImagePromptForScene(freshScene, visualStyle)
@@ -1006,12 +1024,12 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-fade-in-stagger" style={{ animationDelay: '200ms' }}>
+        <div className="max-w-7xl mx-auto space-y-12 animate-fade-in-stagger" style={{ animationDelay: '200ms' }}>
             
-            <div className="flex justify-between items-end mb-4 px-2">
+            <div className="flex justify-between items-end px-2 border-b border-white/5 pb-4">
                 <div>
-                     <h3 className="text-xl font-bold text-white">Scene List</h3>
-                     <p className="text-sm text-text-secondary">Review and generate assets for each scene.</p>
+                     <h3 className="text-3xl font-bold text-white tracking-tight">Visual Blueprint</h3>
+                     <p className="text-sm text-slate-400 mt-1">Direct the scene sequence and generate production assets.</p>
                 </div>
                 <div className="flex items-center gap-4">
                      <SaveStatusIndicator status={status} />
@@ -1059,25 +1077,25 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
             />
 
             {/* Search and Filters */}
-            <div className="flex flex-col md:flex-row gap-4 mb-2">
-                <div className="flex-1 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="flex flex-col md:flex-row gap-4 px-1">
+                <div className="flex-1 relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
                         <SearchIcon />
                     </div>
                     <input
                         type="text"
-                        className="w-full bg-slate-900/50 pl-10 pr-4 py-3 rounded-xl text-sm border border-white/10 focus:border-violet-500/50 focus:ring-0 text-white placeholder-slate-500 transition-colors shadow-inner"
+                        className="w-full bg-slate-900/40 pl-11 pr-4 py-3.5 rounded-2xl text-sm border border-white/5 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 text-white placeholder-slate-500 transition-all"
                         placeholder="Search scenes by title, character, or location..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <div className="w-full md:w-64 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="w-full md:w-72 relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
                          <FilterIcon />
                     </div>
                     <select
-                        className="w-full bg-slate-900/50 pl-10 pr-4 py-3 rounded-xl text-sm border border-white/10 focus:border-violet-500/50 focus:ring-0 text-white appearance-none cursor-pointer shadow-inner"
+                        className="w-full bg-slate-900/40 pl-11 pr-8 py-3.5 rounded-2xl text-sm border border-white/5 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 text-white appearance-none cursor-pointer"
                         value={locationFilter}
                         onChange={(e) => setLocationFilter(e.target.value)}
                     >
@@ -1087,11 +1105,12 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                     </select>
                 </div>
             </div>
-            <div className="text-xs text-text-secondary px-2 mb-6">
+            
+            <div className="text-xs font-bold uppercase tracking-widest text-slate-600 px-2">
                 Showing {filteredScenes.length} of {localOutline.length} scenes
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
                 {filteredScenes.length > 0 ? (
                     filteredScenes.map((scene) => (
                         <CinematicSceneCard
@@ -1111,9 +1130,9 @@ export const VisualOutlineSection: React.FC<VisualOutlineSectionProps> = ({
                         />
                     ))
                 ) : (
-                    <div className="text-center py-12 text-slate-500 bg-white/5 rounded-xl border border-dashed border-white/10">
-                        <p>No scenes found matching your filters.</p>
-                        <button onClick={() => { setSearchQuery(''); setLocationFilter('All'); }} className="mt-2 text-violet-400 hover:text-white underline text-sm">Clear filters</button>
+                    <div className="text-center py-20 text-slate-500 bg-white/5 rounded-3xl border border-dashed border-white/10">
+                        <p className="text-lg mb-2">No scenes found matching your filters.</p>
+                        <button onClick={() => { setSearchQuery(''); setLocationFilter('All'); }} className="text-violet-400 hover:text-white underline text-sm">Clear filters</button>
                     </div>
                 )}
             </div>

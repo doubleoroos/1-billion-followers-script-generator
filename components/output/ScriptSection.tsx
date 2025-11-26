@@ -93,17 +93,17 @@ const InlineAudioPlayer: React.FC<{ src: string; filename: string }> = ({ src, f
     };
 
     return (
-        <div className="w-full mt-3 bg-slate-100 rounded-full p-2 flex items-center gap-3 border border-slate-200 shadow-sm">
+        <div className="w-full mt-3 bg-slate-900/5 rounded-full p-1.5 flex items-center gap-3 border border-slate-900/10 hover:border-violet-500/30 transition-colors">
             <audio ref={audioRef} src={src} preload="metadata" />
             
             <button 
                 onClick={togglePlay}
-                className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center transition-colors"
+                className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 hover:bg-violet-600 text-white flex items-center justify-center transition-colors shadow-sm"
             >
                 {isPlaying ? <PauseIcon /> : <PlayIcon />}
             </button>
 
-            <div className="flex-grow flex flex-col justify-center h-full">
+            <div className="flex-grow flex flex-col justify-center h-full px-1">
                 <input 
                     type="range" 
                     min="0" 
@@ -114,8 +114,8 @@ const InlineAudioPlayer: React.FC<{ src: string; filename: string }> = ({ src, f
                 />
             </div>
 
-            <span className="text-[10px] font-mono font-medium text-slate-500 w-16 text-right">
-                {formatTime(currentTime)} / {formatTime(duration)}
+            <span className="text-[10px] font-mono font-medium text-slate-500 w-16 text-right tabular-nums">
+                {formatTime(currentTime)}
             </span>
 
             <a 
@@ -140,12 +140,12 @@ const AudioBlockControls: React.FC<{
     
     if (block.audioUrl) {
         return (
-            <div className="w-full mt-2">
+            <div className="w-full mt-2 group/audio">
                 <InlineAudioPlayer 
                     src={block.audioUrl} 
                     filename={`voice_${block.type}_${block.id}.wav`} 
                 />
-                <div className="flex justify-end mt-1">
+                <div className="flex justify-end mt-1 opacity-0 group-hover/audio:opacity-100 transition-opacity">
                      <button 
                         onClick={() => { playSound(); onGenerate(); }}
                         disabled={isGenerating}
@@ -164,11 +164,11 @@ const AudioBlockControls: React.FC<{
     }
 
     return (
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-2 opacity-50 hover:opacity-100 transition-opacity">
             <button 
                 onClick={() => { playSound(); onGenerate(); }} 
                 disabled={isGenerating}
-                className="flex items-center gap-2 text-[10px] uppercase tracking-wide font-sans text-slate-400 hover:text-violet-600 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 text-[10px] uppercase tracking-wide font-sans text-slate-500 hover:text-violet-600 transition-colors disabled:opacity-50 border border-slate-300 rounded-full px-3 py-1 hover:border-violet-600 hover:bg-white"
             >
                 {isGenerating ? (
                     <div className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full"></div>
@@ -270,7 +270,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                 }, 
                 3, 
                 500
-            ); // Batch size 3, delay 500ms
+            ); 
 
             setEditedScript(prev => {
                 const newScript = [...prev];
@@ -310,84 +310,88 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
 
     return (
         <div className="relative w-full max-w-4xl mx-auto">
-             <div className="absolute top-0 right-0 transform translate-y-[-120%] flex items-center gap-3">
-                 <SaveStatusIndicator status={status} />
-                 <CopyButton textToCopy={scriptToText()} className="bg-slate-800 text-white border-slate-700" />
-            </div>
-
-            {/* Paper Container */}
-            <div className="bg-[#fdfbf7] text-slate-900 font-mono text-base md:text-lg shadow-2xl rounded-sm min-h-[800px] p-12 md:p-20 relative overflow-hidden">
-                {/* Hole punches simulation */}
-                <div className="absolute left-4 top-1/4 w-4 h-4 rounded-full bg-slate-900/10 shadow-inner"></div>
-                <div className="absolute left-4 top-1/2 w-4 h-4 rounded-full bg-slate-900/10 shadow-inner"></div>
-                <div className="absolute left-4 top-3/4 w-4 h-4 rounded-full bg-slate-900/10 shadow-inner"></div>
-
-                {/* Bulk Actions Header */}
-                <div className="flex justify-end mb-8 pb-4 border-b border-slate-200">
-                    <button
+            
+            {/* Toolbar */}
+            <div className="sticky top-[140px] z-30 mb-6 flex justify-between items-center bg-slate-900/90 backdrop-blur-md p-3 rounded-xl border border-white/10 shadow-xl">
+                 <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-2">Screenplay Editor</span>
+                    <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-white/5 font-mono">Draft 1.0</span>
+                 </div>
+                 <div className="flex items-center gap-3">
+                     <button
                         onClick={handleGenerateAllNarration}
                         disabled={isBulkGenerating || missingNarrationCount === 0}
-                        className="text-xs uppercase tracking-widest font-bold text-violet-600 hover:text-violet-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
-                        title={missingNarrationCount > 0 ? `Generate audio for ${missingNarrationCount} narration blocks` : 'All narration has audio'}
+                        className="btn-glass text-[10px] uppercase tracking-wider font-bold text-violet-300 hover:text-white disabled:opacity-50 flex items-center gap-2 px-3 py-1.5 rounded-full"
                     >
                         {isBulkGenerating ? (
                              <>
-                                <div className="animate-spin h-3 w-3 border-2 border-violet-600 border-t-transparent rounded-full"></div>
-                                <span className="animate-pulse">Generating Audio...</span>
+                                <div className="animate-spin h-3 w-3 border-2 border-violet-400 border-t-transparent rounded-full"></div>
+                                <span>Generating...</span>
                              </>
                         ) : (
                              <>
-                                <MagicIcon /> Generate All Narration ({missingNarrationCount})
+                                <MagicIcon /> Auto-Narrate ({missingNarrationCount})
                              </>
                         )}
                     </button>
-                </div>
+                    <div className="h-4 w-px bg-white/10"></div>
+                    <CopyButton textToCopy={scriptToText()} className="" />
+                    <SaveStatusIndicator status={status} />
+                 </div>
+            </div>
 
-                <div className="space-y-8 max-w-3xl mx-auto">
-                    {editedScript.map((block) => (
-                        <div key={block.id} className="transition-opacity duration-300 group">
-                            {block.type === 'narration' ? (
-                                <div className="mb-2">
-                                    <AutoSizingTextarea
-                                        value={block.content.toUpperCase()}
-                                        onChange={(e) => handleContentChange(block.id, e.target.value)}
-                                        className="w-full bg-transparent border-none resize-none focus:ring-0 p-0 text-slate-900 leading-relaxed font-mono"
-                                        style={{ fontWeight: 600 }}
-                                        aria-label="Action Description"
-                                    />
-                                    <AudioBlockControls 
-                                        block={block} 
-                                        isGenerating={generatingAudio.has(block.id)}
-                                        onGenerate={() => handleGenerateAudio(block)}
-                                    />
-                                </div>
-                            ) : (
-                               <div className="flex flex-col items-center mb-2">
-                                    <div className="w-2/3 text-center mb-1">
-                                        <p className="font-bold tracking-wide text-slate-900">{getCharacterName(block.characterId)}</p>
-                                    </div>
-                                    <div className="w-2/3">
+            {/* Paper Container */}
+            <div className="bg-[#fcfaf7] text-slate-900 font-mono text-base md:text-lg shadow-2xl rounded-sm min-h-[800px] relative overflow-hidden">
+                {/* Binding Strip */}
+                <div className="h-1.5 w-full bg-slate-800/10 mb-12"></div>
+                
+                <div className="p-12 md:p-16 pt-4">
+                    <div className="space-y-10 max-w-3xl mx-auto">
+                        {editedScript.map((block) => (
+                            <div key={block.id} className="transition-opacity duration-300 group">
+                                {block.type === 'narration' ? (
+                                    <div className="mb-2 pl-4 border-l-2 border-transparent focus-within:border-slate-300 transition-colors">
                                         <AutoSizingTextarea
-                                             value={block.content}
-                                             onChange={(e) => handleContentChange(block.id, e.target.value)}
-                                             className="w-full bg-transparent border-none resize-none focus:ring-0 p-0 text-slate-900 leading-relaxed text-center font-mono"
-                                             aria-label={`Dialogue for ${getCharacterName(block.characterId)}`}
+                                            value={block.content.toUpperCase()}
+                                            onChange={(e) => handleContentChange(block.id, e.target.value)}
+                                            className="w-full bg-transparent border-none resize-none focus:ring-0 p-0 text-slate-900 leading-relaxed font-mono selection:bg-slate-300"
+                                            style={{ fontWeight: 600 }}
+                                            aria-label="Action Description"
                                         />
-                                    </div>
-                                    <div className="w-2/3">
-                                         <AudioBlockControls 
+                                        <AudioBlockControls 
                                             block={block} 
                                             isGenerating={generatingAudio.has(block.id)}
                                             onGenerate={() => handleGenerateAudio(block)}
                                         />
                                     </div>
-                                </div>
-                            )}
+                                ) : (
+                                   <div className="flex flex-col items-center mb-2">
+                                        <div className="w-2/3 text-center mb-1">
+                                            <p className="font-bold tracking-wide text-slate-800">{getCharacterName(block.characterId)}</p>
+                                        </div>
+                                        <div className="w-2/3">
+                                            <AutoSizingTextarea
+                                                 value={block.content}
+                                                 onChange={(e) => handleContentChange(block.id, e.target.value)}
+                                                 className="w-full bg-transparent border-none resize-none focus:ring-0 p-0 text-slate-900 leading-relaxed text-center font-mono selection:bg-slate-300"
+                                                 aria-label={`Dialogue for ${getCharacterName(block.characterId)}`}
+                                            />
+                                        </div>
+                                        <div className="w-2/3">
+                                             <AudioBlockControls 
+                                                block={block} 
+                                                isGenerating={generatingAudio.has(block.id)}
+                                                onGenerate={() => handleGenerateAudio(block)}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                        
+                        <div className="mt-24 mb-12 flex justify-center text-slate-300 font-mono text-xs uppercase tracking-[0.2em]">
+                            *** End of Script ***
                         </div>
-                    ))}
-                    
-                    <div className="mt-20 flex justify-center text-slate-400 font-mono text-xs uppercase tracking-widest">
-                        [ End of Scene ]
                     </div>
                 </div>
             </div>
