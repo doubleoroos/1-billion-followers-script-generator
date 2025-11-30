@@ -246,7 +246,6 @@ export const VisualOutlineSection: React.FC<{
                 return t ? { ...scene, transition: t.transition } : scene;
             });
 
-            // Added explicit type to scene callback to fix inference error
             const updatedOutline = await processInBatches(outlineWithTransitions, async (scene: Scene) => {
                 try {
                     const [vidPrompt, imgPrompt] = await Promise.all([
@@ -255,7 +254,6 @@ export const VisualOutlineSection: React.FC<{
                     ]);
                     return { ...scene, videoPrompt: vidPrompt, imagePrompt: imgPrompt };
                 } catch (e) {
-                    // Fail gracefully for individual scenes
                     console.error(`Failed prompt refine for scene ${scene.id}`, e);
                     return scene;
                 }

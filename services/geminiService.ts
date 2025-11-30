@@ -224,7 +224,7 @@ For each scene, define:
 2. Location & Atmosphere
 3. Description (Evocative, concise, sensory-rich (sight, sound, feeling). Capture the essence and positive narrative.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
-5. Image Prompt (Imagen, 8k, photorealistic, Arri Alexa, cinematic lighting, highly detailed)
+5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text)
 6. Pacing & Emotion
 
 Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "..." }] }
@@ -253,25 +253,23 @@ Output: Single concise paragraph.
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-You are a world-class AI visual artist specializing in photorealistic film stills.
-Task: Create a highly detailed Imagen 3 prompt for a scene in a film.
-Visual Style: ${visualStyle} (Strictly adhere to this).
-Scene Description: ${scene.description}
+You are a world-class AI visual artist and Director of Photography.
+Task: Create a highly technical, photorealistic Imagen 3 prompt for a film still.
+Visual Style: ${visualStyle}
+Scene Context: ${scene.description}
 Location: ${scene.location}
-Time of Day: ${scene.timeOfDay}
-Atmosphere: ${scene.atmosphere}
+Time/Mood: ${scene.timeOfDay}, ${scene.atmosphere}
 
-Mandatory Technical Specs:
-- Shot on Arri Alexa LF, Panavision C Series Anamorphic Primes.
-- 8k resolution, raw photo, hyper-realistic, highly detailed texture.
-- Cinematic lighting (chiaroscuro, volumetric fog, rim lighting as appropriate).
-- Depth of field, bokeh, 35mm film grain.
-- Color graded, post-production level.
+Mandatory Specs (unless Abstract style):
+- Medium: Raw Photo, Shot on Arri Alexa LF, Panavision Anamorphic Lenses.
+- Quality: 8k resolution, hyper-realistic, highly detailed skin texture (if characters present), film grain (Kodak Vision3).
+- Lighting: Volumetric lighting, rim light, cinematic chiaroscuro, high dynamic range.
+- Composition: Rule of thirds, depth of field, bokeh.
 
-Negative Constraints:
-- NO cartoon, NO illustration, NO 3d render style, NO painting, NO bad anatomy, NO watermarks.
+Negative Prompts (Implicit):
+- NO illustration, NO 3d render look, NO painting, NO cartoons, NO text, NO watermarks, NO distorted faces.
 
-Output: A single, dense, comma-separated string of descriptive keywords and phrases.
+Output: A single, dense, comma-separated string of descriptive keywords.
 `;
 }
 
@@ -366,10 +364,10 @@ export const generateCreativeAssets = async (
 
     // 5. Moodboard
     const moodboardPrompts = [
-        { title: "Cinematic Style", prompt: `Hyper-realistic film still, ${visualStyle}, 8k.` },
-        { title: "The World", prompt: `Wide establishing shot, ${theme}, ${visualStyle}, 8k.` },
-        { title: "Protagonist", prompt: `Cinematic portrait of ${safeCharacters[0]?.name || 'Hero'}, ${visualStyle}, 8k.` },
-        { title: "Key Moment", prompt: `Dramatic film still, ${concept.logline || 'A futuristic scene'}, ${visualStyle}, 8k.` }
+        { title: "Cinematic Style", prompt: `Hyper-realistic film still, ${visualStyle}, 8k, Arri Alexa.` },
+        { title: "The World", prompt: `Wide establishing shot, ${theme}, ${visualStyle}, 8k, photorealistic.` },
+        { title: "Protagonist", prompt: `Cinematic portrait of ${safeCharacters[0]?.name || 'Hero'}, ${visualStyle}, 8k, detailed skin texture.` },
+        { title: "Key Moment", prompt: `Dramatic film still, ${concept.logline || 'A futuristic scene'}, ${visualStyle}, 8k, volumetric lighting.` }
     ];
 
     const refImages = await Promise.all(moodboardPrompts.map(async (item) => {
@@ -435,7 +433,7 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
 };
 
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
-    let prompt = scene.imagePrompt || `${scene.description} ${visualStyle} 8k cinematic.`;
+    let prompt = scene.imagePrompt || `${scene.description} ${visualStyle} 8k cinematic photorealistic.`;
     return await generateRawImage(prompt) || '';
 };
 
