@@ -23,14 +23,15 @@ interface ChoiceCardProps {
   description: string;
   isSelected: boolean;
   onClick: () => void;
+  className?: string;
 }
 
-const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected, onClick }) => {
+const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected, onClick, className = '' }) => {
     const playSound = useSound();
     return (
         <button
             onClick={() => { playSound(); onClick(); }}
-            className={`group relative flex flex-col items-start text-left p-6 rounded-2xl transition-all duration-300 w-full h-full border overflow-hidden
+            className={`group relative flex flex-col items-start text-left p-6 rounded-2xl transition-all duration-300 w-full h-full border overflow-hidden ${className}
             ${isSelected 
                 ? 'bg-violet-500/10 border-violet-500/50 ring-1 ring-violet-500 shadow-[0_0_30px_rgba(139,92,246,0.15)]' 
                 : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20 hover:-translate-y-1'
@@ -93,7 +94,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto animate-fade-in pb-28">
+    <div className="max-w-6xl mx-auto animate-fade-in pb-40">
         <div className="text-center mb-20 space-y-6">
             <h2 className="text-5xl md:text-7xl font-extrabold tracking-tight">
                 <span className="block text-white mb-2">Envision</span>
@@ -163,6 +164,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                                 <ChoiceCard label="Solarpunk" description="Organic tech, lush greenery." isSelected={visualStyle === 'solarpunk'} onClick={() => setVisualStyle('solarpunk')} />
                                 <ChoiceCard label="Minimalist" description="Clean forms, negative space." isSelected={visualStyle === 'minimalist'} onClick={() => setVisualStyle('minimalist')} />
                                 <ChoiceCard label="Biomorphic" description="Fluid, organic structures." isSelected={visualStyle === 'biomorphic'} onClick={() => setVisualStyle('biomorphic')} />
+                                <ChoiceCard label="Abstract" description="Non-representational emotional landscapes." isSelected={visualStyle === 'abstract'} onClick={() => setVisualStyle('abstract')} className="col-span-2" />
                             </div>
                         </div>
                     </div>

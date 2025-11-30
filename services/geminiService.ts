@@ -244,6 +244,11 @@ ${characterDescriptions}
 
 **Creative Synthesis:** Ensure the script is a masterclass in showing, not telling. The dialogue and narration must embody the ${toneDescription}. The pacing of scenes and the subtext within the dialogue must meticulously build towards the ${intensityDescription}.
 
+**Formatting Requirements:**
+- **Scene Headings:** Use professional screenplay formatting for Scene Headings (e.g., "INT. CRYSTAL SPIRE - DAY"). Place these inside 'narration' blocks at the start of new scenes.
+- **Action/Description:** Write clear, visual action lines.
+- **Dialogue:** Dialogue should be natural and character-specific.
+
 **Your Task:**
 Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. 
 - It must follow a complete narrative arc (beginning, middle, end) based on the synopsis.
@@ -311,13 +316,13 @@ const createBTSPrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, 
     return `
 You are the Director and Producer of the film "${synopsis.substring(0, 30)}...". Write a "Behind The Scenes" document for the competition submission.
 
-**Constraint:** The document MUST include a section titled "Workflow" that strictly follows the format "Phase | Tool(s)" for each step of the creation process.
-**Models Used:** Gemini 3 Pro (Script/Concept), Veo (Video), Imagen 3 (Images), Gemini 2.5 Flash (TTS/Music).
-
-**Content to Cover:**
+**Constraint:** The document MUST include the following sections:
 1. **Director's Statement:** Why this story? How does it fit "Rewrite Tomorrow"?
 2. **Visual Approach:** Explain the "${visualStyle}" choice.
-3. **AI Workflow:** How were the tools used? (Remember the strict format).
+3. **AI Workflow:** Strictly follow the format "Phase | Tool(s)" for each step of the creation process.
+4. **Ethical AI Usage:** A mandatory section explaining how you ensured the content is ethical, unbiased, and positive.
+
+**Models Used:** Gemini 3 Pro (Script/Concept), Veo (Video), Imagen 3 (Images), Gemini 2.5 Flash (TTS/Music).
 
 **Output Format:**
 Return a raw string (Markdown formatted).
@@ -363,11 +368,11 @@ You are a specialist Prompt Engineer for high-fidelity, photorealistic AI image 
 - **Visual Style:** ${visualStyle} (${styleDescription})
 
 **Refinement Strategy:**
-1.  **Photorealism Keywords:** "Hyper-realistic", "Cinematic", "8k", "Raw photo", "Color graded", "Shot on Arri Alexa", "35mm film grain".
-2.  **Cinematography:** Describe the camera angle (e.g., "Low angle", "Wide shot"), lens choice (e.g., "50mm prime", "Anamorphic"), and depth of field.
-3.  **Lighting:** Be specific about light sources and quality (e.g., "Soft volumetric fog", "Harsh rim light", "Bioluminescent glow", "Natural golden hour").
-4.  **Texture:** Emphasize material textures (skin, metal, cloth, nature) to ground the image in reality.
-5.  **Negative Constraints:** Ensure the prompt discourages "illustration", "painting", "drawing", "cartoon", "text", "watermark".
+1.  **Photorealism Keywords:** "Hyper-realistic", "Cinematic", "8k", "Raw photo", "Color graded", "Shot on Arri Alexa", "35mm film grain", "ISO 400", "Shutter speed 1/50".
+2.  **Cinematography:** Describe the camera angle (e.g., "Low angle", "Wide shot"), lens choice (e.g., "50mm prime", "Anamorphic"), and depth of field (bokeh).
+3.  **Lighting:** Be specific about light sources and quality (e.g., "Soft volumetric fog", "Harsh rim light", "Bioluminescent glow", "Natural golden hour", "Chiaroscuro").
+4.  **Texture & Detail:** Emphasize material textures (skin pores, metal patina, cloth weave, nature imperfections) to ground the image in reality.
+5.  **Negative Constraints:** Ensure the prompt discourages "illustration", "painting", "drawing", "cartoon", "text", "watermark", "blur", "distorted".
 
 **Output:** A single, concise, comma-separated list of descriptive phrases.
 `;

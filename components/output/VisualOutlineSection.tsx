@@ -262,7 +262,13 @@ const CinematicSceneCard: React.FC<{
                         <div className="relative w-full h-full flex items-center justify-center p-8 z-10">
                             {scene.imageUrl ? (
                                 <div className="relative w-full h-full group/img flex items-center justify-center">
-                                    <img src={scene.imageUrl} alt={scene.title} className="w-full h-full object-contain shadow-2xl rounded-lg" />
+                                    <img 
+                                        src={scene.imageUrl} 
+                                        alt={scene.title} 
+                                        className="w-full h-full object-contain shadow-2xl rounded-lg" 
+                                        loading="lazy" 
+                                        decoding="async" 
+                                    />
                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm rounded-lg">
                                         <a href={scene.imageUrl} download className="btn-glass flex items-center gap-2 bg-white/10 text-white px-6 py-3 rounded-full hover:bg-white/20 font-bold text-sm border border-white/20">
                                             <DownloadIcon /> Download 8K Image
