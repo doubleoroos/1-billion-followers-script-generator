@@ -311,7 +311,6 @@ export const VisualOutlineSection: React.FC<{
         playSound();
         
         try {
-            // Use explicit generic types <Scene, Scene> to prevent inference errors
             const updatedOutline = await processInBatches<Scene, Scene>(outline, async (scene: Scene) => {
                 try {
                     const [vidPrompt, imgPrompt] = await Promise.all([
@@ -448,7 +447,7 @@ export const VisualOutlineSection: React.FC<{
                 const imageUrl = await generateImageForScene(scene, visualStyle);
                 return { ...scene, imageUrl };
             } catch { return scene; }
-        }, 2, 1000);
+        }, 3, 1000); // Optimized for speed with 3 concurrent requests
         
         const newOutline = outline.map(s => completedScenes.find(cs => cs.id === s.id) || s);
         onSave(newOutline);

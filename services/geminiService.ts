@@ -224,7 +224,7 @@ For each scene, define:
 2. Location & Atmosphere
 3. Description (Detailed, sensory-rich (sight, sound, feeling). Convey mood and atmosphere. Align with positive future narrative.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
-5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text)
+5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition.)
 6. Pacing & Emotion
 
 Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "..." }] }
@@ -253,24 +253,20 @@ Output: Single concise paragraph.
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-You are a world-class AI visual artist and Director of Photography.
-Task: Create a highly technical, photorealistic Imagen 3 prompt for a film still.
-Visual Style: ${visualStyle}
-Scene Context: ${scene.description}
+Act as an award-winning Director of Photography and AI Prompt Engineer.
+Task: Write a high-fidelity, photorealistic image generation prompt for this film scene.
+Context: ${scene.description}
 Location: ${scene.location}
-Time/Mood: ${scene.timeOfDay}, ${scene.atmosphere}
-Atmosphere: Evocative, emotional, sensory-rich details.
+Mood: ${scene.atmosphere}
+Visual Style: ${visualStyle}
 
-Mandatory Specs (unless Abstract style):
-- Medium: Raw Photo, Shot on Arri Alexa LF, Panavision Anamorphic Lenses.
-- Quality: 8k resolution, hyper-realistic, highly detailed skin texture (if characters present), film grain (Kodak Vision3).
-- Lighting: Volumetric lighting, rim light, cinematic chiaroscuro, high dynamic range.
-- Composition: Rule of thirds, depth of field, bokeh.
+Requirements:
+1.  **Photorealism**: Use keywords like "Raw photo", "8k", "Arri Alexa", "Fujifilm GFX 100", "hyper-realistic", "highly detailed".
+2.  **Cinematography**: Describe the lighting (e.g., "volumetric", "chiaroscuro", "golden hour"), camera angle (e.g., "low angle", "wide shot"), and lens (e.g., "35mm", "anamorphic bokeh").
+3.  **Evocative Details**: Include sensory textures (e.g., "rusted metal", "soft mist", "sweat on skin", "dust motes in light").
+4.  **Style Compliance**: Ensure the image strictly follows the "${visualStyle}" aesthetic.
 
-Negative Prompts (Implicit):
-- NO illustration, NO 3d render look, NO painting, NO cartoons, NO text, NO watermarks, NO distorted faces.
-
-Output: A single, dense, comma-separated string of descriptive keywords.
+Output: A single, concise, comma-separated prompt string optimized for Imagen 3. Do not include introductory text.
 `;
 }
 
