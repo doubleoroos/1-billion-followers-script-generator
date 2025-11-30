@@ -4,6 +4,8 @@ import { Header } from './components/Header';
 import { InputPanel } from './components/InputPanel';
 import { OutputDisplay } from './components/output/OutputDisplay';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { MonetizationModal } from './components/ui/MonetizationModal';
+import { ContactPage } from './components/ContactPage';
 import { generateCreativeAssets } from './services/geminiService';
 import type { GeneratedAssets, EmotionalArcIntensity, VisualStyle, NarrativeTone, ScriptBlock, Character, Scene, RewriteTomorrowTheme } from './types';
 
@@ -13,6 +15,9 @@ const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('vision');
   const [error, setError] = useState<string | null>(null);
   const [generatedAssets, setGeneratedAssets] = useState<GeneratedAssets | null>(null);
+  const [showMonetizationModal, setShowMonetizationModal] = useState(false);
+  const [showContactPage, setShowContactPage] = useState(false);
+  const [hasDonated, setHasDonated] = useState(false);
   
   // Creative Controls State
   const [rewriteTomorrowTheme, setRewriteTomorrowTheme] = useState<RewriteTomorrowTheme>('abundance');
@@ -30,7 +35,22 @@ const App: React.FC = () => {
       setGeneratedAssets(result);
       setAppState('reveal');
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      let errorMessage = 'An unknown error occurred.';
+      if (e instanceof Error) {
+        const msg = e.message.toLowerCase();
+        if (msg.includes('api key') || msg.includes('403')) {
+           errorMessage = 'API Key is invalid or missing. Please check your environment configuration.';
+        } else if (msg.includes('quota') || msg.includes('429')) {
+           errorMessage = 'API usage quota exceeded. Please wait a moment and try again.';
+        } else if (msg.includes('fetch failed') || msg.includes('network')) {
+           errorMessage = 'Network connection failed. Please check your internet connection.';
+        } else if (msg.includes('safety') || msg.includes('blocked')) {
+           errorMessage = 'The request was blocked by safety filters. Please try a different theme or tone.';
+        } else {
+           errorMessage = e.message;
+        }
+      }
+      
       setError(errorMessage);
       setAppState('vision'); // Go back to vision screen on error
       console.error(e);
@@ -41,6 +61,13 @@ const App: React.FC = () => {
     setGeneratedAssets(null);
     setError(null);
     setAppState('vision');
+  };
+
+  const handleSupport = (tier: string) => {
+      // In a real app, integrate Stripe checkout here.
+      // For now, we simulate success for all tiers.
+      setHasDonated(tier !== 'seed'); // Seed is free, others count as "donated" state
+      setShowMonetizationModal(false);
   };
 
   // Callback handlers for saving edits from the OutputDisplay
@@ -85,6 +112,8 @@ const App: React.FC = () => {
               onVideoSave={handleVideoSave}
               visualStyle={visualStyle}
               creativeChoices={creativeChoices}
+              hasDonated={hasDonated}
+              onOpenMonetization={() => setShowMonetizationModal(true)}
             />
           );
         }
@@ -113,10 +142,27 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen text-text-primary font-sans h-full">
-      <Header onStartOver={handleStartOver} showStartOver={appState === 'reveal'} />
+      <Header 
+        onStartOver={handleStartOver} 
+        showStartOver={appState === 'reveal'} 
+        onSupportClick={() => setShowMonetizationModal(true)}
+        onContactClick={() => setShowContactPage(true)}
+      />
+      
       <main className="container mx-auto px-4 py-12 md:py-20">
         {renderContent()}
       </main>
+
+      <MonetizationModal 
+        isOpen={showMonetizationModal} 
+        onClose={() => setShowMonetizationModal(false)}
+        onSupport={handleSupport}
+      />
+
+      <ContactPage 
+        isOpen={showContactPage}
+        onClose={() => setShowContactPage(false)}
+      />
     </div>
   );
 };

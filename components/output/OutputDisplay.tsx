@@ -26,7 +26,9 @@ interface OutputDisplayProps {
     arc: EmotionalArcIntensity;
     style: VisualStyle;
     tone: NarrativeTone;
-  }
+  };
+  hasDonated: boolean;
+  onOpenMonetization: () => void;
 }
 
 export const OutputDisplay: React.FC<OutputDisplayProps> = ({
@@ -37,6 +39,8 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
   onVideoSave,
   visualStyle,
   creativeChoices,
+  hasDonated,
+  onOpenMonetization
 }) => {
     const { script, characters, visualOutline, referenceImages, btsDocument } = generatedAssets;
     const [isVeoKeySelected, setIsVeoKeySelected] = useState<boolean | null>(null);
@@ -83,7 +87,11 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
     
     const handleDownloadPDF = () => {
         playSound();
-        downloadPDF(generatedAssets, creativeChoices);
+        if (!hasDonated) {
+            onOpenMonetization();
+        } else {
+            downloadPDF(generatedAssets, creativeChoices);
+        }
     };
 
     const handleRegenerateBts = async () => {
@@ -159,15 +167,28 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             </StoryboardSection>
 
             <div className="flex justify-center animate-fade-in pt-12" style={{ animationDelay: '1200ms' }}>
-                <button 
-                    onClick={handleDownloadPDF}
-                    className="btn-glow flex items-center gap-3 bg-slate-800/80 text-white px-10 py-5 rounded-full font-bold border border-white/10 hover:border-violet-400/50 transition-all shadow-xl hover:shadow-violet-500/30 text-xl tracking-wide group"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download Script & Prompts (PDF)
-                </button>
+                <div className="flex flex-col items-center gap-3">
+                    <button 
+                        onClick={handleDownloadPDF}
+                        className="btn-glow flex items-center gap-3 bg-slate-800/80 text-white px-10 py-5 rounded-full font-bold border border-white/10 hover:border-violet-400/50 transition-all shadow-xl hover:shadow-violet-500/30 text-xl tracking-wide group"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download Script & Prompts (PDF)
+                    </button>
+                    {!hasDonated && (
+                        <div className="text-center space-y-1">
+                            <p className="text-xs text-slate-500 flex items-center justify-center gap-1">
+                                <svg className="w-3 h-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
+                                Support Stichting Earth Rising to unlock full export
+                            </p>
+                            <p className="text-[10px] text-slate-600">
+                                Need help? <a href="mailto:info@earthrising.space" className="hover:text-emerald-400 transition-colors">info@earthrising.space</a>
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
