@@ -222,12 +222,12 @@ Script: ${fullScript}
 For each scene, define:
 1. Title (Evocative, 2-5 words)
 2. Location & Atmosphere
-3. Description (Concise, evocative, and sensory-rich. Review characters and content. Focus on mood, atmosphere, and key visual elements. Align with positive future narrative. Max 3 sentences.)
+3. Description (Review content and characters. Generate a concise, evocative, and sensory-rich description. Capture the essence. Align with positive future narrative. Max 3 sentences.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
 5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition.)
 6. Pacing & Emotion (Describe rhythm and feeling, e.g., "Slow and melancholic")
 7. Transition: How does this scene end/transition to the next? (e.g., "Match cut to...", "Sound bridge of...")
-8. Dependencies: Identify logical dependencies. If scene N depends on the outcome or visual state of scene N-1, include its ID.
+8. Dependencies: Analyze narrative flow. If this scene logically or visually depends on a previous scene (e.g. continuing an action, reaction shot), add that scene's ID (e.g. "scene-1") to the 'dependsOn' list.
 
 Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "...", "dependsOn": ["scene-X"] }] }
 `;
@@ -274,6 +274,7 @@ Scene Context:
 - Location: ${scene.location}
 - Atmosphere: ${scene.atmosphere}
 - Visual Style: ${visualStyle} (Strict adherence)
+- Atmosphere: Evocative, emotional, sensory-rich details
 
 Guidelines for Maximum Photorealism:
 1. **Camera & Lens**: Specify "Shot on Arri Alexa LF", "Panavision Anamorphic", "35mm Film Grain", "Depth of Field".
@@ -522,20 +523,22 @@ export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: V
 
 export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = `
-You are a master storyteller.
-Rewrite the description for this film scene to be evocative, concise, and sensory-rich.
-Current Description: ${scene.description}
-Characters: ${scene.charactersInScene}
-Location: ${scene.location}
-Time: ${scene.timeOfDay}
-Visual Style: ${visualStyle}
+You are a master storyteller and visual director.
+Rewrite the description for this film scene.
+
+Context:
+- Current Description: ${scene.description}
+- Characters in Scene: ${scene.charactersInScene}
+- Location: ${scene.location}
+- Time: ${scene.timeOfDay}
+- Visual Style: ${visualStyle}
 
 Task:
-- Capture the essence of the scene and characters.
-- Use sensory language (sight, sound, texture).
-- Deeply convey the mood and atmosphere.
-- Align with a positive, hopeful future narrative.
-- Keep it concise (2-3 sentences maximum).
+1. Review the scene's content and the characters involved.
+2. Generate a more evocative and concise description (2-3 sentences).
+3. Capture the essence of the scene.
+4. Use sensory language (sight, sound, texture, feeling).
+5. Align strictly with a positive, hopeful future narrative.
 
 Output: The new description text only.
 `;
