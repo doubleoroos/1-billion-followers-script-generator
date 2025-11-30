@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LogoIcon } from '../icons/LogoIcon';
 import { useSound } from '../hooks/useSound';
@@ -22,12 +21,12 @@ const TierCard: React.FC<{
             onClick={onSelect}
             className={`relative flex flex-col text-left p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02] group w-full
             ${isPopular 
-                ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-violet-500/50 shadow-[0_0_30px_rgba(139,92,246,0.2)]' 
+                ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.2)]' 
                 : 'bg-slate-900/40 border-white/10 hover:bg-slate-900/60'
             }`}
         >
             {isPopular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-500 to-cyan-500 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-lg">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-slate-500 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-lg">
                     Most Popular
                 </div>
             )}
@@ -115,7 +114,7 @@ export const MonetizationModal: React.FC<MonetizationModalProps> = ({ isOpen, on
                     </div>
                     
                     <div className="flex justify-center mb-4">
-                         <div className="p-3 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-2xl border border-emerald-500/30">
+                         <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-slate-500/20 rounded-2xl border border-cyan-500/30">
                             <LogoIcon large={false} />
                          </div>
                     </div>
