@@ -94,7 +94,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             onOpenMonetization();
         } else {
             // Pass hasDonated state to service to determine if watermark should be added
-            downloadPDF(generatedAssets, creativeChoices, hasDonated);
+            try {
+                downloadPDF(generatedAssets, creativeChoices, hasDonated);
+            } catch (e) {
+                console.error("PDF Generation failed:", e);
+                alert("Failed to generate PDF. Please try regenerating some assets first.");
+            }
         }
     };
 

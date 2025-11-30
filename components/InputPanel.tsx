@@ -38,6 +38,7 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
 
     return (
         <button
+            type="button"
             onClick={() => { playSound(); onClick(); }}
             className={`group relative flex flex-col items-start text-left p-0 transition-all duration-200 w-full h-full 
             bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-700 hover:border-slate-500 bg-gunmetal'} 
@@ -165,6 +166,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             {/* Sticky Launch Button */}
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gunmetal/95 backdrop-blur-sm border-t border-gold/20 flex justify-center z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
                 <button
+                    type="button"
                     onClick={handleGenerateClick}
                     disabled={isLoading || !themeSelected}
                     className={`group relative overflow-hidden transition-all duration-200 

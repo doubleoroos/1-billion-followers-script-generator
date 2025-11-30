@@ -2,9 +2,6 @@
 import React, { useState } from 'react';
 import type { ScriptBlock, Character } from '../../types';
 import { useSound } from '../hooks/useSound';
-
-// Keep existing imports for audio/autosave but simplified for display focus
-// ...
 import { generateScriptAudio } from '../../services/geminiService';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 
@@ -15,6 +12,7 @@ const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-
 const InlineAudioPlayer: React.FC<{ url: string }> = ({ url }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [error, setError] = useState(false);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
     React.useEffect(() => {
@@ -32,20 +30,34 @@ const InlineAudioPlayer: React.FC<{ url: string }> = ({ url }) => {
             setProgress(0);
         });
 
+        audio.addEventListener('error', () => {
+            console.error("Audio playback error");
+            setError(true);
+            setIsPlaying(false);
+        });
+
         return () => {
             audio.pause();
         };
     }, [url]);
 
     const togglePlay = () => {
-        if (!audioRef.current) return;
+        if (!audioRef.current || error) return;
         if (isPlaying) {
             audioRef.current.pause();
         } else {
-            audioRef.current.play();
+            audioRef.current.play().catch(() => setError(true));
         }
         setIsPlaying(!isPlaying);
     };
+
+    if (error) {
+        return (
+             <div className="flex items-center gap-2 bg-red-900/40 rounded-full px-3 py-1.5 border border-red-500/30 w-fit mt-2">
+                 <span className="text-[9px] text-red-300 font-bold uppercase">Playback Error</span>
+             </div>
+        );
+    }
 
     return (
         <div className="flex items-center gap-3 bg-black/40 rounded-full px-3 py-1.5 border border-white/10 w-fit mt-2 backdrop-blur-sm shadow-sm transition-all hover:border-cyan-500/30">

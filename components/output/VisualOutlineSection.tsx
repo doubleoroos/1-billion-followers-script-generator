@@ -16,9 +16,12 @@ const SearchIcon = () => <svg className="h-4 w-4 text-slate-500" fill="none" vie
 const TextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 
 const StaticNoise = () => (
-    <div className="absolute inset-0 bg-black opacity-60 flex flex-col justify-center items-center overflow-hidden">
-        {/* Animated Noise Background */}
-        <div className="w-full h-full absolute inset-0 bg-[url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif')] bg-cover opacity-10 mix-blend-screen pointer-events-none"></div>
+    <div className="absolute inset-0 bg-black flex flex-col justify-center items-center overflow-hidden">
+        {/* CSS-only SVG Noise Pattern */}
+        <div className="absolute inset-0 opacity-20" style={{
+             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+             filter: 'contrast(150%) brightness(100%)',
+        }}></div>
         {/* Scanlines */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)50%,rgba(0,0,0,0.25)50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] pointer-events-none"></div>
         <span className="relative z-10 text-cyan-900 font-mono text-xs tracking-[0.3em] font-bold animate-pulse">NO SIGNAL</span>
@@ -53,6 +56,27 @@ const CinematicSceneCard: React.FC<any> = ({
 }) => {
     const [activeTab, setActiveTab] = useState<'video' | 'image'>(scene.videoUrl ? 'video' : 'image');
     const playSound = useSound();
+
+    const getCharacterChip = (charName: string) => {
+        const character = characters.find((c: Character) => c.name.toLowerCase().includes(charName.toLowerCase()) || charName.toLowerCase().includes(c.name.toLowerCase()));
+        if (!character) return <span className="text-slate-500">{charName}</span>;
+        
+        return (
+            <a 
+                href={`#character-card-${character.id}`}
+                onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById(`character-card-${character.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+                className="inline-flex items-center gap-1 bg-white/5 hover:bg-cyan-500/20 px-2 py-0.5 rounded-full border border-white/10 hover:border-cyan-500/50 transition-colors cursor-pointer group"
+            >
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:animate-pulse"></span>
+                <span className="text-slate-300 group-hover:text-cyan-200">{charName}</span>
+            </a>
+        );
+    };
+
+    const parsedCharacters = scene.charactersInScene ? scene.charactersInScene.split(',').map((c: string) => c.trim()) : [];
 
     return (
         <div className="bg-gunmetal border border-white/10 shadow-lg relative group overflow-hidden rounded-sm transition-all hover:border-cyan-500/20">
@@ -133,6 +157,12 @@ const CinematicSceneCard: React.FC<any> = ({
                 <div className="lg:col-span-4 bg-gunmetal p-5 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
                     <div className="space-y-6">
                         <div className="space-y-2">
+                             <div className="flex flex-wrap gap-2 mb-4">
+                                {parsedCharacters.map((char: string, idx: number) => (
+                                    <React.Fragment key={idx}>{getCharacterChip(char)}</React.Fragment>
+                                ))}
+                             </div>
+
                             <label className="text-[9px] font-mono text-cyan-500 font-bold uppercase tracking-wider">Action Description</label>
                             <textarea
                                 value={scene.description}
@@ -246,7 +276,8 @@ export const VisualOutlineSection: React.FC<{
                 return t ? { ...scene, transition: t.transition } : scene;
             });
 
-            const updatedOutline = await processInBatches(outlineWithTransitions, async (scene: Scene) => {
+            // Use explicit generic types <Scene, Scene> to prevent inference errors
+            const updatedOutline = await processInBatches<Scene, Scene>(outlineWithTransitions, async (scene: Scene) => {
                 try {
                     const [vidPrompt, imgPrompt] = await Promise.all([
                         regenerateVideoPromptForScene(scene, visualStyle),
@@ -274,7 +305,7 @@ export const VisualOutlineSection: React.FC<{
         playSound();
         
         try {
-            const updatedOutline = await processInBatches(outline, async (scene: Scene) => {
+            const updatedOutline = await processInBatches<Scene, Scene>(outline, async (scene: Scene) => {
                 const newTitle = await regenerateTitleForScene(scene);
                 return { ...scene, title: newTitle };
             }, 5, 200);
@@ -297,7 +328,7 @@ export const VisualOutlineSection: React.FC<{
             return;
         }
 
-        const completedScenes = await processInBatches(missing, async (scene: Scene) => {
+        const completedScenes = await processInBatches<Scene, Scene>(missing, async (scene: Scene) => {
             try {
                 const imageUrl = await generateImageForScene(scene, visualStyle);
                 return { ...scene, imageUrl };

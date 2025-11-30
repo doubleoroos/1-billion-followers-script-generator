@@ -63,7 +63,7 @@ export const downloadPDF = (
       
       doc.setFont(font, "normal");
       doc.setFontSize(10);
-      const cleanText = String(text).replace(/[^\x00-\x7F]/g, ""); 
+      const cleanText = String(text || '').replace(/[^\x00-\x7F]/g, ""); 
       const lines = doc.splitTextToSize(cleanText, contentWidth);
       const lineHeight = 5; 
       checkSpace(lines.length * lineHeight);
@@ -185,7 +185,8 @@ export const downloadPDF = (
       addSection("Action Description", scene.description || '');
       addSection("Visuals", scene.visuals || '');
       
-      if (scene.videoPrompt) {
+      // Safe access with fallback for prompts
+      if (scene.videoPrompt || '') {
           checkSpace(25);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(0, 50, 150);
@@ -201,7 +202,7 @@ export const downloadPDF = (
           y += (lines.length * 4) + 6;
       }
       
-      if (scene.imagePrompt) {
+      if (scene.imagePrompt || '') {
           checkSpace(25);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(100, 0, 100);
