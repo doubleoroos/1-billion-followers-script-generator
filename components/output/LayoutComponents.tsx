@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useSound } from '../hooks/useSound';
 
@@ -44,7 +45,7 @@ export const OutputNav: React.FC = () => {
                     >
                         <span className="text-[10px] font-bold font-display uppercase tracking-widest">{item.label}</span>
                         {/* LED Active Indicator */}
-                        <div className={`mt-1 w-1.5 h-1.5 rounded-full transition-colors ${activeSection === item.id ? 'bg-studio-red led-indicator' : 'bg-black'}`}></div>
+                        <div className={`mt-1 w-1.5 h-1.5 rounded-full transition-colors ${activeSection === item.id ? 'bg-gold led-indicator' : 'bg-black'}`}></div>
                     </a>
                 ))}
             </div>

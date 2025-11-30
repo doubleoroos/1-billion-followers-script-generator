@@ -17,7 +17,10 @@ const App: React.FC = () => {
   const [generatedAssets, setGeneratedAssets] = useState<GeneratedAssets | null>(null);
   const [showMonetizationModal, setShowMonetizationModal] = useState(false);
   const [showContactPage, setShowContactPage] = useState(false);
+  
+  // Monetization State
   const [hasDonated, setHasDonated] = useState(false);
+  const [hasSelectedTier, setHasSelectedTier] = useState(false);
   
   // Creative Controls State
   const [rewriteTomorrowTheme, setRewriteTomorrowTheme] = useState<RewriteTomorrowTheme>('abundance');
@@ -64,9 +67,15 @@ const App: React.FC = () => {
   };
 
   const handleSupport = (tier: string) => {
-      // In a real app, integrate Stripe checkout here.
-      // For now, we simulate success for all tiers.
-      setHasDonated(tier !== 'seed'); // Seed is free, others count as "donated" state
+      // Logic for unlocking download capability
+      setHasSelectedTier(true);
+      if (tier === 'seed') {
+          // Free tier
+          setHasDonated(false);
+      } else {
+          // Paid tiers
+          setHasDonated(true);
+      }
       setShowMonetizationModal(false);
   };
 
@@ -113,6 +122,7 @@ const App: React.FC = () => {
               visualStyle={visualStyle}
               creativeChoices={creativeChoices}
               hasDonated={hasDonated}
+              hasSelectedTier={hasSelectedTier}
               onOpenMonetization={() => setShowMonetizationModal(true)}
             />
           );

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { useSound } from './hooks/useSound';
@@ -31,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver, onSu
               Rewrite<span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>
             </h1>
             <div className="flex items-center gap-2 mt-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-studio-red animate-pulse led-indicator"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse led-indicator"></span>
                 <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em]">Studio Online</p>
             </div>
           </div>
@@ -50,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver, onSu
                 onClick={() => { playSound(); if(onSupportClick) onSupportClick(); }}
                 className="hidden md:flex items-center gap-2 text-xs font-bold font-display uppercase tracking-wider py-2 px-4 bg-gunmetal-light border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-all rounded-sm"
             >
-                <HeartIcon /> Support Foundation
+                <HeartIcon /> Support Stichting Earth Rising
             </button>
             
             {showStartOver && (

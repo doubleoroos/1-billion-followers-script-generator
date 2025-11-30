@@ -29,24 +29,28 @@ export async function processInBatches<T, R>(items: T[], processItem: (item: T) 
     return results;
 }
 
-// Helper to clean JSON strings from Markdown formatting and extra text
+// Robust JSON cleaner to handle AI conversational output
 const cleanJson = (text: string): string => {
     if (!text) return '{}';
     let cleaned = text.trim();
     
-    // Remove markdown code blocks if present
-    if (cleaned.startsWith('```json')) {
-        cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (cleaned.startsWith('```')) {
-        cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    // 1. Extract content from Markdown code blocks
+    const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
+    const matches = [...cleaned.matchAll(codeBlockRegex)];
+    if (matches.length > 0) {
+        // Use the content of the first code block found
+        cleaned = matches[0][1].trim();
     }
     
-    // Attempt to find the first { and last } to handle extra text before/after
+    // 2. Fallback: Find the first '{' and last '}'
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
     
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
         cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    } else {
+        // If no braces found, return empty object string to prevent crash
+        return '{}';
     }
     
     return cleaned;
@@ -54,27 +58,23 @@ const cleanJson = (text: string): string => {
 
 // --- AUDIO UTILITIES ---
 
-// Helper to write a WAV header for raw PCM data
 function writeWavHeader(sampleRate: number, numChannels: number, bitsPerSample: number, dataLength: number): Uint8Array {
   const buffer = new ArrayBuffer(44);
   const view = new DataView(buffer);
 
-  // RIFF chunk descriptor
   writeString(view, 0, 'RIFF');
   view.setUint32(4, 36 + dataLength, true);
   writeString(view, 8, 'WAVE');
 
-  // fmt sub-chunk
   writeString(view, 12, 'fmt ');
-  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
-  view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+  view.setUint32(16, 16, true); 
+  view.setUint16(20, 1, true); 
   view.setUint16(22, numChannels, true);
   view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true); // ByteRate
-  view.setUint16(32, numChannels * (bitsPerSample / 8), true); // BlockAlign
+  view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true); 
+  view.setUint16(32, numChannels * (bitsPerSample / 8), true); 
   view.setUint16(34, bitsPerSample, true);
 
-  // data sub-chunk
   writeString(view, 36, 'data');
   view.setUint32(40, dataLength, true);
 
@@ -117,11 +117,8 @@ export const generateScriptAudio = async (text: string, voiceName: string = 'Kor
             throw new Error("No audio data returned from model.");
         }
 
-        // Convert Base64 PCM to WAV Blob URL
         const pcmData = base64ToUint8Array(base64Audio);
-        // Gemini TTS typically returns 24kHz mono PCM
         const wavHeader = writeWavHeader(24000, 1, 16, pcmData.length);
-        
         const wavFile = new Uint8Array(wavHeader.length + pcmData.length);
         wavFile.set(wavHeader);
         wavFile.set(pcmData, wavHeader.length);
@@ -139,289 +136,144 @@ export const generateScriptAudio = async (text: string, voiceName: string = 'Kor
 
 const getThemeDescription = (theme: RewriteTomorrowTheme): string => {
     switch (theme) {
-        case 'abundance': return "The film explores a post-scarcity future where AI and automated systems have eliminated poverty and resource conflict, allowing humanity to flourish in a world of shared prosperity and boundless opportunity.";
-        case 'ascension': return "The film imagines humanity's next evolutionary step, where AI acts as a bridge to higher forms of consciousness, transcending physical limitations and exploring new realms of existence.";
-        case 'harmony': return "The film portrays a world in perfect balance, where AI helps humanity reintegrate with nature, creating a global ecosystem where technology, people, and the planet thrive in symbiotic unity.";
-        case 'enlightenment': return "The film tells a story of profound discovery, where AI helps unlock the deepest mysteries of the universe and the human mind, guiding society into a new age of wisdom, compassion, and universal understanding.";
-        default: return "The film explores a positive, hopeful vision of the future, shaped by a thoughtful partnership between humanity and artificial intelligence.";
+        case 'abundance': return "The film explores a post-scarcity future where AI and automated systems have eliminated poverty, allowing humanity to flourish.";
+        case 'ascension': return "The film imagines humanity's next evolutionary step, where AI acts as a bridge to higher forms of consciousness.";
+        case 'harmony': return "The film portrays a world in perfect balance, where AI helps humanity reintegrate with nature.";
+        case 'enlightenment': return "The film tells a story of profound discovery, where AI helps unlock the deepest mysteries of the universe.";
+        default: return "The film explores a positive, hopeful vision of the future.";
     }
 };
 
 const getIntensityDescription = (intensity: EmotionalArcIntensity): string => {
     switch (intensity) {
-        case 'subtle': return "The emotional arc should be gentle and contemplative, building slowly with a quiet, introspective tone. Focus on nuanced feelings and gradual shifts in mood.";
-        case 'intense': return "Design a powerful and dramatic emotional arc. Use stark contrasts, build to moments of profound emotional weight, and aim for a climactic, cathartic release.";
-        default: return "Craft a balanced emotional journey with clear peaks and valleys, moving from curiosity to tension, and finally to a hopeful resolution.";
+        case 'subtle': return "The emotional arc should be gentle and contemplative.";
+        case 'intense': return "Design a powerful and dramatic emotional arc with high stakes.";
+        default: return "Craft a balanced emotional journey with clear peaks and valleys.";
     }
 };
 
 const getVisualStyleDescription = (style: VisualStyle): string => {
     switch (style) {
-        case 'solarpunk': return "The visual style is Solarpunk: optimistic, eco-conscious, and technologically advanced, featuring lush greenery integrated with elegant, organic architecture and a focus on community and nature. Photorealistic.";
-        case 'minimalist': return "The visual style is Minimalist: clean, abstract, and symbolic. It uses simple geometric forms, a limited color palette, and ample negative space to convey complex ideas with clarity and focus. Photorealistic.";
-        case 'biomorphic': return "The visual style is Biomorphic: fluid, organic, and abstract shapes inspired by the curves and patterns found in nature. The aesthetic is flowing, elegant, and interconnected. Photorealistic.";
-        case 'abstract': return "The visual style is Abstract: non-representational and emotionally driven. It uses color, light, shape, and texture to create a visceral experience and explore inner landscapes of feeling and thought, rather than depicting external reality.";
-        default: return "The visual style is highly Cinematic and Photorealistic: emotionally resonant, with dramatic lighting, a grand sense of scale, and hyper-detailed textures to create a deeply immersive experience.";
+        case 'solarpunk': return "Solarpunk: eco-conscious, lush greenery, organic architecture, photorealistic.";
+        case 'minimalist': return "Minimalist: clean, simple geometric forms, ample negative space, photorealistic.";
+        case 'biomorphic': return "Biomorphic: fluid, organic, nature-inspired shapes, flowing and elegant, photorealistic.";
+        case 'abstract': return "Abstract: non-representational, emotionally driven color and light, experiential.";
+        default: return "Cinematic: dramatic lighting, grand scale, hyper-detailed textures, photorealistic.";
     }
 }
 
 const getNarrativeToneDescription = (tone: NarrativeTone): string => {
     switch (tone) {
-        case 'philosophical': return "The narrative tone is Philosophical: contemplative and profound, exploring deep questions about humanity, consciousness, and the nature of ideas.";
-        case 'hopeful': return "The narrative tone is Hopeful: inspiring, optimistic, and uplifting, focusing on the potential for positive change and collective action.";
-        case 'intimate': return "The narrative tone is Intimate: personal, gentle, and reflective, as if sharing a quiet, profound secret with the viewer.";
-        default: return "The narrative tone is Poetic: lyrical and evocative, using rich metaphors and imagery to convey emotion and meaning rather than literal description.";
+        case 'philosophical': return "Philosophical: contemplative and profound.";
+        case 'hopeful': return "Hopeful: inspiring, optimistic, and uplifting.";
+        case 'intimate': return "Intimate: personal, gentle, and reflective.";
+        default: return "Poetic: lyrical and evocative imagery.";
     }
 }
 
-// --- PROMPT CREATORS ---
+// --- PROMPTS ---
 
 const createCoreConceptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
-    const themeDescription = getThemeDescription(theme);
-    const intensityDescription = getIntensityDescription(intensity);
-    const styleDescription = getVisualStyleDescription(visualStyle);
-    const toneDescription = getNarrativeToneDescription(narrativeTone);
-
     return `
-You are an expert storyteller and screenwriter creating the foundational concept for a film submission to the "1 Billion Summit AI Film Award".
+You are an expert storyteller. Create a film concept for "Rewrite Tomorrow - Positive Future".
+Theme: ${getThemeDescription(theme)}
+Tone: ${getNarrativeToneDescription(narrativeTone)}
+Style: ${getVisualStyleDescription(visualStyle)}
+Arc: ${getIntensityDescription(intensity)}
 
-**Competition Theme:** "Rewrite Tomorrow - Stories imagining the future with a positive twist."
-**Film Length:** 7 to 10 minutes.
-**Storytelling Mandate:** The film must tell a cohesive and emotionally resonant story with a clear narrative structure, character development, and a sense of conflict, tension, and resolution.
+Task:
+1. Logline (1 sentence)
+2. Synopsis (1 paragraph)
+3. Characters (2-4 people). For each: Name, Role, Description (evocative), VoicePreference ('Kore','Zephyr','Puck','Fenrir','Charon').
 
-**Your Assigned Focus:**
-- **Core Concept:** ${themeDescription}
-
-**Creative Direction:**
-- **Narrative Tone:** ${toneDescription}
-- **Visual Style:** ${styleDescription}
-- **Emotional Arc:** ${intensityDescription}
-
-**Creative Synthesis:** Weave these creative directions into a single, cohesive vision. The film's cinematic language (${styleDescription}) must be the primary vehicle for its message (${toneDescription}) and emotional journey (${intensityDescription}). The result should feel intentional and unified.
-
-**Your Task:**
-Generate the core creative concept for this film.
-
-1.  **Logline:** Write a compelling, one-sentence summary of the film's central conflict and story.
-2.  **Synopsis:** Write a concise, one-paragraph synopsis that outlines the film's plot from beginning to end, including the main character's journey and the central theme.
-3.  **Characters:** Create 2-4 compelling characters who will drive the story. For each character, provide:
-    - **Name:** A fitting name.
-    - **Role:** Specific role (e.g., 'Protagonist', 'Mentor').
-    - **Description:** A rich, evocative, and detailed description (3-4 sentences) that captures their personality, inner motivation, and physical appearance. Ensure the description reflects the positive future theme of "${theme}".
-    - **VoicePreference:** Select the most suitable voice model from this list based on the character's gender and persona:
-        - 'Kore' (Female, Balanced)
-        - 'Zephyr' (Female, Soft)
-        - 'Puck' (Male, Resonant)
-        - 'Fenrir' (Male, Deep)
-        - 'Charon' (Male, Authoritative)
-
-**Output Format:**
-Return a single, valid JSON object with three keys: "logline", "synopsis", and "characters".
-- "characters" must be an array of objects, each with "name", "description", "role", and "voicePreference" keys.
+Output JSON format: { "logline": "...", "synopsis": "...", "characters": [{ "name": "...", "role": "...", "description": "...", "voicePreference": "..." }] }
 `;
 }
 
 const createScriptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, narrativeTone: NarrativeTone, logline: string, synopsis: string, characters: Character[]): string => {
-    const intensityDescription = getIntensityDescription(intensity);
-    const toneDescription = getNarrativeToneDescription(narrativeTone);
-    const characterDescriptions = characters.map(c => `- ${c.name} (${c.role}): ${c.description}`).join('\n');
-
+    const charList = characters.map(c => `${c.name} (${c.role}): ${c.description}`).join('\n');
     return `
-You are an expert screenwriter tasked with writing a complete script for a film submission to the "1 Billion Summit AI Film Award".
+Write a script for a 7-10 minute film.
+Logline: ${logline}
+Synopsis: ${synopsis}
+Characters: ${charList}
+Tone: ${getNarrativeToneDescription(narrativeTone)}
 
-**Competition Theme:** "Rewrite Tomorrow - Stories imagining the future with a positive twist."
-**Film Length:** 7 to 10 minutes.
+Format Requirements:
+- Scene Headings: INT. / EXT.
+- Dialogue: Natural, character-specific.
+- Narration: Evocative.
 
-**Creative Foundation (already decided):**
-- **Logline:** ${logline}
-- **Synopsis:** ${synopsis}
-- **Characters:**
-${characterDescriptions}
-
-**Creative Direction:**
-- **Narrative Tone:** ${toneDescription}
-- **Emotional Arc:** ${intensityDescription}
-
-**Creative Synthesis:** Ensure the script is a masterclass in showing, not telling. The dialogue and narration must embody the ${toneDescription}. The pacing of scenes and the subtext within the dialogue must meticulously build towards the ${intensityDescription}.
-
-**Formatting Requirements:**
-- **Scene Headings:** Use professional screenplay formatting for Scene Headings (e.g., "INT. CRYSTAL SPIRE - DAY"). Place these inside 'narration' blocks at the start of new scenes.
-- **Action/Description:** Write clear, visual action lines.
-- **Dialogue:** Dialogue should be natural and character-specific.
-
-**Your Task:**
-Write a detailed narration and dialogue-driven script guided by the specified **Narrative Tone**. The script must be substantial enough for a **7-10 minute film**. 
-- It must follow a complete narrative arc (beginning, middle, end) based on the synopsis.
-- It must feature clear character development, conflict, and resolution, aligning with the requested **Emotional Arc**.
-- Structure the output as a sequence of script blocks. Each block can be either 'narration' or 'dialogue'. 
-- For dialogue blocks, you MUST assign a "characterName" from the provided character list.
-
-**Output Format:**
-Return a single, valid JSON object with a single key: "script".
-- "script" must be an array of objects. Each object must have:
-    - a "type" key ('narration' or 'dialogue').
-    - a "content" key with the text for that block.
-    - if the type is 'dialogue', it must also have a "characterName" key matching a name from the character list.
+Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": "...", "characterName": "..." (if dialogue) }] }
 `;
 };
 
 const createVisualOutlinePrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, synopsis: string, fullScript: string): string => {
-    const styleDescription = getVisualStyleDescription(visualStyle);
-    
     return `
-You are an expert film director and concept artist creating a visual outline for a "1 Billion Summit AI Film Award" submission.
+Create a visual outline for this film script.
+Style: ${getVisualStyleDescription(visualStyle)}
+Synopsis: ${synopsis}
+Script: ${fullScript}
 
-**Competition Theme:** "Rewrite Tomorrow"
-**Film Length:** 7-10 minutes.
+For each scene, define:
+1. Title (Evocative)
+2. Location & Atmosphere
+3. Description (Evocative and concise. Use sensory language (sight, sound, feeling) to capture the scene's essence and the positive future narrative. Avoid generic summaries.)
+4. Video Prompt (Veo, cinematic keywords)
+5. Image Prompt (Imagen, 8k, photorealistic)
+6. Pacing & Emotion
 
-**Creative Foundation (already decided):**
-- **Synopsis:** ${synopsis}
-- **Visual Style:** ${styleDescription}
-
-**Script Context:**
-${fullScript}
-
-**Your Task:**
-Break the script down into a sequence of scenes. For each scene, define the visual and cinematic elements.
-1. **Scene Title:** Create a concise, evocative, and poetic title for the scene (e.g., "The Solar Harvest", "Echoes of the Hub").
-2. **Location & Atmosphere:** Describe the setting and the mood (e.g., lighting, weather, feeling).
-3. **Action & Visuals:** Describe what happens and what we see. **Do not just list actions.** Use evocative, sensory language to describe the scene. Focus on textures, lighting, specific movements, and the emotional resonance of the moment. Make it read like a novel.
-4. **Cinematography:** Suggest a specific camera angle or movement (e.g., "Wide drone shot", "Close-up on eyes").
-5. **Pacing & Emotion:** Describe the desired pacing and emotional tone (e.g., "Slow and melancholic", "Fast-paced and urgent", "Calm and contemplative").
-6. **Prompts:** Create distinct, detailed prompts for generating the visual assets (Video and Image).
-
-**Output Format:**
-Return a single, valid JSON object with a single key: "visualOutline".
-- "visualOutline" must be an array of objects.
-- Each object must have the following keys:
-    - "id" (unique string, e.g., "scene-1")
-    - "sceneNumber" (number)
-    - "title" (string)
-    - "location" (string)
-    - "timeOfDay" (string)
-    - "duration" (estimated string, e.g., "45s")
-    - "atmosphere" (string)
-    - "charactersInScene" (string, names comma-separated)
-    - "description" (string, highly evocative and detailed narrative description using sensory language)
-    - "keyVisualElements" (string, specific details to capture)
-    - "visuals" (string, description of the shot composition)
-    - "transition" (string, edit to next scene)
-    - "pacingEmotion" (string, e.g. "Slow and melancholic", "Fast-paced and urgent")
-    - "videoPrompt" (string, highly evocative, cinematic description of the shot for Veo. Include camera movement, lighting, and style keywords like "cinematic", "4k".)
-    - "imagePrompt" (string, detailed, photorealistic, 8k prompt for Imagen. Focus on cinematic lighting, composition, and texture. Avoid 'concept art' style.)
+Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "..." }] }
 `;
 };
 
 const createBTSPrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, synopsis: string, outline: Scene[]): string => {
     return `
-You are the Director and Producer of the film "${synopsis.substring(0, 30)}...". Write a "Behind The Scenes" document for the competition submission.
-
-**Constraint:** The document MUST include the following sections:
-1. **Director's Statement:** Why this story? How does it fit "Rewrite Tomorrow"?
-2. **Visual Approach:** Explain the "${visualStyle}" choice.
-3. **AI Workflow:** Strictly follow the format "Phase | Tool(s)" for each step of the creation process.
-4. **Ethical AI Usage:** A mandatory section explaining how you ensured the content is ethical, unbiased, and positive.
-
-**Models Used:** Gemini 3 Pro (Script/Concept), Veo (Video), Imagen 3 (Images), Gemini 2.5 Flash (TTS/Music).
-
-**Output Format:**
-Return a raw string (Markdown formatted).
+Write a "Behind The Scenes" doc for the film "${synopsis.substring(0, 30)}...".
+Includes: Director's Statement, Visual Approach (${visualStyle}), AI Workflow (Phase | Tool), and Ethical AI Usage.
+Return raw Markdown.
 `;
 }
 
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
-    const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are a master cinematographer and expert prompt engineer for Google's **Veo** AI video model.
-
-**Task:** Write a highly evocative, cinematic video generation prompt for the following scene.
-**Visual Style:** ${visualStyle} (${styleDescription})
-
-**Scene Details:**
-- **Action:** ${scene.description}
-- **Location:** ${scene.location}
-- **Mood:** ${scene.atmosphere}
-
-**Prompting Requirements:**
-1.  **Cinematic Opening:** Start with "Cinematic shot of..." or "Wide angle shot of...".
-2.  **Dynamic Camera:** Mandatory description of camera movement (e.g., "Camera tracks forward...", "Slow pan right...", "Aerial drone shot establishing...").
-3.  **Lighting & Atmosphere:** Describe the light quality (e.g., "dappled sunlight," "harsh neon," "soft volumetric fog") and atmospheric particles.
-4.  **Sensory Details:** Focus on textures and micro-movements (e.g., "wind rippling the grass," "rain dripping from metal").
-5.  **Keywords:** "Photorealistic", "4k", "35mm film grain", "high budget", "masterpiece".
-
-**Output:** A single, concise paragraph (max 80 words). No headers.
+Write a Veo video generation prompt.
+Style: ${visualStyle}
+Scene: ${scene.description}
+Location: ${scene.location}
+Mood: ${scene.atmosphere}
+Requirements: Cinematic shot, dynamic camera movement, lighting details, photorealistic, 4k.
+Output: Single concise paragraph.
 `;
 }
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
-    const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are a specialist Prompt Engineer for high-fidelity, photorealistic AI image generation (Imagen 3).
-
-**Task:** Write a refined, highly evocative image prompt for this film scene.
-**Goal:** The result must be a **Hyper-Realistic, Cinematic 8K Film Still**. It should look like a frame from a high-budget feature film, not concept art.
-
-**Scene Context:**
-- **Action:** ${scene.description}
-- **Location:** ${scene.location}
-- **Atmosphere:** ${scene.atmosphere}
-- **Visual Style:** ${visualStyle} (${styleDescription})
-
-**Refinement Strategy:**
-1.  **Photorealism Keywords:** "Hyper-realistic", "Cinematic", "8k", "Raw photo", "Color graded", "Shot on Arri Alexa", "35mm film grain", "ISO 400", "Shutter speed 1/50".
-2.  **Cinematography:** Describe the camera angle (e.g., "Low angle", "Wide shot"), lens choice (e.g., "50mm prime", "Anamorphic"), and depth of field (bokeh).
-3.  **Lighting:** Be specific about light sources and quality (e.g., "Soft volumetric fog", "Harsh rim light", "Bioluminescent glow", "Natural golden hour", "Chiaroscuro").
-4.  **Texture & Detail:** Emphasize material textures (skin pores, metal patina, cloth weave, nature imperfections) to ground the image in reality.
-5.  **Negative Constraints:** Ensure the prompt discourages "illustration", "painting", "drawing", "cartoon", "text", "watermark", "blur", "distorted".
-
-**Output:** A single, concise, comma-separated list of descriptive phrases.
+Write an Imagen 3 image prompt.
+Role: Expert Prompt Engineer.
+Style: ${visualStyle}
+Scene: ${scene.description}
+Location: ${scene.location}
+Requirements: Hyper-realistic 8K Film Still, Arri Alexa, cinematic lighting, 35mm grain. NO CGI look.
+Output: Comma-separated phrases.
 `;
 }
 
 const createTransitionRefinementPrompt = (currentScene: Scene, nextScene: Scene | undefined, visualStyle: VisualStyle): string => {
-    const styleDescription = getVisualStyleDescription(visualStyle);
     return `
-You are a master film editor and cinematographer. Suggest a highly cinematic and creative transition from Scene ${currentScene.sceneNumber} to ${nextScene ? `Scene ${nextScene.sceneNumber}` : 'the end'}.
-
-**Visual Style:** ${visualStyle}
-${styleDescription}
-
-**Scene ${currentScene.sceneNumber} (OUT):**
-Location: ${currentScene.location}
-Action: ${currentScene.description}
-
-**Scene ${nextScene ? nextScene.sceneNumber : 'END'} (IN):**
-Location: ${nextScene ? nextScene.location : 'Credits'}
-Action: ${nextScene ? nextScene.description : 'Fade to black'}
-
-**Task:**
-Suggest a transition that connects these two scenes visually, thematically, or emotionally.
-Examples: "Match cut on the circular shape of the sun to the protagonist's eye," "Sound bridge of the rain continuing into the next interior scene," "Whip pan right following the movement."
-
-**Constraint:**
-Return ONLY the transition description string. Keep it concise (under 20 words).
+Suggest a cinematic transition from Scene ${currentScene.sceneNumber} to ${nextScene ? 'Scene ' + nextScene.sceneNumber : 'End'}.
+Style: ${visualStyle}
+Output: Transition description string only.
 `;
 }
 
 const createTitleRefinementPrompt = (scene: Scene): string => {
-    return `
-You are a film editor and poet.
-Create a **concise, evocative, and unique** title for this scene.
-It should be 2-5 words long.
-It must align with a "positive future" narrative.
-
-**Scene:**
-${scene.description}
-${scene.location}
-
-**Output:** Return ONLY the title string.
-`;
+    return `Create a concise, poetic title (2-5 words) for this scene: ${scene.description}. Output title only.`;
 }
 
 // --- API INTERACTION ---
 
 const generateRawImage = async (prompt: string): Promise<string | null> => {
-    // Basic sanitization to avoid common safety triggers
     let sanitizedPrompt = prompt.replace(/\b(child|children|kid|kids|toddler|baby)\b/gi, 'figure');
     sanitizedPrompt = sanitizedPrompt.replace(/\b(boy|girl)\b/gi, 'character');
 
@@ -484,48 +336,32 @@ export const generateCreativeAssets = async (
         contents: btsPrompt
     });
 
-    // 5. Moodboard Generation (Real Images - Hyper-Realistic)
+    // 5. Moodboard
     const moodboardPrompts = [
-        { 
-            title: "Cinematic Style", 
-            prompt: `A hyper-realistic cinematic film still demonstrating the ${visualStyle} visual style. ${getVisualStyleDescription(visualStyle)}. Shot on Arri Alexa, Anamorphic lens, 8k, highly detailed, professional color grading, depth of field.` 
-        },
-        { 
-            title: "The World", 
-            prompt: `Wide establishing film still of the film's setting. Theme: ${theme}. ${concept.synopsis.substring(0, 150)}. Visual Style: ${visualStyle}. Hyper-realistic, atmospheric, futuristic city or landscape, photorealistic lighting, 8k.` 
-        },
-        { 
-            title: "Protagonist Concept", 
-            prompt: `Cinematic close-up portrait of a character named ${concept.characters[0]?.name || 'Protagonist'}. ${concept.characters[0]?.description || 'A futuristic hero'}. Visual Style: ${visualStyle}. Hyper-realistic, shot on 35mm film, skin texture, expressive eyes, professional lighting.` 
-        },
-        { 
-            title: "Key Moment", 
-            prompt: `A key dramatic film still from the scene: ${concept.logline}. Visual Style: ${visualStyle}. Dynamic composition, motion blur, photorealistic, 8k resolution, cinematic lighting.` 
-        }
+        { title: "Cinematic Style", prompt: `Hyper-realistic film still, ${visualStyle}, 8k.` },
+        { title: "The World", prompt: `Wide establishing shot, ${theme}, ${visualStyle}, 8k.` },
+        { title: "Protagonist", prompt: `Cinematic portrait of ${concept.characters[0]?.name}, ${visualStyle}, 8k.` },
+        { title: "Key Moment", prompt: `Dramatic film still, ${concept.logline}, ${visualStyle}, 8k.` }
     ];
 
-    const refImagesPromises = moodboardPrompts.map(async (item) => {
+    const refImages = await Promise.all(moodboardPrompts.map(async (item) => {
         const imageUrl = await generateRawImage(item.prompt);
         return {
             title: item.title,
             imageUrl: imageUrl || `https://placehold.co/600x600/1a1a2e/FFF?text=${encodeURIComponent(item.title)}`
         };
-    });
+    }));
 
-    const refImages = await Promise.all(refImagesPromises);
-
-    // Assign voices to characters
+    // Post-processing
     const voices = ['Kore', 'Fenrir', 'Puck', 'Zephyr', 'Charon'];
     const charactersWithVoices = (concept.characters as Character[]).map((c, i) => ({
         ...c,
         id: `char-${i}`,
-        // Use the AI generated preference if valid, otherwise fallback to round-robin
         voicePreference: (c.voicePreference && voices.includes(c.voicePreference)) 
             ? c.voicePreference 
             : voices[i % voices.length]
     }));
     
-    // Process Script with IDs
     const scriptWithIds = (scriptData.script as any[]).map((block, i) => {
         let charId = undefined;
         if (block.type === 'dialogue') {
@@ -533,11 +369,7 @@ export const generateCreativeAssets = async (
             const found = charactersWithVoices.find(c => c.name.toLowerCase() === charName.toLowerCase());
             charId = found ? found.id : undefined;
         }
-        return {
-            ...block,
-            id: `block-${i}`,
-            characterId: charId
-        };
+        return { ...block, id: `block-${i}`, characterId: charId };
     });
 
     return {
@@ -550,137 +382,84 @@ export const generateCreativeAssets = async (
 };
 
 export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal): Promise<string> => {
-    // Check if aborted before starting
-    if (signal?.aborted) {
-        throw new Error('Operation aborted');
-    }
+    if (signal?.aborted) throw new Error('Operation aborted');
 
     let operation = await ai.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
         prompt: scene.videoPrompt || scene.description,
-        config: {
-            numberOfVideos: 1,
-            resolution: '1080p',
-            aspectRatio: '16:9'
-        }
+        config: { numberOfVideos: 1, resolution: '1080p', aspectRatio: '16:9' }
     });
 
-    // Poll for completion
     while (!operation.done) {
-        if (signal?.aborted) {
-            throw new Error('Operation aborted');
-        }
+        if (signal?.aborted) throw new Error('Operation aborted');
         await new Promise(resolve => setTimeout(resolve, 5000));
         operation = await ai.operations.getVideosOperation({ operation: operation });
     }
 
-    if (operation.error) {
-        throw new Error(`Video generation failed: ${operation.error.message}`);
-    }
-
+    if (operation.error) throw new Error(`Video generation failed: ${operation.error.message}`);
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!downloadLink) throw new Error("No video URI returned.");
 
-    // Fetch the actual video bytes using the API key
     const response = await fetch(`${downloadLink}&key=${API_KEY}`);
     if (!response.ok) throw new Error("Failed to download generated video.");
-    
     const blob = await response.blob();
     return URL.createObjectURL(blob);
 };
 
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
-    // Simple sanitization to avoid common safety triggers
-    let sanitizedPrompt = scene.imagePrompt || `${scene.description}. Visual Style: ${visualStyle}. Hyper-realistic, cinematic film still, 8k, shot on Arri Alexa.`;
-    sanitizedPrompt = sanitizedPrompt.replace(/\b(child|children|kid|kids|toddler|baby)\b/gi, 'figure');
-    sanitizedPrompt = sanitizedPrompt.replace(/\b(boy|girl)\b/gi, 'character');
-
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image', // Recommended model for speed/quality balance in this app context
-            contents: sanitizedPrompt,
-        });
-
-        const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-        if (part && part.inlineData) {
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-        }
-        throw new Error("No image data found in response");
-    } catch (e) {
-        console.error("Scene image generation failed", e);
-        throw e;
-    }
+    let prompt = scene.imagePrompt || `${scene.description} ${visualStyle} 8k cinematic.`;
+    return await generateRawImage(prompt) || '';
 };
 
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = createVideoPromptRefinementPrompt(scene, visualStyle);
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt
-    });
+    const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text?.trim() || scene.description;
 };
 
 export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = createImagePromptRefinementPrompt(scene, visualStyle);
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt
-    });
+    const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
+    return response.text?.trim() || scene.description;
+};
+
+export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    const prompt = `
+Rewrite the description for this film scene.
+Current: ${scene.description}
+Style: ${visualStyle}
+Goal: Make it more evocative, concise, and sensory-rich. Align with a positive future narrative.
+Output: Description string only.
+`;
+    const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text?.trim() || scene.description;
 };
 
 export const refineSceneTransitions = async (outline: Scene[], visualStyle: VisualStyle): Promise<{id: string, transition: string}[]> => {
-    const pairs = outline.map((scene, i) => ({
-        current: scene,
-        next: outline[i + 1]
-    }));
-
+    const pairs = outline.map((scene, i) => ({ current: scene, next: outline[i + 1] }));
     return processInBatches(pairs, async ({ current, next }) => {
-        const prompt = createTransitionRefinementPrompt(current, next, visualStyle);
         try {
-            const resp = await ai.models.generateContent({
-                model: 'gemini-3-pro-preview',
-                contents: prompt
-            });
+            const prompt = createTransitionRefinementPrompt(current, next, visualStyle);
+            const resp = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
             return { id: current.id, transition: resp.text?.trim() || "Cut to next." };
-        } catch (e) {
-            console.error("Transition refinement failed", e);
+        } catch {
             return { id: current.id, transition: "Cut to next." };
         }
     }, 5, 200);
 };
 
 export const regenerateTitleForScene = async (scene: Scene): Promise<string> => {
-    const prompt = createTitleRefinementPrompt(scene);
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
-            contents: prompt
-        });
+        const prompt = createTitleRefinementPrompt(scene);
+        const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
         return response.text?.trim() || scene.title;
-    } catch (e) {
-        console.error("Failed to regenerate title", e);
+    } catch {
         return scene.title;
     }
 };
 
-export const regenerateBTS = async (
-    theme: RewriteTomorrowTheme,
-    intensity: EmotionalArcIntensity, // kept for interface consistency
-    visualStyle: VisualStyle,
-    narrativeTone: NarrativeTone, // kept for interface consistency
-    script: ScriptBlock[],
-    characters: Character[],
-    outline: Scene[]
-): Promise<string> => {
-    // Construct a context-rich prompt
-    const scriptSummary = script.slice(0, 10).map(b => b.content).join(' ').substring(0, 500) + "...";
-    const prompt = createBTSPrompt(theme, visualStyle, `A story about ${theme} featuring ${characters.map(c=>c.name).join(', ')}.`, outline);
-    
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt
-    });
+export const regenerateBTS = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: ScriptBlock[], characters: Character[], outline: Scene[]): Promise<string> => {
+    const prompt = createBTSPrompt(theme, visualStyle, `Story about ${theme}`, outline);
+    const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text || "Failed to regenerate BTS.";
 };

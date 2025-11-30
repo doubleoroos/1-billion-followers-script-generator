@@ -4,7 +4,8 @@ import type { GeneratedAssets, RewriteTomorrowTheme, EmotionalArcIntensity, Visu
 
 export const downloadPDF = (
   assets: GeneratedAssets,
-  choices: { theme: RewriteTomorrowTheme, arc: EmotionalArcIntensity, style: VisualStyle, tone: NarrativeTone }
+  choices: { theme: RewriteTomorrowTheme, arc: EmotionalArcIntensity, style: VisualStyle, tone: NarrativeTone },
+  isPremium: boolean = false
 ) => {
   const doc = new jsPDF();
   const width = doc.internal.pageSize.getWidth();
@@ -13,7 +14,6 @@ export const downloadPDF = (
   const contentWidth = width - (margin * 2);
   let y = margin;
 
-  // Helper for checking page breaks
   const checkSpace = (requiredHeight: number) => {
     if (y + requiredHeight > height - margin) {
       doc.addPage();
@@ -23,21 +23,38 @@ export const downloadPDF = (
     return false;
   };
 
-  // Helper for adding section headings
+  const addWatermark = () => {
+    if (!isPremium) {
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFontSize(50);
+            doc.setTextColor(200, 200, 200);
+            doc.setFont("helvetica", "bold");
+            // Rotate 45 degrees
+            doc.text("FREE TIER - REWRITE TOMORROW", width/2, height/2, { align: "center", angle: 45, renderingMode: "stroke" });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(150);
+            doc.text("Support Earth Rising to remove watermark: earthrising.space", width/2, height - 10, { align: "center", angle: 0 });
+            doc.setTextColor(0); // Reset
+        }
+    }
+  };
+
   const addHeading = (text: string) => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     checkSpace(20);
     doc.text(text, margin, y);
     y += 10;
-    // Underline
     doc.setLineWidth(0.5);
     doc.line(margin, y - 2, width - margin, y - 2);
     y += 5;
   };
 
-  // Helper for adding labeled sections
   const addSection = (label: string, text: string, font: string = "helvetica") => {
+      if (!text) return; // Skip empty sections
       checkSpace(15);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
@@ -46,18 +63,15 @@ export const downloadPDF = (
       
       doc.setFont(font, "normal");
       doc.setFontSize(10);
-      // Clean text
-      const cleanText = text.replace(/[^\x00-\x7F]/g, ""); // Basic cleanup if needed, but standard fonts support latin 1
-      const lines = doc.splitTextToSize(cleanText || text, contentWidth);
-      const lineHeight = 5; // Approx 5mm per line at 10pt
+      const cleanText = String(text).replace(/[^\x00-\x7F]/g, ""); 
+      const lines = doc.splitTextToSize(cleanText, contentWidth);
+      const lineHeight = 5; 
       checkSpace(lines.length * lineHeight);
       doc.text(lines, margin, y);
       y += (lines.length * lineHeight) + 4;
   };
 
-  // --- CONTENT GENERATION ---
-
-  // 1. Title Page
+  // Title Page
   doc.setFont("helvetica", "bold");
   doc.setFontSize(28);
   doc.text("Rewrite Tomorrow", width / 2, height / 3, { align: "center" });
@@ -71,7 +85,6 @@ export const downloadPDF = (
   doc.text(`Generated on ${new Date().toLocaleDateString()}`, width / 2, height - 20, { align: "center" });
   doc.setTextColor(0);
   
-  // Creative Choices Summary
   y = (height / 2) + 10;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
@@ -79,10 +92,10 @@ export const downloadPDF = (
   y += 10;
   
   const choicesText = [
-    `Theme: ${choices.theme.charAt(0).toUpperCase() + choices.theme.slice(1)}`,
-    `Tone: ${choices.tone.charAt(0).toUpperCase() + choices.tone.slice(1)}`,
-    `Visual Style: ${choices.style.charAt(0).toUpperCase() + choices.style.slice(1)}`,
-    `Emotional Arc: ${choices.arc.charAt(0).toUpperCase() + choices.arc.slice(1)}`
+    `Theme: ${choices.theme}`,
+    `Tone: ${choices.tone}`,
+    `Visual Style: ${choices.style}`,
+    `Emotional Arc: ${choices.arc}`
   ];
   
   doc.setFont("helvetica", "normal");
@@ -95,7 +108,7 @@ export const downloadPDF = (
   doc.addPage();
   y = margin;
 
-  // 2. Characters
+  // Characters
   addHeading("Characters");
   assets.characters.forEach(char => {
       checkSpace(30);
@@ -106,7 +119,7 @@ export const downloadPDF = (
       
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-      const lines = doc.splitTextToSize(char.description, contentWidth);
+      const lines = doc.splitTextToSize(char.description || '', contentWidth);
       checkSpace(lines.length * 6);
       doc.text(lines, margin, y);
       y += (lines.length * 6) + 8;
@@ -115,7 +128,7 @@ export const downloadPDF = (
   doc.addPage();
   y = margin;
 
-  // 3. Script
+  // Script
   addHeading("Script");
   doc.setFont("courier", "normal");
   const scriptLineHeight = 5;
@@ -123,9 +136,9 @@ export const downloadPDF = (
   assets.script.forEach(block => {
       if (block.type === 'narration') {
           checkSpace(20);
-          doc.setFont("courier", "italic"); // Italic often not avail in default courier, falls back to normal
+          doc.setFont("courier", "italic"); 
           doc.setFontSize(11);
-          const lines = doc.splitTextToSize("(NARRATION) " + block.content, contentWidth);
+          const lines = doc.splitTextToSize("(NARRATION) " + (block.content || ''), contentWidth);
           checkSpace(lines.length * scriptLineHeight);
           doc.text(lines, margin, y);
           y += (lines.length * scriptLineHeight) + 6;
@@ -134,13 +147,13 @@ export const downloadPDF = (
           const charName = assets.characters.find(c => c.id === block.characterId)?.name.toUpperCase() || 'UNKNOWN';
           doc.setFont("courier", "bold");
           doc.setFontSize(11);
-          doc.text(charName, margin + 25, y); // Indent character name
+          doc.text(charName, margin + 25, y); 
           y += 6;
           
           doc.setFont("courier", "normal");
-          const lines = doc.splitTextToSize(block.content, contentWidth - 40); // Narrower for dialogue
+          const lines = doc.splitTextToSize(block.content || '', contentWidth - 40); 
           checkSpace(lines.length * scriptLineHeight);
-          doc.text(lines, margin + 15, y); // Indent dialogue block
+          doc.text(lines, margin + 15, y); 
           y += (lines.length * scriptLineHeight) + 6;
       }
   });
@@ -148,31 +161,29 @@ export const downloadPDF = (
   doc.addPage();
   y = margin;
 
-  // 4. Visual Outline & Prompts
+  // Visual Outline
   addHeading("Visual Outline & Prompts");
-  assets.visualOutline.forEach((scene, index) => {
-      checkSpace(60); // Ensure header stays with some content
+  assets.visualOutline.forEach((scene) => {
+      checkSpace(60); 
       
-      // Scene Header Background
       doc.setFillColor(240, 240, 240);
       doc.rect(margin, y, contentWidth, 8, "F");
       
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(0);
-      doc.text(`Scene ${scene.sceneNumber}: ${scene.title}`, margin + 2, y + 6);
+      doc.text(`Scene ${scene.sceneNumber}: ${scene.title || 'Untitled'}`, margin + 2, y + 6);
       y += 14;
 
-      // Metadata
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(80);
-      doc.text(`${scene.location} | ${scene.timeOfDay} | ${scene.duration} | ${scene.atmosphere}`, margin, y);
+      doc.text(`${scene.location || 'Unknown'} | ${scene.timeOfDay || 'Day'}`, margin, y);
       doc.setTextColor(0);
       y += 8;
       
-      addSection("Action Description", scene.description);
-      addSection("Visuals", scene.visuals);
+      addSection("Action Description", scene.description || '');
+      addSection("Visuals", scene.visuals || '');
       
       if (scene.videoPrompt) {
           checkSpace(25);
@@ -206,7 +217,7 @@ export const downloadPDF = (
           y += (lines.length * 4) + 6;
       }
       
-      y += 8; // Divider space
+      y += 8; 
       doc.setLineWidth(0.1);
       doc.setDrawColor(200);
       doc.line(margin, y, width - margin, y);
@@ -216,16 +227,11 @@ export const downloadPDF = (
   doc.addPage();
   y = margin;
 
-  // 5. BTS
   addHeading("Behind The Scenes");
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
-  const btsLines = doc.splitTextToSize(assets.btsDocument, contentWidth);
+  const btsLines = doc.splitTextToSize(assets.btsDocument || '', contentWidth);
   const btsLineHeight = 6;
-  
-  // BTS might be long, check per line block or just iterate?
-  // splitTextToSize returns array. We can just check space for chunk.
-  // Or rudimentary loop.
   
   let currentBtsY = y;
   for (let i = 0; i < btsLines.length; i++) {
@@ -236,6 +242,9 @@ export const downloadPDF = (
       doc.text(btsLines[i], margin, currentBtsY);
       currentBtsY += btsLineHeight;
   }
+  
+  // Apply watermark to all pages if not premium
+  addWatermark();
 
   doc.save(`Rewrite_Tomorrow_${choices.theme}_${Date.now()}.pdf`);
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import type { GeneratedAssets, ScriptBlock, Scene, Character, VisualStyle, RewriteTomorrowTheme, EmotionalArcIntensity, NarrativeTone } from '../../types';
 import { LogoIcon } from '../icons/LogoIcon';
@@ -27,6 +28,7 @@ interface OutputDisplayProps {
     tone: NarrativeTone;
   };
   hasDonated: boolean;
+  hasSelectedTier: boolean;
   onOpenMonetization: () => void;
 }
 
@@ -39,6 +41,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
   visualStyle,
   creativeChoices,
   hasDonated,
+  hasSelectedTier,
   onOpenMonetization
 }) => {
     const { script, characters, visualOutline, referenceImages, btsDocument } = generatedAssets;
@@ -86,10 +89,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
     
     const handleDownloadPDF = () => {
         playSound();
-        if (!hasDonated) {
+        // If user hasn't selected ANY tier (free or paid), open modal.
+        if (!hasDonated && !hasSelectedTier) {
             onOpenMonetization();
         } else {
-            downloadPDF(generatedAssets, creativeChoices);
+            // Pass hasDonated state to service to determine if watermark should be added
+            downloadPDF(generatedAssets, creativeChoices, hasDonated);
         }
     };
 
