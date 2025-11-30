@@ -226,8 +226,9 @@ For each scene, define:
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
 5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition.)
 6. Pacing & Emotion
+7. Dependencies: Identify logical dependencies. If scene N depends on the outcome or visual state of scene N-1, include its ID.
 
-Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "..." }] }
+Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "...", "dependsOn": ["scene-X"] }] }
 `;
 };
 
@@ -258,6 +259,7 @@ Task: Write a high-fidelity, photorealistic image generation prompt for this fil
 Context: ${scene.description}
 Location: ${scene.location}
 Mood: ${scene.atmosphere}
+Atmosphere: Evocative, emotional, sensory-rich details
 Visual Style: ${visualStyle}
 
 Requirements:
@@ -265,6 +267,7 @@ Requirements:
 2.  **Cinematography**: Describe the lighting (e.g., "volumetric", "chiaroscuro", "golden hour"), camera angle (e.g., "low angle", "wide shot"), and lens (e.g., "35mm", "anamorphic bokeh").
 3.  **Evocative Details**: Include sensory textures (e.g., "rusted metal", "soft mist", "sweat on skin", "dust motes in light").
 4.  **Style Compliance**: Ensure the image strictly follows the "${visualStyle}" aesthetic.
+5.  **Negative Prompts**: No CGI, no cartoon, no painting, no illustration.
 
 Output: A single, concise, comma-separated prompt string optimized for Imagen 3. Do not include introductory text.
 `;
@@ -458,6 +461,7 @@ Rewrite the description for this film scene.
 Current Description: ${scene.description}
 Context: ${scene.location}, ${scene.timeOfDay}, ${scene.atmosphere}
 Visual Style: ${visualStyle}
+Instruction: Review content and characters carefully.
 
 Goal: Write a highly evocative, detailed, and sensory-rich description.
 - Focus on mood, atmosphere, and specific sensory details (sight, sound, texture, smell).
