@@ -195,7 +195,7 @@ export const downloadPDF = (
           
           doc.setFont("courier", "normal");
           doc.setFontSize(9);
-          const lines = doc.splitTextToSize(scene.videoPrompt, contentWidth);
+          const lines = doc.splitTextToSize(scene.videoPrompt || '', contentWidth);
           checkSpace(lines.length * 4);
           doc.text(lines, margin, y);
           y += (lines.length * 4) + 6;
@@ -211,7 +211,7 @@ export const downloadPDF = (
           
           doc.setFont("courier", "normal");
           doc.setFontSize(9);
-          const lines = doc.splitTextToSize(scene.imagePrompt, contentWidth);
+          const lines = doc.splitTextToSize(scene.imagePrompt || '', contentWidth);
           checkSpace(lines.length * 4);
           doc.text(lines, margin, y);
           y += (lines.length * 4) + 6;

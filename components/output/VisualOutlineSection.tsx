@@ -16,9 +16,12 @@ const SearchIcon = () => <svg className="h-4 w-4 text-slate-500" fill="none" vie
 const TextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 
 const StaticNoise = () => (
-    <div className="absolute inset-0 bg-black opacity-30 flex flex-col justify-center items-center overflow-hidden">
-        <div className="w-full h-full bg-[url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif')] bg-cover opacity-10 mix-blend-screen"></div>
-        <span className="absolute text-cyan-900 font-mono text-xs tracking-[0.3em] font-bold">NO SIGNAL</span>
+    <div className="absolute inset-0 bg-black opacity-60 flex flex-col justify-center items-center overflow-hidden">
+        {/* Animated Noise Background */}
+        <div className="w-full h-full absolute inset-0 bg-[url('https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif')] bg-cover opacity-10 mix-blend-screen pointer-events-none"></div>
+        {/* Scanlines */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)50%,rgba(0,0,0,0.25)50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] pointer-events-none"></div>
+        <span className="relative z-10 text-cyan-900 font-mono text-xs tracking-[0.3em] font-bold animate-pulse">NO SIGNAL</span>
     </div>
 );
 
@@ -236,37 +239,54 @@ export const VisualOutlineSection: React.FC<{
         setMasterBulkStatus('optimizing');
         playSound();
         
-        const transitions = await refineSceneTransitions(outline, visualStyle);
-        const outlineWithTransitions = outline.map(scene => {
-            const t = transitions.find(tr => tr.id === scene.id);
-            return t ? { ...scene, transition: t.transition } : scene;
-        });
+        try {
+            const transitions = await refineSceneTransitions(outline, visualStyle);
+            const outlineWithTransitions = outline.map(scene => {
+                const t = transitions.find(tr => tr.id === scene.id);
+                return t ? { ...scene, transition: t.transition } : scene;
+            });
 
-        const updatedOutline = await processInBatches(outlineWithTransitions, async (scene: Scene) => {
-             const [vidPrompt, imgPrompt] = await Promise.all([
-                 regenerateVideoPromptForScene(scene, visualStyle),
-                 regenerateImagePromptForScene(scene, visualStyle)
-             ]);
-             return { ...scene, videoPrompt: vidPrompt, imagePrompt: imgPrompt };
-        }, 3, 500);
+            // Added explicit type to scene callback to fix inference error
+            const updatedOutline = await processInBatches(outlineWithTransitions, async (scene: Scene) => {
+                try {
+                    const [vidPrompt, imgPrompt] = await Promise.all([
+                        regenerateVideoPromptForScene(scene, visualStyle),
+                        regenerateImagePromptForScene(scene, visualStyle)
+                    ]);
+                    return { ...scene, videoPrompt: vidPrompt, imagePrompt: imgPrompt };
+                } catch (e) {
+                    // Fail gracefully for individual scenes
+                    console.error(`Failed prompt refine for scene ${scene.id}`, e);
+                    return scene;
+                }
+            }, 3, 500);
 
-        onSave(updatedOutline);
-        setMasterBulkStatus(null);
-        playSound('success');
+            onSave(updatedOutline);
+            setMasterBulkStatus(null);
+            playSound('success');
+        } catch (e) {
+             console.error("Bulk optimization failed", e);
+             setMasterBulkStatus(null);
+             alert("Optimization sequence interrupted.");
+        }
     };
 
     const handleRefineTitles = async () => {
         setMasterBulkStatus('refining_titles');
         playSound();
         
-        const updatedOutline = await processInBatches(outline, async (scene: Scene) => {
-            const newTitle = await regenerateTitleForScene(scene);
-            return { ...scene, title: newTitle };
-        }, 5, 200);
+        try {
+            const updatedOutline = await processInBatches(outline, async (scene: Scene) => {
+                const newTitle = await regenerateTitleForScene(scene);
+                return { ...scene, title: newTitle };
+            }, 5, 200);
 
-        onSave(updatedOutline);
-        setMasterBulkStatus(null);
-        playSound('success');
+            onSave(updatedOutline);
+            setMasterBulkStatus(null);
+            playSound('success');
+        } catch (e) {
+            setMasterBulkStatus(null);
+        }
     };
 
     const handleGenerateAllPreviews = async () => {

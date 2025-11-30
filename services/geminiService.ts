@@ -34,7 +34,7 @@ const cleanJson = (text: string): string => {
     if (!text) return '{}';
     let cleaned = text.trim();
     
-    // 1. Extract content from Markdown code blocks
+    // 1. Extract content from Markdown code blocks first
     const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
     const matches = [...cleaned.matchAll(codeBlockRegex)];
     if (matches.length > 0) {
@@ -42,7 +42,7 @@ const cleanJson = (text: string): string => {
         cleaned = matches[0][1].trim();
     }
     
-    // 2. Fallback: Find the first '{' and last '}'
+    // 2. Remove any text before the first '{' and after the last '}'
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
     
@@ -50,8 +50,12 @@ const cleanJson = (text: string): string => {
         cleaned = cleaned.substring(firstBrace, lastBrace + 1);
     } else {
         // If no braces found, return empty object string to prevent crash
+        console.warn("No valid JSON object found in response");
         return '{}';
     }
+    
+    // 3. Simple cleanup of common issues (optional but helpful)
+    cleaned = cleaned.replace(/,\s*}/g, '}'); // Remove trailing commas
     
     return cleaned;
 };
@@ -329,27 +333,32 @@ export const generateCreativeAssets = async (
     });
     const concept = JSON.parse(cleanJson(conceptResp.text || '{}'));
     
+    // Safety check for characters
+    const safeCharacters = Array.isArray(concept.characters) ? concept.characters : [];
+
     // 2. Script
-    const scriptPrompt = createScriptPrompt(theme, intensity, narrativeTone, concept.logline, concept.synopsis, concept.characters);
+    const scriptPrompt = createScriptPrompt(theme, intensity, narrativeTone, concept.logline || "A film about the future", concept.synopsis || "", safeCharacters);
     const scriptResp = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: scriptPrompt,
         config: { responseMimeType: 'application/json' }
     });
     const scriptData = JSON.parse(cleanJson(scriptResp.text || '{}'));
+    const safeScript = Array.isArray(scriptData.script) ? scriptData.script : [];
 
     // 3. Visual Outline
-    const scriptText = scriptData.script.map((b: any) => b.content).join('\n');
-    const outlinePrompt = createVisualOutlinePrompt(theme, visualStyle, concept.synopsis, scriptText);
+    const scriptText = safeScript.map((b: any) => b.content).join('\n');
+    const outlinePrompt = createVisualOutlinePrompt(theme, visualStyle, concept.synopsis || "", scriptText);
     const outlineResp = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: outlinePrompt,
         config: { responseMimeType: 'application/json' }
     });
     const outlineData = JSON.parse(cleanJson(outlineResp.text || '{}'));
+    const safeOutline = Array.isArray(outlineData.visualOutline) ? outlineData.visualOutline : [];
 
     // 4. BTS
-    const btsPrompt = createBTSPrompt(theme, visualStyle, concept.synopsis, outlineData.visualOutline);
+    const btsPrompt = createBTSPrompt(theme, visualStyle, concept.synopsis || "", safeOutline);
     const btsResp = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: btsPrompt
@@ -359,8 +368,8 @@ export const generateCreativeAssets = async (
     const moodboardPrompts = [
         { title: "Cinematic Style", prompt: `Hyper-realistic film still, ${visualStyle}, 8k.` },
         { title: "The World", prompt: `Wide establishing shot, ${theme}, ${visualStyle}, 8k.` },
-        { title: "Protagonist", prompt: `Cinematic portrait of ${concept.characters[0]?.name}, ${visualStyle}, 8k.` },
-        { title: "Key Moment", prompt: `Dramatic film still, ${concept.logline}, ${visualStyle}, 8k.` }
+        { title: "Protagonist", prompt: `Cinematic portrait of ${safeCharacters[0]?.name || 'Hero'}, ${visualStyle}, 8k.` },
+        { title: "Key Moment", prompt: `Dramatic film still, ${concept.logline || 'A futuristic scene'}, ${visualStyle}, 8k.` }
     ];
 
     const refImages = await Promise.all(moodboardPrompts.map(async (item) => {
@@ -373,7 +382,7 @@ export const generateCreativeAssets = async (
 
     // Post-processing
     const voices = ['Kore', 'Fenrir', 'Puck', 'Zephyr', 'Charon'];
-    const charactersWithVoices = (concept.characters as Character[]).map((c, i) => ({
+    const charactersWithVoices = safeCharacters.map((c: any, i: number) => ({
         ...c,
         id: `char-${i}`,
         voicePreference: (c.voicePreference && voices.includes(c.voicePreference)) 
@@ -381,11 +390,11 @@ export const generateCreativeAssets = async (
             : voices[i % voices.length]
     }));
     
-    const scriptWithIds = (scriptData.script as any[]).map((block, i) => {
+    const scriptWithIds = safeScript.map((block: any, i: number) => {
         let charId = undefined;
         if (block.type === 'dialogue') {
             const charName = block.characterName;
-            const found = charactersWithVoices.find(c => c.name.toLowerCase() === charName.toLowerCase());
+            const found = charactersWithVoices.find((c: any) => c.name.toLowerCase() === charName?.toLowerCase());
             charId = found ? found.id : undefined;
         }
         return { ...block, id: `block-${i}`, characterId: charId };
@@ -394,7 +403,7 @@ export const generateCreativeAssets = async (
     return {
         script: scriptWithIds,
         characters: charactersWithVoices,
-        visualOutline: outlineData.visualOutline,
+        visualOutline: safeOutline,
         referenceImages: refImages,
         btsDocument: btsResp.text || "BTS Generation Failed"
     };
