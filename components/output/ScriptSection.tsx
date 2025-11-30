@@ -2,13 +2,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { ScriptBlock, Character } from '../../types';
 import { useSound } from '../hooks/useSound';
-import { generateScriptAudio } from '../../services/geminiService';
+import { generateScriptAudio, processInBatches } from '../../services/geminiService';
 import { useAutosave } from '../hooks/useAutosave';
 
 const PlayIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>;
 const PauseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const RefreshIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>;
+const SpeakerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>;
 
 const InlineAudioPlayer: React.FC<{ url: string; onRegenerate?: () => void }> = ({ url, onRegenerate }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -110,10 +111,19 @@ const InlineAudioPlayer: React.FC<{ url: string; onRegenerate?: () => void }> = 
     );
 };
 
-export const ScriptSection: React.FC<any> = ({ script, characters, onSave }) => {
+interface ScriptSectionProps {
+    script: ScriptBlock[];
+    characters: Character[];
+    onSave: (script: ScriptBlock[]) => void;
+    onRegenerate?: () => void;
+}
+
+export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters, onSave, onRegenerate }) => {
     const playSound = useSound();
     const [editedScript, setEditedScript] = useState(script);
     const { status, save } = useAutosave({ onSave });
+    const [isRegenerating, setIsRegenerating] = useState(false);
+    const [isGeneratingAllAudio, setIsGeneratingAllAudio] = useState(false);
 
     // Sync if prop changes externally
     useEffect(() => {
@@ -127,7 +137,6 @@ export const ScriptSection: React.FC<any> = ({ script, characters, onSave }) => 
         
         playSound();
         
-        // Optimistic update to show loading state if we had one, but here we just wait
         try {
             const url = await generateScriptAudio(block.content, voiceName);
             const newScript = [...editedScript];
@@ -140,6 +149,67 @@ export const ScriptSection: React.FC<any> = ({ script, characters, onSave }) => 
             alert("Voice generation failed.");
         }
     };
+
+    const handleGenerateAllAudio = async () => {
+        const blocksToProcess = editedScript
+            .map((block, index) => ({ block, index }))
+            .filter(item => !item.block.audioUrl); // Only process blocks missing audio
+
+        if (blocksToProcess.length === 0) {
+            alert("All audio already generated.");
+            return;
+        }
+
+        setIsGeneratingAllAudio(true);
+        playSound();
+
+        try {
+            // Process in batches of 3 to respect API limits
+            const results = await processInBatches(blocksToProcess, async ({ block, index }) => {
+                let voiceName = 'Kore'; // Default narrator
+                if (block.characterId) {
+                    const char = characters.find((c: any) => c.id === block.characterId);
+                    if (char && char.voicePreference) {
+                        voiceName = char.voicePreference;
+                    }
+                }
+                try {
+                    const url = await generateScriptAudio(block.content, voiceName);
+                    return { index, url };
+                } catch (e) {
+                    console.error(`Failed to generate audio for block ${index}`, e);
+                    return { index, url: null };
+                }
+            }, 3, 500);
+
+            // Update script with results
+            const newScript = [...editedScript];
+            results.forEach(res => {
+                if (res.url) {
+                    newScript[res.index] = { ...newScript[res.index], audioUrl: res.url };
+                }
+            });
+
+            setEditedScript(newScript);
+            onSave(newScript);
+            save(newScript);
+            playSound('success');
+
+        } catch (e) {
+            console.error(e);
+            alert("Bulk audio generation failed.");
+        } finally {
+            setIsGeneratingAllAudio(false);
+        }
+    };
+    
+    const handleRegenerateClick = async () => {
+        if (!onRegenerate) return;
+        setIsRegenerating(true);
+        playSound();
+        await onRegenerate();
+        setIsRegenerating(false);
+    }
     
     return (
         <div className="relative w-full max-w-4xl mx-auto pb-20">
@@ -150,12 +220,35 @@ export const ScriptSection: React.FC<any> = ({ script, characters, onSave }) => 
                     <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">Screenplay_Final_Draft.fdx</span>
                  </div>
                  <div className="flex gap-2">
-                     <span className="text-[10px] font-mono text-cyan-500 opacity-60 uppercase">Auto-Format: ON</span>
+                     <button 
+                        onClick={handleGenerateAllAudio} 
+                        disabled={isGeneratingAllAudio}
+                        className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-cyan-400 disabled:opacity-50 flex items-center gap-1 border border-transparent hover:border-cyan-500/20 px-2 py-1 rounded transition-all"
+                    >
+                        {isGeneratingAllAudio ? (
+                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ) : <SpeakerIcon />}
+                        Generate All Audio
+                    </button>
+
+                     {onRegenerate && (
+                        <button 
+                            onClick={handleRegenerateClick} 
+                            disabled={isRegenerating}
+                            className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-cyan-400 disabled:opacity-50 flex items-center gap-1 border border-transparent hover:border-cyan-500/20 px-2 py-1 rounded transition-all"
+                        >
+                            {isRegenerating ? (
+                                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            ) : <RefreshIcon />}
+                            Rewrite Script
+                        </button>
+                     )}
+                     <span className="text-[10px] font-mono text-cyan-500 opacity-60 uppercase flex items-center border-l border-white/10 pl-2 ml-1">Auto-Format: ON</span>
                  </div>
             </div>
 
             {/* The Page */}
-            <div className="bg-[#1a1a1a] text-[#d4d4d4] font-mono text-base shadow-2xl border-x border-b border-white/5 min-h-[800px] p-8 md:p-16 relative">
+            <div className={`bg-[#1a1a1a] text-[#d4d4d4] font-mono text-base shadow-2xl border-x border-b border-white/5 min-h-[800px] p-8 md:p-16 relative transition-opacity duration-300 ${isRegenerating ? 'opacity-50 blur-sm' : 'opacity-100'}`}>
                 {/* Paper Texture Overlay */}
                 <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')]"></div>
                 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import type { GeneratedAssets, ScriptBlock, Scene, Character, VisualStyle, RewriteTomorrowTheme, EmotionalArcIntensity, NarrativeTone } from '../../types';
 import { LogoIcon } from '../icons/LogoIcon';
@@ -11,7 +10,7 @@ import { OutputNav, StoryboardSection } from './LayoutComponents';
 import { GenerationSummary } from './GenerationSummary';
 import { downloadPDF } from '../../services/pdfService';
 import { useSound } from '../hooks/useSound';
-import { regenerateBTS } from '../../services/geminiService';
+import { regenerateBTS, regenerateFullScript } from '../../services/geminiService';
 
 // Component Props
 interface OutputDisplayProps {
@@ -125,6 +124,21 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
         }
     };
     
+    const handleRegenerateScript = async () => {
+        try {
+            const newScript = await regenerateFullScript(
+                creativeChoices.theme,
+                creativeChoices.arc,
+                creativeChoices.tone,
+                characters
+            );
+            onScriptSave(newScript, characters);
+        } catch (e) {
+            console.error("Failed to regenerate script", e);
+            alert("Script regeneration failed.");
+        }
+    }
+    
     return (
         <div className="space-y-16 md:space-y-24 pb-32">
             <div className="text-center animate-fade-in">
@@ -146,7 +160,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
             </StoryboardSection>
             
             <StoryboardSection id="script" title="Script" style={{ animationDelay: '400ms' }}>
-                <ScriptSection script={script} characters={characters} onSave={handleScriptContentSave} />
+                <ScriptSection 
+                    script={script} 
+                    characters={characters} 
+                    onSave={handleScriptContentSave} 
+                    onRegenerate={handleRegenerateScript}
+                />
             </StoryboardSection>
 
             <StoryboardSection id="outline" title="Visual Outline" style={{ animationDelay: '600ms' }}>

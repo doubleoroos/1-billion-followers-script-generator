@@ -306,25 +306,41 @@ export const VisualOutlineSection: React.FC<{
         } catch (e) { console.error(e); }
     };
 
+    // Use a ref to access the latest outline state inside async functions
+    // without stale closures issues during long processes.
+    const outlineRef = useRef(outline);
+    useEffect(() => { outlineRef.current = outline; }, [outline]);
+
     const handleOptimizeAllPrompts = async () => {
         setMasterBulkStatus('optimizing');
         playSound();
         
         try {
-            const updatedOutline = await processInBatches<Scene, Scene>(outline, async (scene: Scene) => {
+            // processing based on current outline snapshot
+            const snapshotOutline = outlineRef.current;
+            
+            const results = await processInBatches<Scene, {id: string, v: string, i: string}>(snapshotOutline, async (scene: Scene) => {
                 try {
-                    const [vidPrompt, imgPrompt] = await Promise.all([
+                     const [v, i] = await Promise.all([
                         regenerateVideoPromptForScene(scene, visualStyle),
                         regenerateImagePromptForScene(scene, visualStyle)
-                    ]);
-                    return { ...scene, videoPrompt: vidPrompt, imagePrompt: imgPrompt };
-                } catch (e) {
-                    console.error(`Failed prompt refine for scene ${scene.id}`, e);
-                    return scene;
+                     ]);
+                     return { id: scene.id, v, i };
+                } catch {
+                    return { id: scene.id, v: scene.videoPrompt || '', i: scene.imagePrompt || '' };
                 }
             }, 3, 500);
 
-            onSave(updatedOutline);
+            // Merge into LATEST outline
+            const newOutline = outlineRef.current.map(scene => {
+                const res = results.find(r => r.id === scene.id);
+                if (res) {
+                    return { ...scene, videoPrompt: res.v, imagePrompt: res.i };
+                }
+                return scene;
+            });
+
+            onSave(newOutline);
             setMasterBulkStatus(null);
             playSound('success');
         } catch (e) {
@@ -339,13 +355,15 @@ export const VisualOutlineSection: React.FC<{
         playSound();
         
         try {
-            const transitions = await refineSceneTransitions(outline, visualStyle);
-            const updatedOutline = outline.map(scene => {
+            const snapshotOutline = outlineRef.current;
+            const transitions = await refineSceneTransitions(snapshotOutline, visualStyle);
+            
+            const newOutline = outlineRef.current.map(scene => {
                 const t = transitions.find(tr => tr.id === scene.id);
                 return t ? { ...scene, transition: t.transition } : scene;
             });
 
-            onSave(updatedOutline);
+            onSave(newOutline);
             setMasterBulkStatus(null);
             playSound('success');
         } catch (e) {
@@ -360,7 +378,8 @@ export const VisualOutlineSection: React.FC<{
         playSound();
 
         try {
-            const scenesWithMissingPrompts = outline.filter(s => !s.imagePrompt || !s.videoPrompt);
+            const snapshotOutline = outlineRef.current;
+            const scenesWithMissingPrompts = snapshotOutline.filter(s => !s.imagePrompt || !s.videoPrompt);
             
             if (scenesWithMissingPrompts.length === 0) {
                  setMasterBulkStatus(null);
@@ -368,20 +387,20 @@ export const VisualOutlineSection: React.FC<{
                  return;
             }
 
-            const updatedScenes = await processInBatches<Scene, Scene>(scenesWithMissingPrompts, async (scene: Scene) => {
-                const updates: Partial<Scene> = {};
+            const results = await processInBatches<Scene, Partial<Scene>>(scenesWithMissingPrompts, async (scene: Scene) => {
+                const updates: Partial<Scene> = { id: scene.id };
                 if (!scene.videoPrompt) {
                      try { updates.videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle); } catch (e) {}
                 }
                 if (!scene.imagePrompt) {
                      try { updates.imagePrompt = await regenerateImagePromptForScene(scene, visualStyle); } catch (e) {}
                 }
-                return { ...scene, ...updates };
+                return updates;
             }, 3, 500);
 
-            const newOutline = outline.map(s => {
-                const updated = updatedScenes.find(us => us.id === s.id);
-                return updated ? updated : s;
+            const newOutline = outlineRef.current.map(s => {
+                const updated = results.find(us => us.id === s.id);
+                return updated ? { ...s, ...updated } : s;
             });
 
             onSave(newOutline);
@@ -399,12 +418,18 @@ export const VisualOutlineSection: React.FC<{
         playSound();
         
         try {
-            const updatedOutline = await processInBatches<Scene, Scene>(outline, async (scene: Scene) => {
+            const snapshotOutline = outlineRef.current;
+            const results = await processInBatches<Scene, {id: string, title: string}>(snapshotOutline, async (scene: Scene) => {
                 const newTitle = await regenerateTitleForScene(scene);
-                return { ...scene, title: newTitle };
+                return { id: scene.id, title: newTitle };
             }, 5, 200);
 
-            onSave(updatedOutline);
+            const newOutline = outlineRef.current.map(s => {
+                const res = results.find(r => r.id === s.id);
+                return res ? { ...s, title: res.title } : s;
+            });
+
+            onSave(newOutline);
             setMasterBulkStatus(null);
             playSound('success');
         } catch (e) {
@@ -417,12 +442,18 @@ export const VisualOutlineSection: React.FC<{
         playSound();
         
         try {
-            const updatedOutline = await processInBatches<Scene, Scene>(outline, async (scene: Scene) => {
+            const snapshotOutline = outlineRef.current;
+            const results = await processInBatches<Scene, {id: string, desc: string}>(snapshotOutline, async (scene: Scene) => {
                 const newDesc = await regenerateDescriptionForScene(scene, visualStyle);
-                return { ...scene, description: newDesc };
+                return { id: scene.id, desc: newDesc };
             }, 5, 200);
 
-            onSave(updatedOutline);
+            const newOutline = outlineRef.current.map(s => {
+                const res = results.find(r => r.id === s.id);
+                return res ? { ...s, description: res.desc } : s;
+            });
+
+            onSave(newOutline);
             setMasterBulkStatus(null);
             playSound('success');
         } catch (e) {
@@ -435,21 +466,27 @@ export const VisualOutlineSection: React.FC<{
     const handleGenerateAllPreviews = async () => {
         setMasterBulkStatus('generating_images');
         playSound();
-        const missing = outline.filter(s => !s.imageUrl);
+        
+        const snapshotOutline = outlineRef.current;
+        const missing = snapshotOutline.filter(s => !s.imageUrl);
         if (missing.length === 0) {
             alert("All previews already exist.");
             setMasterBulkStatus(null);
             return;
         }
 
-        const completedScenes = await processInBatches<Scene, Scene>(missing, async (scene: Scene) => {
+        const completedScenes = await processInBatches<Scene, {id: string, url: string}>(missing, async (scene: Scene) => {
             try {
                 const imageUrl = await generateImageForScene(scene, visualStyle);
-                return { ...scene, imageUrl };
-            } catch { return scene; }
+                return { id: scene.id, url: imageUrl };
+            } catch { return { id: scene.id, url: '' }; }
         }, 3, 1000); // Optimized for speed with 3 concurrent requests
         
-        const newOutline = outline.map(s => completedScenes.find(cs => cs.id === s.id) || s);
+        const newOutline = outlineRef.current.map(s => {
+            const res = completedScenes.find(cs => cs.id === s.id);
+            return (res && res.url) ? { ...s, imageUrl: res.url } : s;
+        });
+        
         onSave(newOutline);
         setMasterBulkStatus(null);
         playSound('success');

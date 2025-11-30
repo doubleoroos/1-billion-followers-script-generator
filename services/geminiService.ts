@@ -188,7 +188,7 @@ Arc: ${getIntensityDescription(intensity)}
 Task:
 1. Logline (1 sentence)
 2. Synopsis (1 paragraph)
-3. Characters (2-4 people). For each: Name, Role, Description (evocative), VoicePreference ('Kore','Zephyr','Puck','Fenrir','Charon').
+3. Characters (2-4 people). For each: Name, Role, Description (evocative), VoicePreference ('Kore','Zephyr','Puck','Fenrir','Charon'). Select a voice that matches their gender and personality.
 
 Output JSON format: { "logline": "...", "synopsis": "...", "characters": [{ "name": "...", "role": "...", "description": "...", "voicePreference": "..." }] }
 `;
@@ -204,7 +204,7 @@ Characters: ${charList}
 Tone: ${getNarrativeToneDescription(narrativeTone)}
 
 Format Requirements:
-- Scene Headings: INT. / EXT.
+- Scene Headings: INT. / EXT. LOC - DAY/NIGHT
 - Dialogue: Natural, character-specific.
 - Narration: Evocative.
 
@@ -222,11 +222,12 @@ Script: ${fullScript}
 For each scene, define:
 1. Title (Evocative, 2-5 words)
 2. Location & Atmosphere
-3. Description (Detailed, sensory-rich (sight, sound, feeling). Convey mood and atmosphere. Align with positive future narrative.)
+3. Description (Concise, evocative, and sensory-rich. Review characters and content. Focus on mood, atmosphere, and key visual elements. Align with positive future narrative. Max 3 sentences.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
 5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition.)
-6. Pacing & Emotion
-7. Dependencies: Identify logical dependencies. If scene N depends on the outcome or visual state of scene N-1, include its ID.
+6. Pacing & Emotion (Describe rhythm and feeling, e.g., "Slow and melancholic")
+7. Transition: How does this scene end/transition to the next? (e.g., "Match cut to...", "Sound bridge of...")
+8. Dependencies: Identify logical dependencies. If scene N depends on the outcome or visual state of scene N-1, include its ID.
 
 Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "...", "dependsOn": ["scene-X"] }] }
 `;
@@ -242,47 +243,66 @@ Return raw Markdown.
 
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-Write a Veo video generation prompt.
-Style: ${visualStyle}
-Scene: ${scene.description}
-Location: ${scene.location}
-Mood: ${scene.atmosphere}
-Requirements: Cinematic shot, dynamic camera movement, lighting details, photorealistic, 4k.
-Output: Single concise paragraph.
+You are a world-class cinematographer and expert prompt engineer for the Google Veo AI video model.
+Task: Write a strictly cinematic, high-fidelity video generation prompt for this scene.
+
+Context:
+- Visual Style: ${visualStyle} (Strict adherence required)
+- Scene Content: ${scene.description}
+- Location: ${scene.location}
+- Atmosphere: ${scene.atmosphere}
+- Time: ${scene.timeOfDay}
+
+Prompt Requirements:
+1.  **Cinematography**: Define specific camera angles (e.g., "Low angle," "Wide master shot"), lens types (e.g., "Anamorphic," "Telephoto"), and movement (e.g., "Slow push-in," "Orbit," "Handheld shake").
+2.  **Lighting & Color**: Use evocative terms for lighting (e.g., "Chiaroscuro," "God rays," "Bioluminescent glow," "Hard rim light") consistent with the '${visualStyle}' style.
+3.  **Action & Physics**: Describe the motion within the frame vividly (e.g., "Dust particles floating," "Fabric rippling in wind," "Crowd moving in unison").
+4.  **Quality**: Enforce high production value keywords: "4k, photorealistic, highly detailed, film grain, cinematic color grading, award-winning cinematography."
+
+Output:
+A single, highly detailed, and evocative paragraph optimized for Veo. Do not include introductory text or labels. Just the raw prompt.
 `;
 }
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-You are an expert AI Artist and Director of Photography.
-Task: Write a strictly photorealistic image generation prompt for this scene.
+You are a world-class AI Prompt Engineer and Director of Photography specializing in high-end cinema.
+Task: Write a strictly photorealistic, evocative image generation prompt for this scene.
 
-Scene Description: ${scene.description}
-Location: ${scene.location}
-Mood: ${scene.atmosphere}
-Visual Style: ${visualStyle}
+Scene Context:
+- Description: ${scene.description}
+- Location: ${scene.location}
+- Atmosphere: ${scene.atmosphere}
+- Visual Style: ${visualStyle} (Strict adherence)
 
-Guidelines for Photorealism:
-1. CAMERA: Shot on Arri Alexa LF, 35mm anamorphic lens, shallow depth of field, cinematic film grain.
-2. LIGHTING: Volumetric lighting, global illumination, ray tracing, high contrast, natural light.
-3. TEXTURE: Hyper-detailed skin texture, realistic materials, 8k resolution, raw photography.
-4. COMPOSITION: Cinematic rule of thirds, dynamic framing.
-5. NEGATIVE: No CGI, no 3D render look, no illustration, no cartoon, no text, no watermark.
+Guidelines for Maximum Photorealism:
+1. **Camera & Lens**: Specify "Shot on Arri Alexa LF", "Panavision Anamorphic", "35mm Film Grain", "Depth of Field".
+2. **Lighting**: Use cinematic lighting terms like "Volumetric", "Chiaroscuro", "Rim light", "Global Illumination".
+3. **Texture & Detail**: "8k", "Hyper-realistic", "Detailed skin texture", "Atmospheric haze", "Raw photography".
+4. **Composition**: "Cinematic framing", "Rule of thirds", "Wide shot" or "Close up" as appropriate.
+5. **Negative Prompts**: NO CGI, NO 3D render, NO illustration, NO cartoon, NO anime, NO low resolution, NO text.
 
-Output format: A single coherent paragraph description followed by technical keywords.
+Output: A single, highly detailed prompt string optimized for Imagen 3.
 `;
 }
 
 const createTransitionRefinementPrompt = (currentScene: Scene, nextScene: Scene | undefined, visualStyle: VisualStyle): string => {
     return `
-Act as a professional Film Editor.
-Analyze the flow from Scene ${currentScene.sceneNumber} (${currentScene.location}) to ${nextScene ? `Scene ${nextScene.sceneNumber} (${nextScene.location})` : 'End Credits'}.
-Current Action: ${currentScene.description}
-Next Action: ${nextScene ? nextScene.description : 'Fade out'}
+You are an award-winning Film Editor known for seamless and meaningful transitions.
+Task: Design a cinematic transition from Scene ${currentScene.sceneNumber} to ${nextScene ? `Scene ${nextScene.sceneNumber}` : 'End Credits'}.
+
+Scene A (${currentScene.location}): ${currentScene.description}
+Scene B (${nextScene ? nextScene.location : 'End of Film'}): ${nextScene ? nextScene.description : 'Fade to Black'}
 Visual Style: ${visualStyle}
 
-Task: Suggest a specific, cinematic transition technique (e.g., Match Cut, Sound Bridge, Whip Pan, Slow Dissolve, Hard Cut) that enhances the storytelling and visual continuity.
-Output: Just the transition description (e.g. "Match cut on the circular shape of the sun to the wheel of the car").
+Instructions:
+1. Analyze the visual end of Scene A and the visual beginning of Scene B.
+2. Suggest a transition that connects them thematically, visually (e.g., match cut on shape/motion), or aurally (e.g., sound bridge, J-cut).
+3. Be specific about what is changing and how.
+4. Keep it concise (1-2 sentences).
+
+Output example: "Match cut from the spinning fan blades to the helicopter rotor." or "Sound bridge: The ringing phone from the next scene starts over the character's sleeping face."
+Output: The transition description only.
 `;
 }
 
@@ -412,6 +432,52 @@ export const generateCreativeAssets = async (
     };
 };
 
+export const regenerateFullScript = async (
+    theme: RewriteTomorrowTheme,
+    intensity: EmotionalArcIntensity,
+    tone: NarrativeTone,
+    characters: Character[]
+): Promise<ScriptBlock[]> => {
+    // Reconstruct prompt with existing context to keep continuity
+    const charList = characters.map(c => `${c.name} (${c.role}): ${c.description}`).join('\n');
+    const prompt = `
+You are a master screenwriter. Rewrite the script for a 7-10 minute film.
+Theme: ${getThemeDescription(theme)}
+Tone: ${getNarrativeToneDescription(tone)}
+Arc: ${getIntensityDescription(intensity)}
+
+Characters (Do not change names):
+${charList}
+
+Format Requirements:
+- Scene Headings: INT. / EXT. LOC - DAY/NIGHT
+- Dialogue: Natural, character-specific.
+- Narration: Evocative.
+
+Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": "...", "characterName": "..." (if dialogue) }] }
+`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: prompt,
+        config: { responseMimeType: 'application/json' }
+    });
+
+    const data = JSON.parse(cleanJson(response.text || '{}'));
+    const rawScript = Array.isArray(data.script) ? data.script : [];
+    
+    // Post-process IDs
+    return rawScript.map((block: any, i: number) => {
+        let charId = undefined;
+        if (block.type === 'dialogue') {
+            const charName = block.characterName;
+            const found = characters.find((c: any) => c.name.toLowerCase() === charName?.toLowerCase());
+            charId = found ? found.id : undefined;
+        }
+        return { ...block, id: `block-regen-${Date.now()}-${i}`, characterId: charId };
+    });
+};
+
 export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal): Promise<string> => {
     if (signal?.aborted) throw new Error('Operation aborted');
 
@@ -456,18 +522,20 @@ export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: V
 
 export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = `
-You are a master storyteller and screenwriter.
-Rewrite the description for this film scene.
+You are a master storyteller.
+Rewrite the description for this film scene to be evocative, concise, and sensory-rich.
 Current Description: ${scene.description}
-Context: ${scene.location}, ${scene.timeOfDay}, ${scene.atmosphere}
+Characters: ${scene.charactersInScene}
+Location: ${scene.location}
+Time: ${scene.timeOfDay}
 Visual Style: ${visualStyle}
-Instruction: Review content and characters carefully.
 
-Goal: Write a highly evocative, detailed, and sensory-rich description.
-- Focus on mood, atmosphere, and specific sensory details (sight, sound, texture, smell).
-- Capture the emotional essence of the scene.
+Task:
+- Capture the essence of the scene and characters.
+- Use sensory language (sight, sound, texture).
+- Deeply convey the mood and atmosphere.
 - Align with a positive, hopeful future narrative.
-- Keep it under 4 sentences.
+- Keep it concise (2-3 sentences maximum).
 
 Output: The new description text only.
 `;
