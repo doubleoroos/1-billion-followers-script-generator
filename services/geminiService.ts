@@ -216,11 +216,11 @@ Synopsis: ${synopsis}
 Script: ${fullScript}
 
 For each scene, define:
-1. Title (Evocative)
+1. Title (Evocative, 2-5 words)
 2. Location & Atmosphere
-3. Description (Evocative and concise. Use sensory language (sight, sound, feeling) to capture the scene's essence and the positive future narrative. Avoid generic summaries.)
-4. Video Prompt (Veo, cinematic keywords)
-5. Image Prompt (Imagen, 8k, photorealistic)
+3. Description (Evocative, concise, sensory-rich (sight, sound, feeling). Capture the essence and positive narrative.)
+4. Video Prompt (Veo, cinematic keywords, dynamic motion)
+5. Image Prompt (Imagen, 8k, photorealistic, Arri Alexa, cinematic lighting, highly detailed)
 6. Pacing & Emotion
 
 Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "..." }] }
@@ -249,13 +249,25 @@ Output: Single concise paragraph.
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-Write an Imagen 3 image prompt.
-Role: Expert Prompt Engineer.
-Style: ${visualStyle}
-Scene: ${scene.description}
+You are a world-class AI visual artist specializing in photorealistic film stills.
+Task: Create a highly detailed Imagen 3 prompt for a scene in a film.
+Visual Style: ${visualStyle} (Strictly adhere to this).
+Scene Description: ${scene.description}
 Location: ${scene.location}
-Requirements: Hyper-realistic 8K Film Still, Arri Alexa, cinematic lighting, 35mm grain. NO CGI look.
-Output: Comma-separated phrases.
+Time of Day: ${scene.timeOfDay}
+Atmosphere: ${scene.atmosphere}
+
+Mandatory Technical Specs:
+- Shot on Arri Alexa LF, Panavision C Series Anamorphic Primes.
+- 8k resolution, raw photo, hyper-realistic, highly detailed texture.
+- Cinematic lighting (chiaroscuro, volumetric fog, rim lighting as appropriate).
+- Depth of field, bokeh, 35mm film grain.
+- Color graded, post-production level.
+
+Negative Constraints:
+- NO cartoon, NO illustration, NO 3d render style, NO painting, NO bad anatomy, NO watermarks.
+
+Output: A single, dense, comma-separated string of descriptive keywords and phrases.
 `;
 }
 
