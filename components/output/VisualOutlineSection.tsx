@@ -14,6 +14,7 @@ const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4
 const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>;
 const SearchIcon = () => <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const TextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
+const MagicWandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 9a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-4a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1V8a1 1 0 011-1z" clipRule="evenodd" /></svg>;
 
 const StaticNoise = () => (
     <div className="absolute inset-0 bg-black flex flex-col justify-center items-center overflow-hidden">
@@ -82,22 +83,50 @@ const CinematicSceneCard: React.FC<any> = ({
         <div className="bg-gunmetal border border-white/10 shadow-lg relative group overflow-hidden rounded-sm transition-all hover:border-cyan-500/20">
             {/* Monitor Header */}
             <div className="bg-black/80 border-b border-white/10 p-3 flex justify-between items-center">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-grow">
                     <div className="font-mono text-cyan-400 text-xl font-bold border-r border-white/10 pr-4">
                         {String(scene.sceneNumber).padStart(2, '0')}
                     </div>
-                    <div>
-                        <h3 className="text-white font-display uppercase tracking-wider text-sm truncate max-w-[200px]">{scene.title}</h3>
-                        <div className="font-mono text-[9px] text-slate-500 mt-0.5 flex gap-2">
-                             <span>{scene.location.toUpperCase()}</span>
+                    <div className="flex-grow max-w-xl">
+                        {/* Editable Title */}
+                        <input
+                            type="text"
+                            value={scene.title}
+                            onChange={(e) => onUpdate({ ...scene, title: e.target.value })}
+                            className="bg-transparent border-b border-transparent focus:border-cyan-500 text-white font-display uppercase tracking-wider text-sm w-full outline-none placeholder-slate-700 transition-colors"
+                            placeholder="SCENE TITLE"
+                        />
+                        {/* Editable Metadata */}
+                        <div className="font-mono text-[9px] text-slate-500 mt-1 flex items-center gap-2">
+                             <input
+                                type="text"
+                                value={scene.location}
+                                onChange={(e) => onUpdate({ ...scene, location: e.target.value })}
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[60px] max-w-[120px] placeholder-slate-700"
+                                placeholder="LOCATION"
+                            />
                              <span className="text-cyan-500">///</span>
-                             <span>{scene.timeOfDay.toUpperCase()}</span>
+                             <input
+                                type="text"
+                                value={scene.timeOfDay}
+                                onChange={(e) => onUpdate({ ...scene, timeOfDay: e.target.value })}
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[40px] max-w-[80px] placeholder-slate-700"
+                                placeholder="TIME"
+                            />
+                             <span className="text-cyan-500">///</span>
+                             <input
+                                type="text"
+                                value={scene.duration || ''}
+                                onChange={(e) => onUpdate({ ...scene, duration: e.target.value })}
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-16 placeholder-slate-700"
+                                placeholder="0:00"
+                            />
                         </div>
                     </div>
                 </div>
                 
                 {/* Hardware Toggle Switch */}
-                <div className="flex bg-black p-0.5 rounded-sm border border-white/20">
+                <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0">
                     <button onClick={() => setActiveTab('video')} className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm ${activeTab === 'video' ? 'bg-slate-200 text-black shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Video</button>
                     <button onClick={() => setActiveTab('image')} className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm ${activeTab === 'image' ? 'bg-slate-200 text-black shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Image</button>
                 </div>
@@ -300,6 +329,45 @@ export const VisualOutlineSection: React.FC<{
         }
     };
 
+    const handleFillMissingPrompts = async () => {
+        setMasterBulkStatus('filling_prompts');
+        playSound();
+
+        try {
+            const scenesWithMissingPrompts = outline.filter(s => !s.imagePrompt || !s.videoPrompt);
+            
+            if (scenesWithMissingPrompts.length === 0) {
+                 setMasterBulkStatus(null);
+                 alert("All prompts are already populated.");
+                 return;
+            }
+
+            const updatedScenes = await processInBatches<Scene, Scene>(scenesWithMissingPrompts, async (scene: Scene) => {
+                const updates: Partial<Scene> = {};
+                if (!scene.videoPrompt) {
+                     try { updates.videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle); } catch (e) {}
+                }
+                if (!scene.imagePrompt) {
+                     try { updates.imagePrompt = await regenerateImagePromptForScene(scene, visualStyle); } catch (e) {}
+                }
+                return { ...scene, ...updates };
+            }, 3, 500);
+
+            const newOutline = outline.map(s => {
+                const updated = updatedScenes.find(us => us.id === s.id);
+                return updated ? updated : s;
+            });
+
+            onSave(newOutline);
+            setMasterBulkStatus(null);
+            playSound('success');
+        } catch (e) {
+            console.error(e);
+            setMasterBulkStatus(null);
+            alert("Fill operation interrupted.");
+        }
+    };
+
     const handleRefineTitles = async () => {
         setMasterBulkStatus('refining_titles');
         playSound();
@@ -384,6 +452,16 @@ export const VisualOutlineSection: React.FC<{
                             <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         ) : <SparklesIcon />}
                         Refine Prompts
+                    </button>
+                    <button 
+                        onClick={handleFillMissingPrompts} 
+                        disabled={!!masterBulkStatus}
+                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50 text-cyan-400 border-cyan-500/30"
+                    >
+                        {masterBulkStatus === 'filling_prompts' ? (
+                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ) : <MagicWandIcon />}
+                        Fill Missing Prompts
                     </button>
                     <button 
                         onClick={handleRefineTitles} 

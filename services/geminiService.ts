@@ -264,6 +264,7 @@ Mandatory Specs (unless Abstract style):
 - Medium: Raw Photo, Shot on Arri Alexa LF, Panavision Anamorphic Lenses.
 - Quality: 8k resolution, hyper-realistic, highly detailed skin texture (if characters present), film grain (Kodak Vision3).
 - Lighting: Volumetric lighting, rim light, cinematic chiaroscuro, high dynamic range.
+- Atmosphere: Evocative, emotional, sensory-rich details.
 - Composition: Rule of thirds, depth of field, bokeh.
 
 Negative Prompts (Implicit):
