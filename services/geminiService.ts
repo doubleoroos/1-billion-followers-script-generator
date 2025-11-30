@@ -280,7 +280,14 @@ Output: Transition description string only.
 }
 
 const createTitleRefinementPrompt = (scene: Scene): string => {
-    return `Create a concise, poetic title (2-5 words) for this scene: ${scene.description}. Output title only.`;
+    return `
+Review this film scene content and characters:
+Description: ${scene.description}
+Characters: ${scene.charactersInScene}
+
+Task: Generate a unique, evocative, and concise title (2-5 words) that captures the essence and aligns with a positive future narrative.
+Output: Title string only. Do not include quotes.
+`;
 }
 
 // --- API INTERACTION ---
