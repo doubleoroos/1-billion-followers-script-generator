@@ -254,22 +254,22 @@ Output: Single concise paragraph.
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-Act as an award-winning Director of Photography and AI Prompt Engineer.
-Task: Write a high-fidelity, photorealistic image generation prompt for this film scene.
-Context: ${scene.description}
+You are an expert AI Artist and Director of Photography.
+Task: Write a strictly photorealistic image generation prompt for this scene.
+
+Scene Description: ${scene.description}
 Location: ${scene.location}
 Mood: ${scene.atmosphere}
-Atmosphere: Evocative, emotional, sensory-rich details
 Visual Style: ${visualStyle}
 
-Requirements:
-1.  **Photorealism**: Use keywords like "Raw photo", "8k", "Arri Alexa", "Fujifilm GFX 100", "hyper-realistic", "highly detailed".
-2.  **Cinematography**: Describe the lighting (e.g., "volumetric", "chiaroscuro", "golden hour"), camera angle (e.g., "low angle", "wide shot"), and lens (e.g., "35mm", "anamorphic bokeh").
-3.  **Evocative Details**: Include sensory textures (e.g., "rusted metal", "soft mist", "sweat on skin", "dust motes in light").
-4.  **Style Compliance**: Ensure the image strictly follows the "${visualStyle}" aesthetic.
-5.  **Negative Prompts**: No CGI, no cartoon, no painting, no illustration.
+Guidelines for Photorealism:
+1. CAMERA: Shot on Arri Alexa LF, 35mm anamorphic lens, shallow depth of field, cinematic film grain.
+2. LIGHTING: Volumetric lighting, global illumination, ray tracing, high contrast, natural light.
+3. TEXTURE: Hyper-detailed skin texture, realistic materials, 8k resolution, raw photography.
+4. COMPOSITION: Cinematic rule of thirds, dynamic framing.
+5. NEGATIVE: No CGI, no 3D render look, no illustration, no cartoon, no text, no watermark.
 
-Output: A single, concise, comma-separated prompt string optimized for Imagen 3. Do not include introductory text.
+Output format: A single coherent paragraph description followed by technical keywords.
 `;
 }
 
