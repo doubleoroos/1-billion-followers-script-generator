@@ -222,7 +222,7 @@ Script: ${fullScript}
 For each scene, define:
 1. Title (Evocative, 2-5 words)
 2. Location & Atmosphere
-3. Description (Evocative, concise, sensory-rich (sight, sound, feeling). Capture the essence and positive narrative.)
+3. Description (Detailed, sensory-rich (sight, sound, feeling). Convey mood and atmosphere. Align with positive future narrative.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
 5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text)
 6. Pacing & Emotion
@@ -259,12 +259,12 @@ Visual Style: ${visualStyle}
 Scene Context: ${scene.description}
 Location: ${scene.location}
 Time/Mood: ${scene.timeOfDay}, ${scene.atmosphere}
+Atmosphere: Evocative, emotional, sensory-rich details.
 
 Mandatory Specs (unless Abstract style):
 - Medium: Raw Photo, Shot on Arri Alexa LF, Panavision Anamorphic Lenses.
 - Quality: 8k resolution, hyper-realistic, highly detailed skin texture (if characters present), film grain (Kodak Vision3).
 - Lighting: Volumetric lighting, rim light, cinematic chiaroscuro, high dynamic range.
-- Atmosphere: Evocative, emotional, sensory-rich details.
 - Composition: Rule of thirds, depth of field, bokeh.
 
 Negative Prompts (Implicit):
@@ -276,9 +276,14 @@ Output: A single, dense, comma-separated string of descriptive keywords.
 
 const createTransitionRefinementPrompt = (currentScene: Scene, nextScene: Scene | undefined, visualStyle: VisualStyle): string => {
     return `
-Suggest a cinematic transition from Scene ${currentScene.sceneNumber} to ${nextScene ? 'Scene ' + nextScene.sceneNumber : 'End'}.
-Style: ${visualStyle}
-Output: Transition description string only.
+Act as a professional Film Editor.
+Analyze the flow from Scene ${currentScene.sceneNumber} (${currentScene.location}) to ${nextScene ? `Scene ${nextScene.sceneNumber} (${nextScene.location})` : 'End Credits'}.
+Current Action: ${currentScene.description}
+Next Action: ${nextScene ? nextScene.description : 'Fade out'}
+Visual Style: ${visualStyle}
+
+Task: Suggest a specific, cinematic transition technique (e.g., Match Cut, Sound Bridge, Whip Pan, Slow Dissolve, Hard Cut) that enhances the storytelling and visual continuity.
+Output: Just the transition description (e.g. "Match cut on the circular shape of the sun to the wheel of the car").
 `;
 }
 
@@ -452,11 +457,19 @@ export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: V
 
 export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = `
+You are a master storyteller and screenwriter.
 Rewrite the description for this film scene.
-Current: ${scene.description}
-Style: ${visualStyle}
-Goal: Make it more evocative, concise, and sensory-rich. Align with a positive future narrative.
-Output: Description string only.
+Current Description: ${scene.description}
+Context: ${scene.location}, ${scene.timeOfDay}, ${scene.atmosphere}
+Visual Style: ${visualStyle}
+
+Goal: Write a highly evocative, detailed, and sensory-rich description.
+- Focus on mood, atmosphere, and specific sensory details (sight, sound, texture, smell).
+- Capture the emotional essence of the scene.
+- Align with a positive, hopeful future narrative.
+- Keep it under 4 sentences.
+
+Output: The new description text only.
 `;
     const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text?.trim() || scene.description;

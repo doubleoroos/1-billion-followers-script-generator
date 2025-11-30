@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Scene, VisualStyle, Character } from '../../types';
-import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene } from '../../services/geminiService';
+import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene, regenerateDescriptionForScene } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { useSound } from '../hooks/useSound';
@@ -15,6 +15,7 @@ const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 
 const SearchIcon = () => <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const TextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const MagicWandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 9a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-4a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1V8a1 1 0 011-1z" clipRule="evenodd" /></svg>;
+const ArrowsExpandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>;
 
 const StaticNoise = () => (
     <div className="absolute inset-0 bg-black flex flex-col justify-center items-center overflow-hidden">
@@ -213,6 +214,17 @@ const CinematicSceneCard: React.FC<any> = ({
                                 className="w-full bg-black/40 border border-white/10 text-slate-400 font-mono text-[10px] p-3 focus:border-cyan-500 outline-none resize-none h-32 rounded-sm leading-relaxed"
                             />
                         </div>
+                        
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-mono text-cyan-500 font-bold uppercase tracking-wider">Transition</label>
+                            <input
+                                type="text"
+                                value={scene.transition || ''}
+                                onChange={(e) => onUpdate({ ...scene, transition: e.target.value })}
+                                className="w-full bg-black/40 border border-white/10 text-slate-300 font-mono text-xs p-2 focus:border-cyan-500 outline-none rounded-sm"
+                                placeholder="Cut to..."
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -299,14 +311,8 @@ export const VisualOutlineSection: React.FC<{
         playSound();
         
         try {
-            const transitions = await refineSceneTransitions(outline, visualStyle);
-            const outlineWithTransitions = outline.map(scene => {
-                const t = transitions.find(tr => tr.id === scene.id);
-                return t ? { ...scene, transition: t.transition } : scene;
-            });
-
             // Use explicit generic types <Scene, Scene> to prevent inference errors
-            const updatedOutline = await processInBatches<Scene, Scene>(outlineWithTransitions, async (scene: Scene) => {
+            const updatedOutline = await processInBatches<Scene, Scene>(outline, async (scene: Scene) => {
                 try {
                     const [vidPrompt, imgPrompt] = await Promise.all([
                         regenerateVideoPromptForScene(scene, visualStyle),
@@ -326,6 +332,27 @@ export const VisualOutlineSection: React.FC<{
              console.error("Bulk optimization failed", e);
              setMasterBulkStatus(null);
              alert("Optimization sequence interrupted.");
+        }
+    };
+    
+    const handleRefineTransitions = async () => {
+        setMasterBulkStatus('refining_transitions');
+        playSound();
+        
+        try {
+            const transitions = await refineSceneTransitions(outline, visualStyle);
+            const updatedOutline = outline.map(scene => {
+                const t = transitions.find(tr => tr.id === scene.id);
+                return t ? { ...scene, transition: t.transition } : scene;
+            });
+
+            onSave(updatedOutline);
+            setMasterBulkStatus(null);
+            playSound('success');
+        } catch (e) {
+            console.error(e);
+            setMasterBulkStatus(null);
+            alert("Transition refinement interrupted.");
         }
     };
 
@@ -383,6 +410,26 @@ export const VisualOutlineSection: React.FC<{
             playSound('success');
         } catch (e) {
             setMasterBulkStatus(null);
+        }
+    };
+
+    const handleRefineDescriptions = async () => {
+        setMasterBulkStatus('refining_descriptions');
+        playSound();
+        
+        try {
+            const updatedOutline = await processInBatches<Scene, Scene>(outline, async (scene: Scene) => {
+                const newDesc = await regenerateDescriptionForScene(scene, visualStyle);
+                return { ...scene, description: newDesc };
+            }, 5, 200);
+
+            onSave(updatedOutline);
+            setMasterBulkStatus(null);
+            playSound('success');
+        } catch (e) {
+            console.error(e);
+            setMasterBulkStatus(null);
+            alert("Description refinement interrupted.");
         }
     };
 
@@ -472,6 +519,26 @@ export const VisualOutlineSection: React.FC<{
                             <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         ) : <TextIcon />}
                         Refine Titles
+                    </button>
+                    <button 
+                        onClick={handleRefineDescriptions} 
+                        disabled={!!masterBulkStatus}
+                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50"
+                    >
+                        {masterBulkStatus === 'refining_descriptions' ? (
+                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ) : <TextIcon />}
+                        Refine Descriptions
+                    </button>
+                    <button 
+                        onClick={handleRefineTransitions} 
+                        disabled={!!masterBulkStatus}
+                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50"
+                    >
+                        {masterBulkStatus === 'refining_transitions' ? (
+                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ) : <ArrowsExpandIcon />}
+                        Refine Transitions
                     </button>
                     <button 
                         onClick={handleGenerateAllPreviews}
