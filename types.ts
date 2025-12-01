@@ -15,6 +15,7 @@ export interface Character {
   description: string;
   role: string;
   voicePreference?: string; // 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'Zephyr'
+  imageUrl?: string;
 }
 
 export interface ScriptBlock {

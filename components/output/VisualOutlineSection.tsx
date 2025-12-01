@@ -61,7 +61,7 @@ const CinematicSceneCard: React.FC<any> = ({
 
     const getCharacterChip = (charName: string) => {
         const character = characters.find((c: Character) => c.name.toLowerCase().includes(charName.toLowerCase()) || charName.toLowerCase().includes(c.name.toLowerCase()));
-        if (!character) return <span className="text-slate-500">{charName}</span>;
+        if (!character) return <span className="text-slate-500 text-[9px] uppercase tracking-wider border border-transparent px-1">{charName}</span>;
         
         return (
             <a 
@@ -70,10 +70,15 @@ const CinematicSceneCard: React.FC<any> = ({
                     e.preventDefault();
                     document.getElementById(`character-card-${character.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }}
-                className="inline-flex items-center gap-1 bg-white/5 hover:bg-cyan-500/20 px-2 py-0.5 rounded-full border border-white/10 hover:border-cyan-500/50 transition-colors cursor-pointer group"
+                className="inline-flex items-center gap-1.5 bg-white/5 hover:bg-cyan-500/20 pr-2 pl-1 py-0.5 rounded-full border border-white/10 hover:border-cyan-500/50 transition-colors cursor-pointer group"
+                title={`View ${character.name}'s Profile`}
             >
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:animate-pulse"></span>
-                <span className="text-slate-300 group-hover:text-cyan-200">{charName}</span>
+                {character.imageUrl ? (
+                    <img src={character.imageUrl} alt={character.name} className="w-4 h-4 rounded-full object-cover border border-white/20" />
+                ) : (
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:animate-pulse ml-1"></span>
+                )}
+                <span className="text-[9px] text-slate-300 group-hover:text-cyan-200 uppercase tracking-wide font-bold">{character.name}</span>
             </a>
         );
     };

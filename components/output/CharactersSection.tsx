@@ -28,6 +28,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
     const [editedDescription, setEditedDescription] = useState(character.description);
     const [editedRole, setEditedRole] = useState(character.role);
     const [editedVoice, setEditedVoice] = useState(character.voicePreference || 'Kore');
+    const [editedImageUrl, setEditedImageUrl] = useState(character.imageUrl || '');
     
     const playSound = useSound();
 
@@ -38,6 +39,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
             setEditedDescription(character.description);
             setEditedRole(character.role);
             setEditedVoice(character.voicePreference || 'Kore');
+            setEditedImageUrl(character.imageUrl || '');
         }
     }, [character, isEditing]);
 
@@ -48,6 +50,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
             description: editedDescription,
             role: editedRole,
             voicePreference: editedVoice,
+            imageUrl: editedImageUrl,
         });
         setIsEditing(false);
     };
@@ -57,6 +60,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
         setEditedDescription(character.description);
         setEditedRole(character.role);
         setEditedVoice(character.voicePreference || 'Kore');
+        setEditedImageUrl(character.imageUrl || '');
         setIsEditing(false);
     };
     
@@ -117,6 +121,14 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                             />
                         </div>
                         <div>
+                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Avatar URL</label>
+                             <input
+                                type="text" value={editedImageUrl} onChange={(e) => setEditedImageUrl(e.target.value)}
+                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs"
+                                placeholder="https://..."
+                            />
+                        </div>
+                        <div>
                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Dossier Description</label>
                             <textarea
                                 value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} rows={6}
@@ -127,9 +139,16 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                 ) : (
                     <div className="flex-grow flex flex-col">
                         <div className="flex justify-between items-start mb-4">
-                            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-300 border border-violet-500/20">
-                                {character.role}
-                            </span>
+                            <div className="flex items-center gap-3">
+                                {character.imageUrl && (
+                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10">
+                                        <img src={character.imageUrl} alt={character.name} className="w-full h-full object-cover" />
+                                    </div>
+                                )}
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                                    {character.role}
+                                </span>
+                            </div>
                             <span className="flex items-center gap-1 text-[10px] text-slate-500 font-mono">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                                 {VOICE_OPTIONS.find(v => v.value === character.voicePreference)?.label.split(' ')[0] || character.voicePreference || 'Default'}
