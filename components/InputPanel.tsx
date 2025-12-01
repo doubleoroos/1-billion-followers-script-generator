@@ -66,7 +66,7 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
 
 const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, title }) => (
     <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-2">
-        <span className="font-mono text-cyan-600 text-[10px] font-bold tracking-[0.2em] bg-cyan-950/30 px-1 py-0.5 rounded-sm">[{number}]</span>
+        <span className="font-mono text-cyan-600 text-[12px] font-bold tracking-[0.15em] bg-cyan-950/30 px-1 py-0.5 rounded-sm">[{number}]</span>
         <h3 className="text-xl font-display font-bold text-white uppercase tracking-widest shadow-black drop-shadow-md">{title}</h3>
     </div>
 );

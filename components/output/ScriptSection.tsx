@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import type { ScriptBlock, Character } from '../../types';
 import { useSound } from '../hooks/useSound';
