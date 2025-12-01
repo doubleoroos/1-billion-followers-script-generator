@@ -545,22 +545,22 @@ export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: V
 
 export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = `
-You are a master storyteller and atmospheric writer for cinema.
-Task: Rewrite the description for this film scene to be highly evocative, sensory-rich, and detailed.
+You are a visionary film director and atmospheric writer.
+Task: Rewrite the description for this film scene to be highly evocative, sensory-rich, and cinematic.
 
 Context:
 - Current Description: ${scene.description}
 - Visual Style: ${visualStyle}
 - Location: ${scene.location}
-- Characters: ${scene.charactersInScene}
+- Atmosphere: ${scene.atmosphere}
 
-Guidelines:
-1. **Sensory Language**: Incorporate specific details about lighting (e.g., "dappled sunlight," "bioluminescent glow"), sound (e.g., "hum of magnetic levitation"), and texture.
-2. **Mood & Atmosphere**: Focus on the feeling of the scene. Is it serene? Energetic? Awe-inspiring?
-3. **Narrative Alignment**: Ensure it reflects a positive, regenerative future (Solarpunk/Abundance).
-4. **Detail**: Expand on generic statements. Instead of "people walking," describe "citizens weaving through living architecture."
+Directives:
+1. **Sensory Immersion**: Use specific language describing light, texture, sound, and temperature (e.g., "warm golden hour light caressing biomorphic glass," "the hum of clean energy").
+2. **Mood & Atmosphere**: Capture the emotional resonance.
+3. **Positive Future**: Strictly align with a Protopian/Solarpunk narrative. Show harmony, abundance, or technological optimism.
+4. **Conciseness**: Keep it to 3-4 powerful sentences.
 
-Output: A single paragraph (3-4 sentences). Text only.
+Output: The raw description text only.
 `;
     const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text?.trim() || scene.description;
