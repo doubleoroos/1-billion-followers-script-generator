@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import type { ScriptBlock, Character } from '../../types';
 import { useSound } from '../hooks/useSound';
@@ -256,7 +255,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                  </div>
             </div>
 
-            {/* The Page */}
+            {/* The Page - Typography Polish: leading-loose and tracking-tight */}
             <div className={`bg-[#1a1a1a] text-[#d4d4d4] font-mono text-base tracking-tight leading-loose shadow-2xl border-x border-b border-white/5 min-h-[800px] p-8 md:p-16 relative transition-opacity duration-300 ${isRegenerating ? 'opacity-50 blur-sm' : 'opacity-100'}`}>
                 {/* Paper Texture Overlay */}
                 <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')]"></div>

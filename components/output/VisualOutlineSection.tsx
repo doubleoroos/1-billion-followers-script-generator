@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Scene, VisualStyle, Character } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene, regenerateDescriptionForScene } from '../../services/geminiService';
@@ -88,7 +87,7 @@ const CinematicSceneCard: React.FC<any> = ({
 
     const parsedCharacters = scene.charactersInScene ? scene.charactersInScene.split(',').map((c: string) => c.trim()) : [];
 
-    // Cartridge Input Wrapper
+    // Cartridge Input Wrapper - Darker, tighter, specific studio feel
     const cartridgeStyle = "bg-black/40 border border-white/5 p-1 rounded-sm relative group-focus-within:border-cyan-500/30 transition-colors";
 
     return (
@@ -142,12 +141,12 @@ const CinematicSceneCard: React.FC<any> = ({
                     <button 
                         onClick={() => setActiveTab('video')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
-                        ${activeTab === 'video' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400'}`}
+                        ${activeTab === 'video' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400 opacity-50'}`}
                     >Video</button>
                     <button 
                         onClick={() => setActiveTab('image')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
-                        ${activeTab === 'image' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400'}`}
+                        ${activeTab === 'image' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400 opacity-50'}`}
                     >Image</button>
                 </div>
             </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
@@ -69,7 +68,7 @@ const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, ti
     </div>
 );
 
-// Standardized Technical Label Style
+// Standardized Technical Label Style: Mono, uppercase, wide tracking, specific Cyan-600
 const LABEL_STYLE = "font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-3 ml-1 block";
 
 export const InputPanel: React.FC<InputPanelProps> = ({ 

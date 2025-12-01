@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ReferenceImage } from '../../types';
 
@@ -10,7 +9,7 @@ export const MoodboardSection: React.FC<MoodboardSectionProps> = ({ images }) =>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
         {images.map((image, idx) => (
             <div key={idx} className="panel-glass rounded-2xl overflow-hidden group">
-                {/* Cinematic Anamorphic Aspect Ratio */}
+                {/* Cinematic Anamorphic Aspect Ratio: 2.39:1 */}
                 <div className="relative w-full aspect-[2.39/1] overflow-hidden bg-slate-900">
                      <img 
                         src={image.imageUrl} 

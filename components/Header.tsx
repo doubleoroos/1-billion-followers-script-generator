@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LogoIcon } from './icons/LogoIcon';
 import { useSound } from './hooks/useSound';
@@ -28,11 +27,12 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver, onSu
             <LogoIcon />
           </div>
           <div className="flex flex-col">
+            {/* Optically aligned items-baseline */}
             <div className="flex items-baseline gap-3">
                 <h1 className="font-display text-2xl font-bold uppercase tracking-widest text-white leading-none">
                 Rewrite<span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>
                 </h1>
-                <div className="flex items-center gap-1.5 relative -top-[1px]">
+                <div className="flex items-center gap-1.5 relative -top-[2px]"> {/* Nudged up for cap-height alignment */}
                     <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse led-indicator"></span>
                     <p className="text-[9px] font-mono text-cyan-600 uppercase tracking-[0.2em] font-bold">Studio Online</p>
                 </div>
