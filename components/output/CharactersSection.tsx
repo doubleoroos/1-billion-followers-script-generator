@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import type { Character } from '../../types';
 import { useSound } from '../hooks/useSound';
+import { generateCharacterPortrait } from '../../services/geminiService';
 
 // Icons for buttons
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>;
 const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 9a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-4a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1V8a1 1 0 011-1z" clipRule="evenodd" /></svg>;
 
 const COMMON_ROLES = ['Protagonist', 'Antagonist', 'Mentor', 'Supporting Character', 'Cameo'];
 
@@ -29,6 +31,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
     const [editedRole, setEditedRole] = useState(character.role);
     const [editedVoice, setEditedVoice] = useState(character.voicePreference || 'Kore');
     const [editedImageUrl, setEditedImageUrl] = useState(character.imageUrl || '');
+    const [isGeneratingImage, setIsGeneratingImage] = useState(false);
     
     const playSound = useSound();
 
@@ -79,10 +82,28 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
         setIsEditing(true);
     };
 
+    const handleGeneratePortrait = async () => {
+        setIsGeneratingImage(true);
+        playSound();
+        try {
+            const url = await generateCharacterPortrait(character, 'cinematic'); // Defaulting to cinematic for portraits
+            setEditedImageUrl(url);
+            // Auto-save if not in full edit mode
+            if (!isEditing) {
+                onSave({ ...character, imageUrl: url });
+            }
+        } catch (e) {
+            console.error("Failed to generate portrait", e);
+            alert("Portrait generation failed.");
+        } finally {
+            setIsGeneratingImage(false);
+        }
+    };
+
     return (
-        <div id={`character-card-${character.id}`} className="group relative flex flex-col h-full bg-slate-900/40 border border-white/5 rounded-2xl overflow-hidden hover:border-violet-500/30 transition-all duration-300">
+        <div id={`character-card-${character.id}`} className="group relative flex flex-col h-full bg-slate-900/40 border border-white/5 rounded-2xl overflow-hidden hover:border-cyan-500/30 transition-all duration-300">
             {/* Top Bar Decoration */}
-            <div className="h-1 w-full bg-gradient-to-r from-violet-500/50 to-cyan-500/50"></div>
+            <div className="h-1 w-full bg-gradient-to-r from-cyan-500/50 to-slate-500/50"></div>
             
             <div className="p-6 flex flex-col flex-grow">
                 {isEditing ? (
@@ -104,7 +125,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                                 <select
                                     value={editedVoice}
                                     onChange={(e) => setEditedVoice(e.target.value)}
-                                    className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-xs font-medium cursor-pointer"
+                                    className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-medium cursor-pointer"
                                 >
                                     {VOICE_OPTIONS.map(voice => (
                                         <option key={voice.value} value={voice.value}>{voice.label}</option>
@@ -117,11 +138,20 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Name</label>
                             <input
                                 type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-lg font-bold"
+                                className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-lg font-bold"
                             />
                         </div>
                         <div>
-                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Avatar URL</label>
+                             <div className="flex justify-between items-center mb-1">
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Avatar URL</label>
+                                <button 
+                                    onClick={handleGeneratePortrait}
+                                    disabled={isGeneratingImage}
+                                    className="text-[9px] text-cyan-400 hover:text-white flex items-center gap-1 font-bold uppercase disabled:opacity-50"
+                                >
+                                    {isGeneratingImage ? 'Generating...' : <><SparklesIcon /> Generate AI Portrait</>}
+                                </button>
+                             </div>
                              <input
                                 type="text" value={editedImageUrl} onChange={(e) => setEditedImageUrl(e.target.value)}
                                 className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs"
@@ -132,7 +162,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Dossier Description</label>
                             <textarea
                                 value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} rows={6}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm leading-relaxed resize-none"
+                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm leading-relaxed resize-none"
                             />
                         </div>
                     </div>
@@ -140,12 +170,26 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                     <div className="flex-grow flex flex-col">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
-                                {character.imageUrl && (
-                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10">
-                                        <img src={character.imageUrl} alt={character.name} className="w-full h-full object-cover" />
-                                    </div>
-                                )}
-                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                                <div className="relative group/avatar">
+                                    {character.imageUrl ? (
+                                        <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 shadow-lg">
+                                            <img src={character.imageUrl} alt={character.name} className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={handleGeneratePortrait}
+                                            disabled={isGeneratingImage}
+                                            className="w-12 h-12 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 hover:text-cyan-400 hover:border-cyan-500/50 transition-all disabled:opacity-50"
+                                            title="Generate Portrait"
+                                        >
+                                            {isGeneratingImage ? (
+                                                <div className="animate-spin w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full"></div>
+                                            ) : <SparklesIcon />}
+                                        </button>
+                                    )}
+                                </div>
+
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                                     {character.role}
                                 </span>
                             </div>
@@ -165,7 +209,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                  {isEditing ? (
                     <div className="flex gap-2">
                         <button onClick={handleCancelClick} className="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5">Cancel</button>
-                        <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 bg-violet-600 text-white font-bold py-1.5 px-4 rounded text-xs hover:bg-violet-500">
+                        <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 bg-cyan-600 text-white font-bold py-1.5 px-4 rounded text-xs hover:bg-cyan-500">
                             <SaveIcon /> Save
                         </button>
                     </div>

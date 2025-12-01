@@ -531,6 +531,16 @@ export const generateImageForScene = async (scene: Scene, visualStyle: VisualSty
     return await generateRawImage(prompt) || '';
 };
 
+export const generateCharacterPortrait = async (character: Character, visualStyle: VisualStyle): Promise<string> => {
+    const prompt = `
+    Hyper-realistic cinematic portrait of ${character.name}, ${character.role}. 
+    ${character.description}.
+    Visual Style: ${visualStyle}, 8k resolution, detailed skin texture, dramatic lighting, shot on Arri Alexa.
+    No text, no labels.
+    `;
+    return await generateRawImage(prompt) || '';
+};
+
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = createVideoPromptRefinementPrompt(scene, visualStyle);
     const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
