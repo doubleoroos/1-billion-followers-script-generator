@@ -248,15 +248,15 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
             </div>
 
             {/* The Page */}
-            <div className={`bg-[#1a1a1a] text-[#d4d4d4] font-mono text-base shadow-2xl border-x border-b border-white/5 min-h-[800px] p-8 md:p-16 relative transition-opacity duration-300 ${isRegenerating ? 'opacity-50 blur-sm' : 'opacity-100'}`}>
+            <div className={`bg-[#1a1a1a] text-[#d4d4d4] font-mono text-base tracking-tight leading-loose shadow-2xl border-x border-b border-white/5 min-h-[800px] p-8 md:p-16 relative transition-opacity duration-300 ${isRegenerating ? 'opacity-50 blur-sm' : 'opacity-100'}`}>
                 {/* Paper Texture Overlay */}
                 <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')]"></div>
                 
-                <div className="max-w-2xl mx-auto space-y-8 relative z-10">
+                <div className="max-w-2xl mx-auto space-y-12 relative z-10">
                      {editedScript.map((block: any, idx: number) => (
                          <div key={block.id} className="group hover:bg-white/5 transition-colors rounded p-4 -mx-4 border border-transparent hover:border-white/5 relative">
                              {block.type === 'narration' ? (
-                                 <div className="text-[#a0a0a0] mb-2 uppercase tracking-wide leading-relaxed pl-8">
+                                 <div className="text-[#a0a0a0] mb-2 uppercase tracking-wide pl-8">
                                      {block.content}
                                      {!block.audioUrl && (
                                         <button 
@@ -278,7 +278,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                                      <div className="font-bold text-white mb-0.5 tracking-wider mt-4">
                                          {characters.find((c: any) => c.id === block.characterId)?.name.toUpperCase() || 'UNKNOWN'}
                                      </div>
-                                     <div className="text-[#d4d4d4] text-center w-3/4 leading-relaxed mb-2">
+                                     <div className="text-[#d4d4d4] text-center w-3/4 mb-2">
                                          {block.content}
                                      </div>
                                       {!block.audioUrl ? (

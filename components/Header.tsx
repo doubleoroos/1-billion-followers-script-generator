@@ -27,13 +27,15 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver, onSu
           <div className="bg-studio-black p-1.5 rounded border border-white/10">
             <LogoIcon />
           </div>
-          <div>
-            <h1 className="font-display text-2xl font-bold uppercase tracking-widest text-white leading-none">
-              Rewrite<span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse led-indicator"></span>
-                <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em]">Studio Online</p>
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-3">
+                <h1 className="font-display text-2xl font-bold uppercase tracking-widest text-white leading-none">
+                Rewrite<span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>
+                </h1>
+                <div className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse led-indicator"></span>
+                    <p className="text-[9px] font-mono text-cyan-600 uppercase tracking-[0.2em] font-bold">Studio Online</p>
+                </div>
             </div>
           </div>
         </div>
@@ -49,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver, onSu
 
              <button
                 onClick={() => { playSound(); if(onSupportClick) onSupportClick(); }}
-                className="hidden md:flex items-center gap-2 text-xs font-bold font-display uppercase tracking-wider py-2 px-4 bg-gunmetal-light border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-all rounded-sm"
+                className="hidden md:flex items-center gap-2 text-xs font-bold font-display uppercase tracking-wider py-2 px-4 bg-gunmetal-light border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-all rounded-sm hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
             >
                 <HeartIcon /> Support Stichting Earth Rising
             </button>

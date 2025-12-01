@@ -31,43 +31,46 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
     const playSound = useSound();
     
     // Strict Blue/Slate Theme
-    const activeBorder = 'border-gold'; // Cyan
-    const activeText = 'text-gold';
-    const activeBg = 'bg-gold/10';
-    const activeLed = 'bg-gold';
+    const activeBorder = 'border-cyan-500'; 
+    const activeText = 'text-cyan-400';
+    const activeBg = 'bg-cyan-900/10';
+    const activeLed = 'bg-cyan-400 shadow-[0_0_8px_#22d3ee]';
 
     return (
         <button
             type="button"
             onClick={() => { playSound(); onClick(); }}
             className={`group relative flex flex-col items-start text-left p-0 transition-all duration-200 w-full h-full 
-            bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-700 hover:border-slate-500 bg-gunmetal'} 
+            bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-800 hover:border-slate-600 bg-gunmetal'} 
             border-y border-r border-y-black border-r-black ${className}`}
         >
             {/* Mechanical Screw Detail */}
-            <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-black border border-slate-700 opacity-50 shadow-inner"></div>
-            <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-black border border-slate-700 opacity-50 shadow-inner"></div>
+            <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-black border border-slate-800 opacity-50 shadow-inner"></div>
+            <div className="absolute bottom-2 right-2 w-1.5 h-1.5 rounded-full bg-black border border-slate-800 opacity-50 shadow-inner"></div>
 
             <div className="p-5 w-full">
                 <div className="flex justify-between items-center w-full mb-2">
-                    <span className={`font-display font-bold text-lg uppercase tracking-wide ${isSelected ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`}>
+                    <span className={`font-display font-bold text-lg uppercase tracking-wide ${isSelected ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`}>
                         {label}
                     </span>
                     {/* LED Indicator */}
-                    <div className={`w-2.5 h-2.5 rounded-full border border-black transition-colors duration-300 ${isSelected ? activeLed + ' led-indicator' : 'bg-black'}`}></div>
+                    <div className={`w-2 h-2 rounded-full border border-black transition-colors duration-300 ${isSelected ? activeLed : 'bg-black'}`}></div>
                 </div>
-                <p className={`text-xs font-mono leading-relaxed transition-colors ${isSelected ? activeText : 'text-slate-500'}`}>{description}</p>
+                <p className={`text-xs font-mono leading-relaxed transition-colors ${isSelected ? activeText : 'text-slate-600'}`}>{description}</p>
             </div>
         </button>
     );
 };
 
 const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, title }) => (
-    <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-2">
-        <span className="font-mono text-gold text-sm font-bold opacity-80">[{number}]</span>
+    <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-2">
+        <span className="font-mono text-cyan-600 text-[10px] font-bold tracking-[0.2em] bg-cyan-950/30 px-1 py-0.5 rounded-sm">[{number}]</span>
         <h3 className="text-xl font-display font-bold text-white uppercase tracking-widest shadow-black drop-shadow-md">{title}</h3>
     </div>
 );
+
+// Standardized Technical Label Style
+const LABEL_STYLE = "font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-3 ml-1 block";
 
 export const InputPanel: React.FC<InputPanelProps> = ({ 
   onGenerate, isLoading, rewriteTomorrowTheme, setRewriteTomorrowTheme, emotionalArc, setEmotionalArc, visualStyle, setVisualStyle, narrativeTone, setNarrativeTone, error,
@@ -97,14 +100,14 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 1 Billion Followers Film Competition
             </p>
 
-            <div className="h-0.5 w-24 bg-gold mx-auto shadow-[0_0_10px_#06b6d4]"></div>
+            <div className="h-0.5 w-24 bg-cyan-500/50 mx-auto shadow-[0_0_10px_#06b6d4]"></div>
             <p className="font-mono text-slate-500 text-sm tracking-wider uppercase">
                 System Ready. Initialize Narrative Parameters.
             </p>
         </div>
       
         <div className="space-y-12 bg-studio-black p-4 md:p-8 border border-white/5 rounded-sm shadow-2xl relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold to-transparent opacity-20"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent opacity-50"></div>
 
             {/* Step 1: Theme */}
             <section>
@@ -124,7 +127,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                     <SectionHeader number="02" title="Aesthetic Configuration" />
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
-                            <h4 className="font-mono text-[10px] font-bold text-slate-500 uppercase mb-3 ml-1">Narrative Tone</h4>
+                            <span className={LABEL_STYLE}>Narrative Tone</span>
                             <div className="grid grid-cols-2 gap-3">
                                 <ChoiceCard label="Poetic" description="Lyrical imagery." isSelected={narrativeTone === 'poetic'} onClick={() => setNarrativeTone('poetic')} />
                                 <ChoiceCard label="Philosophical" description="Deep questioning." isSelected={narrativeTone === 'philosophical'} onClick={() => setNarrativeTone('philosophical')} />
@@ -133,7 +136,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                             </div>
                         </div>
                         <div>
-                            <h4 className="font-mono text-[10px] font-bold text-slate-500 uppercase mb-3 ml-1">Visual Style</h4>
+                            <span className={LABEL_STYLE}>Visual Style</span>
                             <div className="grid grid-cols-2 gap-3">
                                 <ChoiceCard label="Cinematic" description="Photorealistic drama." isSelected={visualStyle === 'cinematic'} onClick={() => setVisualStyle('cinematic')} />
                                 <ChoiceCard label="Solarpunk" description="Organic tech." isSelected={visualStyle === 'solarpunk'} onClick={() => setVisualStyle('solarpunk')} />
@@ -164,13 +167,13 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             )}
 
             {/* Sticky Launch Button */}
-            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gunmetal/95 backdrop-blur-sm border-t border-gold/20 flex justify-center z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gunmetal/95 backdrop-blur-sm border-t border-cyan-500/20 flex justify-center z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
                 <button
                     type="button"
                     onClick={handleGenerateClick}
                     disabled={isLoading || !themeSelected}
                     className={`group relative overflow-hidden transition-all duration-200 
-                    ${isLoading || !themeSelected ? 'opacity-50 grayscale cursor-not-allowed' : 'opacity-100 hover:-translate-y-1 cursor-pointer'}
+                    ${isLoading || !themeSelected ? 'opacity-70 grayscale cursor-not-allowed' : 'opacity-100 hover:-translate-y-1 cursor-pointer'}
                     `}
                 >
                      {/* The Ignition Switch */}

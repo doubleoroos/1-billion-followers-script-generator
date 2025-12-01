@@ -18,7 +18,7 @@ const MagicWandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h
 const ArrowsExpandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>;
 
 const StaticNoise = () => (
-    <div className="absolute inset-0 bg-black flex flex-col justify-center items-center overflow-hidden">
+    <div className="absolute inset-0 bg-black flex flex-col justify-center items-center overflow-hidden pointer-events-none">
         {/* CSS-only SVG Noise Pattern */}
         <div className="absolute inset-0 opacity-20" style={{
              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
@@ -52,6 +52,9 @@ const ApiKeyManager: React.FC<{ isVeoKeySelected: boolean | null; onSelectKey: (
   );
 };
 
+// Common Labels
+const LABEL_STYLE = "text-[9px] font-mono text-cyan-600 font-bold uppercase tracking-[0.15em] mb-1 block";
+
 const CinematicSceneCard: React.FC<any> = ({
   scene, characters, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
   isVideoGenerating, isImageGenerating, isVeoKeySelected
@@ -84,6 +87,9 @@ const CinematicSceneCard: React.FC<any> = ({
     };
 
     const parsedCharacters = scene.charactersInScene ? scene.charactersInScene.split(',').map((c: string) => c.trim()) : [];
+
+    // Cartridge Input Wrapper
+    const cartridgeStyle = "bg-black/40 border border-white/5 p-1 rounded-sm relative group-focus-within:border-cyan-500/30 transition-colors";
 
     return (
         <div className="bg-gunmetal border border-white/10 shadow-lg relative group overflow-hidden rounded-sm transition-all hover:border-cyan-500/20">
@@ -133,16 +139,27 @@ const CinematicSceneCard: React.FC<any> = ({
                 
                 {/* Hardware Toggle Switch */}
                 <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0">
-                    <button onClick={() => setActiveTab('video')} className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm ${activeTab === 'video' ? 'bg-slate-200 text-black shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Video</button>
-                    <button onClick={() => setActiveTab('image')} className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm ${activeTab === 'image' ? 'bg-slate-200 text-black shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Image</button>
+                    <button 
+                        onClick={() => setActiveTab('video')} 
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
+                        ${activeTab === 'video' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400'}`}
+                    >Video</button>
+                    <button 
+                        onClick={() => setActiveTab('image')} 
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
+                        ${activeTab === 'image' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400'}`}
+                    >Image</button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[400px]">
                 {/* Viewport */}
                 <div className="lg:col-span-8 bg-black relative border-r border-white/10 flex items-center justify-center overflow-hidden">
+                     {/* CRT Vignette Effect */}
+                     <div className="absolute inset-0 z-20 shadow-[inset_0_0_50px_rgba(0,0,0,1)] pointer-events-none"></div>
+
                      {/* HUD */}
-                     <div className="absolute top-4 left-4 text-[8px] font-mono text-cyan-500/50 pointer-events-none z-20 leading-tight">
+                     <div className="absolute top-4 left-4 text-[8px] font-mono text-cyan-500/50 pointer-events-none z-30 leading-tight">
                          MODE: {activeTab.toUpperCase()}<br/>
                          ASPECT: 16:9<br/>
                          CODEC: H.264
@@ -194,46 +211,57 @@ const CinematicSceneCard: React.FC<any> = ({
                 </div>
 
                 {/* Data Panel */}
-                <div className="lg:col-span-4 bg-gunmetal p-5 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                             <div className="flex flex-wrap gap-2 mb-4">
-                                {parsedCharacters.map((char: string, idx: number) => (
-                                    <React.Fragment key={idx}>{getCharacterChip(char)}</React.Fragment>
-                                ))}
-                             </div>
+                <div className="lg:col-span-4 bg-gunmetal p-4 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
+                    <div className="flex flex-col gap-1"> {/* Tight gap for 'Studio Grid' feel */}
+                         
+                         {/* Characters */}
+                         <div className="flex flex-wrap gap-2 mb-2 p-1">
+                            {parsedCharacters.map((char: string, idx: number) => (
+                                <React.Fragment key={idx}>{getCharacterChip(char)}</React.Fragment>
+                            ))}
+                         </div>
 
-                            <label className="text-[9px] font-mono text-cyan-500 font-bold uppercase tracking-wider">Action Description</label>
-                            <textarea
-                                value={scene.description}
-                                onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
-                                className="w-full bg-black/40 border border-white/10 text-slate-300 font-mono text-xs p-3 focus:border-cyan-500 outline-none resize-none h-32 rounded-sm"
-                            />
+                        {/* Description Cartridge */}
+                        <div>
+                            <label className={LABEL_STYLE}>Action Description</label>
+                            <div className={cartridgeStyle}>
+                                <textarea
+                                    value={scene.description}
+                                    onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
+                                    className="w-full bg-transparent text-slate-300 font-mono text-xs focus:outline-none resize-none h-28 p-1"
+                                />
+                            </div>
                         </div>
                         
-                         <div className="space-y-2">
+                        {/* Prompt Cartridge */}
+                         <div className="mt-2">
                             <div className="flex justify-between items-center">
-                                <label className="text-[9px] font-mono text-cyan-500 font-bold uppercase tracking-wider">Prompt Engineer</label>
+                                <label className={LABEL_STYLE}>Prompt Engineer</label>
                                 <button onClick={() => activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene)} className="text-[9px] font-bold text-slate-400 hover:text-white uppercase flex items-center gap-1 transition-colors">
                                     <SparklesIcon /> AI Refine
                                 </button>
                             </div>
-                            <textarea
-                                value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
-                                onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
-                                className="w-full bg-black/40 border border-white/10 text-slate-400 font-mono text-[10px] p-3 focus:border-cyan-500 outline-none resize-none h-32 rounded-sm leading-relaxed"
-                            />
+                            <div className={cartridgeStyle}>
+                                <textarea
+                                    value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
+                                    onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
+                                    className="w-full bg-transparent text-slate-400 font-mono text-[10px] focus:outline-none resize-none h-24 leading-relaxed p-1"
+                                />
+                            </div>
                         </div>
                         
-                        <div className="space-y-2">
-                            <label className="text-[9px] font-mono text-cyan-500 font-bold uppercase tracking-wider">Transition</label>
-                            <input
-                                type="text"
-                                value={scene.transition || ''}
-                                onChange={(e) => onUpdate({ ...scene, transition: e.target.value })}
-                                className="w-full bg-black/40 border border-white/10 text-slate-300 font-mono text-xs p-2 focus:border-cyan-500 outline-none rounded-sm"
-                                placeholder="Cut to..."
-                            />
+                        {/* Transition Cartridge */}
+                        <div className="mt-2">
+                            <label className={LABEL_STYLE}>Transition</label>
+                            <div className={cartridgeStyle}>
+                                <input
+                                    type="text"
+                                    value={scene.transition || ''}
+                                    onChange={(e) => onUpdate({ ...scene, transition: e.target.value })}
+                                    className="w-full bg-transparent text-slate-300 font-mono text-xs focus:outline-none p-1"
+                                    placeholder="Cut to..."
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
