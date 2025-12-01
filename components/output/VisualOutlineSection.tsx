@@ -164,6 +164,11 @@ const CinematicSceneCard: React.FC<any> = ({
                                         >
                                             {isVideoGenerating ? 'Rendering Clip...' : 'Generate Video'}
                                         </button>
+                                        {(isVeoKeySelected === false || isVeoKeySelected === null) && (
+                                            <div className="text-[10px] text-red-400 mt-2 font-mono bg-black/50 px-2 rounded">
+                                                Locked: Auth Required
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )
@@ -258,6 +263,13 @@ export const VisualOutlineSection: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const [locationFilter, setLocationFilter] = useState('ALL');
 
+    // Auto-generate first preview on load
+    useEffect(() => {
+        if (outline.length > 0 && !outline[0].imageUrl && !generatingImageId) {
+             handleGenerateImage(outline[0]);
+        }
+    }, []);
+
     const handleSceneUpdate = useCallback((updatedScene: Scene) => {
         const newOutline = outline.map(s => s.id === updatedScene.id ? updatedScene : s);
         onSave(newOutline);
@@ -274,8 +286,11 @@ export const VisualOutlineSection: React.FC<{
             onVideoSave(updatedScene);
         } catch (e: any) {
             console.error(e);
-            if (e.message.toLowerCase().includes("api key")) onInvalidKeyError();
-            alert(`Video Failed: ${e.message}`);
+            if (e.message?.includes('API key') || e.message?.includes('403')) {
+                onInvalidKeyError();
+            } else {
+                alert(`Video generation failed: ${e.message}`);
+            }
         } finally {
             setGeneratingVideoId(null);
         }
@@ -289,9 +304,167 @@ export const VisualOutlineSection: React.FC<{
             const updatedScene = { ...scene, imageUrl };
             handleSceneUpdate(updatedScene);
         } catch (e) {
-            alert("Image Failed.");
+            console.error(e);
+            alert("Image generation failed.");
         } finally {
             setGeneratingImageId(null);
+        }
+    };
+
+    // Bulk Actions using fresh ref to avoid stale state
+    const outlineRef = useRef(outline);
+    useEffect(() => { outlineRef.current = outline; }, [outline]);
+
+    const handleOptimizeAllPrompts = async () => {
+        setMasterBulkStatus('Enhancing Prompts...');
+        playSound();
+        
+        try {
+            // 1. Refine Image Prompts
+            const withImages = await processInBatches<Scene, Scene>(outlineRef.current, async (s) => {
+                try {
+                    const imagePrompt = await regenerateImagePromptForScene(s, visualStyle);
+                    return { ...s, imagePrompt };
+                } catch { return s; }
+            }, 3, 100);
+            
+            // 2. Refine Video Prompts
+            const finalOutline = await processInBatches<Scene, Scene>(withImages, async (s) => {
+                 try {
+                    const videoPrompt = await regenerateVideoPromptForScene(s, visualStyle);
+                    return { ...s, videoPrompt };
+                } catch { return s; }
+            }, 3, 100);
+
+            onSave(finalOutline);
+            save(finalOutline);
+        } catch (e) {
+            console.error(e);
+            alert("Bulk refinement failed.");
+        } finally {
+            setMasterBulkStatus(null);
+        }
+    };
+
+    const handleRefineTransitions = async () => {
+        setMasterBulkStatus('Analyzing Flow...');
+        playSound();
+        try {
+            const updates = await refineSceneTransitions(outlineRef.current, visualStyle);
+            const newOutline = outlineRef.current.map(scene => {
+                const update = updates.find(u => u.id === scene.id);
+                return update ? { ...scene, transition: update.transition } : scene;
+            });
+            onSave(newOutline);
+            save(newOutline);
+        } catch (e) {
+            console.error(e);
+            alert("Transition refinement failed.");
+        } finally {
+            setMasterBulkStatus(null);
+        }
+    };
+
+    const handleRefineDescriptions = async () => {
+        setMasterBulkStatus('Deepening Narrative...');
+        playSound();
+        try {
+            const newOutline = await processInBatches<Scene, Scene>(outlineRef.current, async (s) => {
+                try {
+                    const description = await regenerateDescriptionForScene(s, visualStyle);
+                    return { ...s, description };
+                } catch { return s; }
+            }, 3, 100);
+            onSave(newOutline);
+            save(newOutline);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setMasterBulkStatus(null);
+        }
+    };
+
+    const handleRefineTitles = async () => {
+        setMasterBulkStatus('Refining Titles...');
+        playSound();
+        try {
+             const newOutline = await processInBatches<Scene, Scene>(outlineRef.current, async (s) => {
+                try {
+                    const title = await regenerateTitleForScene(s);
+                    return { ...s, title };
+                } catch { return s; }
+            }, 4, 50);
+            onSave(newOutline);
+            save(newOutline);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setMasterBulkStatus(null);
+        }
+    };
+
+    const handleFillMissingPrompts = async () => {
+        setMasterBulkStatus('Filling Gaps...');
+        playSound();
+        try {
+            const missingPrompts = outlineRef.current.filter(s => !s.imagePrompt || !s.videoPrompt);
+            if (missingPrompts.length === 0) return;
+
+            const updatedScenes = await processInBatches<Scene, Scene>(missingPrompts, async (s) => {
+                let updated = { ...s };
+                if (!updated.imagePrompt) updated.imagePrompt = await regenerateImagePromptForScene(s, visualStyle);
+                if (!updated.videoPrompt) updated.videoPrompt = await regenerateVideoPromptForScene(s, visualStyle);
+                return updated;
+            }, 3, 100);
+
+            const newOutline = outlineRef.current.map(s => {
+                const update = updatedScenes.find(u => u.id === s.id);
+                return update || s;
+            });
+            
+            onSave(newOutline);
+            save(newOutline);
+        } catch (e) {
+             console.error(e);
+        } finally {
+            setMasterBulkStatus(null);
+        }
+    };
+
+    const handleGenerateAllPreviews = async () => {
+        const scenesMissingImages = outlineRef.current.filter(s => !s.imageUrl);
+        if (scenesMissingImages.length === 0) {
+            alert("All scenes already have preview images.");
+            return;
+        }
+        
+        setMasterBulkStatus(`Developing ${scenesMissingImages.length} Previews...`);
+        playSound();
+
+        try {
+             const results = await processInBatches<Scene, Scene>(scenesMissingImages, async (scene) => {
+                 try {
+                     const imageUrl = await generateImageForScene(scene, visualStyle);
+                     return { ...scene, imageUrl };
+                 } catch (e) {
+                     console.error(`Failed to generate image for scene ${scene.id}`, e);
+                     return scene;
+                 }
+             }, 3, 500);
+
+             const newOutline = outlineRef.current.map(s => {
+                 const updated = results.find(r => r.id === s.id);
+                 return updated || s;
+             });
+
+             onSave(newOutline);
+             save(newOutline);
+             playSound('success');
+        } catch (e) {
+            console.error(e);
+            alert("Bulk preview generation failed.");
+        } finally {
+            setMasterBulkStatus(null);
         }
     };
 
@@ -302,7 +475,6 @@ export const VisualOutlineSection: React.FC<{
             handleSceneUpdate({ ...scene, videoPrompt: newPrompt });
         } catch (e) { console.error(e); }
     };
-    
     const handleRegenerateImagePrompt = async (scene: Scene) => {
         playSound();
         try {
@@ -311,340 +483,119 @@ export const VisualOutlineSection: React.FC<{
         } catch (e) { console.error(e); }
     };
 
-    // Use a ref to access the latest outline state inside async functions
-    // without stale closures issues during long processes.
-    const outlineRef = useRef(outline);
-    useEffect(() => { outlineRef.current = outline; }, [outline]);
-
-    const handleOptimizeAllPrompts = async () => {
-        setMasterBulkStatus('optimizing');
-        playSound();
-        
-        try {
-            // processing based on current outline snapshot
-            const snapshotOutline = outlineRef.current;
-            
-            const results = await processInBatches<Scene, {id: string, v: string, i: string}>(snapshotOutline, async (scene: Scene) => {
-                try {
-                     const [v, i] = await Promise.all([
-                        regenerateVideoPromptForScene(scene, visualStyle),
-                        regenerateImagePromptForScene(scene, visualStyle)
-                     ]);
-                     return { id: scene.id, v, i };
-                } catch {
-                    return { id: scene.id, v: scene.videoPrompt || '', i: scene.imagePrompt || '' };
-                }
-            }, 3, 500);
-
-            // Merge into LATEST outline
-            const newOutline = outlineRef.current.map(scene => {
-                const res = results.find(r => r.id === scene.id);
-                if (res) {
-                    return { ...scene, videoPrompt: res.v, imagePrompt: res.i };
-                }
-                return scene;
-            });
-
-            onSave(newOutline);
-            setMasterBulkStatus(null);
-            playSound('success');
-        } catch (e) {
-             console.error("Bulk optimization failed", e);
-             setMasterBulkStatus(null);
-             alert("Optimization sequence interrupted.");
-        }
-    };
-    
-    const handleRefineTransitions = async () => {
-        setMasterBulkStatus('refining_transitions');
-        playSound();
-        
-        try {
-            const snapshotOutline = outlineRef.current;
-            const transitions = await refineSceneTransitions(snapshotOutline, visualStyle);
-            
-            const newOutline = outlineRef.current.map(scene => {
-                const t = transitions.find(tr => tr.id === scene.id);
-                return t ? { ...scene, transition: t.transition } : scene;
-            });
-
-            onSave(newOutline);
-            setMasterBulkStatus(null);
-            playSound('success');
-        } catch (e) {
-            console.error(e);
-            setMasterBulkStatus(null);
-            alert("Transition refinement interrupted.");
-        }
-    };
-
-    const handleFillMissingPrompts = async () => {
-        setMasterBulkStatus('filling_prompts');
-        playSound();
-
-        try {
-            const snapshotOutline = outlineRef.current;
-            const scenesWithMissingPrompts = snapshotOutline.filter(s => !s.imagePrompt || !s.videoPrompt);
-            
-            if (scenesWithMissingPrompts.length === 0) {
-                 setMasterBulkStatus(null);
-                 alert("All prompts are already populated.");
-                 return;
-            }
-
-            const results = await processInBatches<Scene, Partial<Scene>>(scenesWithMissingPrompts, async (scene: Scene) => {
-                const updates: Partial<Scene> = { id: scene.id };
-                if (!scene.videoPrompt) {
-                     try { updates.videoPrompt = await regenerateVideoPromptForScene(scene, visualStyle); } catch (e) {}
-                }
-                if (!scene.imagePrompt) {
-                     try { updates.imagePrompt = await regenerateImagePromptForScene(scene, visualStyle); } catch (e) {}
-                }
-                return updates;
-            }, 3, 500);
-
-            const newOutline = outlineRef.current.map(s => {
-                const updated = results.find(us => us.id === s.id);
-                return updated ? { ...s, ...updated } : s;
-            });
-
-            onSave(newOutline);
-            setMasterBulkStatus(null);
-            playSound('success');
-        } catch (e) {
-            console.error(e);
-            setMasterBulkStatus(null);
-            alert("Fill operation interrupted.");
-        }
-    };
-
-    const handleRefineTitles = async () => {
-        setMasterBulkStatus('refining_titles');
-        playSound();
-        
-        try {
-            const snapshotOutline = outlineRef.current;
-            const results = await processInBatches<Scene, {id: string, title: string}>(snapshotOutline, async (scene: Scene) => {
-                const newTitle = await regenerateTitleForScene(scene);
-                return { id: scene.id, title: newTitle };
-            }, 5, 200);
-
-            const newOutline = outlineRef.current.map(s => {
-                const res = results.find(r => r.id === s.id);
-                return res ? { ...s, title: res.title } : s;
-            });
-
-            onSave(newOutline);
-            setMasterBulkStatus(null);
-            playSound('success');
-        } catch (e) {
-            setMasterBulkStatus(null);
-        }
-    };
-
-    const handleRefineDescriptions = async () => {
-        setMasterBulkStatus('refining_descriptions');
-        playSound();
-        
-        try {
-            const snapshotOutline = outlineRef.current;
-            const results = await processInBatches<Scene, {id: string, desc: string}>(snapshotOutline, async (scene: Scene) => {
-                const newDesc = await regenerateDescriptionForScene(scene, visualStyle);
-                return { id: scene.id, desc: newDesc };
-            }, 5, 200);
-
-            const newOutline = outlineRef.current.map(s => {
-                const res = results.find(r => r.id === s.id);
-                return res ? { ...s, description: res.desc } : s;
-            });
-
-            onSave(newOutline);
-            setMasterBulkStatus(null);
-            playSound('success');
-        } catch (e) {
-            console.error(e);
-            setMasterBulkStatus(null);
-            alert("Description refinement interrupted.");
-        }
-    };
-
-    const handleGenerateAllPreviews = async () => {
-        setMasterBulkStatus('generating_images');
-        playSound();
-        
-        const snapshotOutline = outlineRef.current;
-        const missing = snapshotOutline.filter(s => !s.imageUrl);
-        if (missing.length === 0) {
-            alert("All previews already exist.");
-            setMasterBulkStatus(null);
-            return;
-        }
-
-        const completedScenes = await processInBatches<Scene, {id: string, url: string}>(missing, async (scene: Scene) => {
-            try {
-                const imageUrl = await generateImageForScene(scene, visualStyle);
-                return { id: scene.id, url: imageUrl };
-            } catch { return { id: scene.id, url: '' }; }
-        }, 3, 1000); // Optimized for speed with 3 concurrent requests
-        
-        const newOutline = outlineRef.current.map(s => {
-            const res = completedScenes.find(cs => cs.id === s.id);
-            return (res && res.url) ? { ...s, imageUrl: res.url } : s;
-        });
-        
-        onSave(newOutline);
-        setMasterBulkStatus(null);
-        playSound('success');
-    };
-
     // Filter Logic
-    const locations = Array.from(new Set(outline.map(s => s.location)));
-    const filteredScenes = outline.filter(s => {
-        const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                              s.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesLocation = locationFilter === 'ALL' || s.location === locationFilter;
+    const uniqueLocations = Array.from(new Set(outline.map(s => s.location))).filter(Boolean);
+    const filteredScenes = outline.filter(scene => {
+        const matchesSearch = 
+            scene.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            scene.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            scene.charactersInScene.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesLocation = locationFilter === 'ALL' || scene.location === locationFilter;
         return matchesSearch && matchesLocation;
     });
 
-    const hasRunAutoGenerate = useRef(false);
-    useEffect(() => {
-        if (!hasRunAutoGenerate.current && outline.length > 0) {
-            const firstScene = outline[0];
-            if (!firstScene.imageUrl && !generatingImageId) {
-                hasRunAutoGenerate.current = true;
-                handleGenerateImage(firstScene);
-            }
-        }
-    }, [outline]); 
-
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-20">
-            {/* Header Controls */}
-            <div className="flex flex-col md:flex-row items-center justify-between border-b border-white/10 pb-6 gap-6">
-                <div>
-                    <h2 className="font-display text-3xl font-bold uppercase text-white tracking-widest">
-                        Visual <span className="text-cyan-400">Manifest</span>
-                    </h2>
-                    <p className="text-slate-500 font-mono text-xs mt-1">
-                        {outline.length} Scenes | {outline.filter(s => s.videoUrl).length} Videos Rendered
-                    </p>
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                     <button 
-                        onClick={handleOptimizeAllPrompts} 
-                        disabled={!!masterBulkStatus}
-                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {masterBulkStatus === 'optimizing' ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : <SparklesIcon />}
-                        Refine Prompts
-                    </button>
-                    <button 
-                        onClick={handleFillMissingPrompts} 
-                        disabled={!!masterBulkStatus}
-                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50 text-cyan-400 border-cyan-500/30"
-                    >
-                        {masterBulkStatus === 'filling_prompts' ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : <MagicWandIcon />}
-                        Fill Missing Prompts
-                    </button>
-                    <button 
-                        onClick={handleRefineTitles} 
-                        disabled={!!masterBulkStatus}
-                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {masterBulkStatus === 'refining_titles' ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : <TextIcon />}
-                        Refine Titles
-                    </button>
-                    <button 
-                        onClick={handleRefineDescriptions} 
-                        disabled={!!masterBulkStatus}
-                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {masterBulkStatus === 'refining_descriptions' ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : <TextIcon />}
-                        Refine Descriptions
-                    </button>
-                    <button 
-                        onClick={handleRefineTransitions} 
-                        disabled={!!masterBulkStatus}
-                        className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {masterBulkStatus === 'refining_transitions' ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : <ArrowsExpandIcon />}
-                        Refine Transitions
-                    </button>
-                    <button 
-                        onClick={handleGenerateAllPreviews}
-                        disabled={!!masterBulkStatus}
-                         className="btn-tactical px-4 py-2 rounded-sm text-xs font-bold flex items-center gap-2 disabled:opacity-50 text-cyan-400 border-cyan-500/30"
-                    >
-                         {masterBulkStatus === 'generating_images' ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : <ImageIcon />}
-                        Generate Previews
-                    </button>
-                    <SaveStatusIndicator status={status} />
-                </div>
-            </div>
-
+        <div className="space-y-8 animate-fade-in relative z-10">
             <ApiKeyManager isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} />
 
-            {/* Filter Bar */}
-            <div className="bg-gunmetal p-4 border border-white/5 flex flex-col md:flex-row gap-4 items-center shadow-lg rounded-sm">
-                <div className="relative flex-grow w-full">
-                    <div className="absolute left-3 top-2.5 pointer-events-none"><SearchIcon /></div>
-                    <input 
-                        type="text" 
-                        placeholder="Search scenes..." 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-black/30 border border-white/10 rounded-sm py-2 pl-10 pr-4 text-sm text-white focus:border-cyan-400 outline-none transition-colors"
+            {/* Studio Toolbar */}
+            <div className="bg-gunmetal border-y border-white/10 p-4 sticky top-16 z-30 shadow-2xl backdrop-blur-md bg-opacity-95 flex flex-col md:flex-row gap-4 justify-between items-center">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    <div className="relative flex-grow md:flex-grow-0">
+                        <SearchIcon />
+                        <input 
+                            type="text" 
+                            placeholder="Search Scenes..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="absolute inset-0 pl-8 bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
+                            style={{ width: '100%', height: '100%' }}
+                        />
+                         <div className="pl-8 py-2 pr-4 bg-black/40 border border-white/10 rounded-sm text-xs w-[200px] h-[34px]"></div>
+                    </div>
+                    
+                    <div className="relative">
+                        <FilterIcon />
+                        <select 
+                            value={locationFilter}
+                            onChange={(e) => setLocationFilter(e.target.value)}
+                            className="absolute inset-0 pl-8 bg-transparent text-xs text-white appearance-none focus:outline-none cursor-pointer"
+                        >
+                            <option value="ALL">All Locations</option>
+                            {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                        </select>
+                         <div className="pl-8 py-2 pr-8 bg-black/40 border border-white/10 rounded-sm text-xs min-w-[140px] h-[34px] flex items-center">
+                             <span className="truncate">{locationFilter === 'ALL' ? 'Location Filter' : locationFilter}</span>
+                         </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 justify-end">
+                    {/* Magic Wand: Fill Gaps */}
+                    <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[10px] flex items-center gap-1.5 rounded-sm" title="Auto-Fill Missing Prompts">
+                        <MagicWandIcon /> Auto-Fill
+                    </button>
+
+                    {/* Refine Content */}
+                    <div className="h-6 w-px bg-white/10 mx-1"></div>
+                    <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Titles</button>
+                    <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Story</button>
+                    <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Transitions</button>
+                    
+                    {/* Optimize Prompts */}
+                    <div className="h-6 w-px bg-white/10 mx-1"></div>
+                    <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[10px] flex items-center gap-1.5 rounded-sm text-cyan-400 border-cyan-500/30">
+                        <SparklesIcon /> Upgrade Prompts
+                    </button>
+
+                    {/* Bulk Generate */}
+                    <div className="h-6 w-px bg-white/10 mx-1"></div>
+                     <button onClick={handleGenerateAllPreviews} disabled={!!masterBulkStatus} className="btn-gold px-4 py-1.5 text-[10px] flex items-center gap-1.5 rounded-sm">
+                        <ImageIcon /> Render All Images
+                    </button>
+                </div>
+            </div>
+
+            {/* Status Bar */}
+            <div className="flex justify-between items-center px-4 -mt-4">
+                 <div className="text-[10px] font-mono text-slate-500 uppercase">
+                     Total Scenes: {outline.length} | Filtered: {filteredScenes.length}
+                 </div>
+                 <div className="flex items-center gap-4">
+                    {masterBulkStatus && (
+                        <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs uppercase animate-pulse">
+                            <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                            {masterBulkStatus}
+                        </div>
+                    )}
+                    <SaveStatusIndicator status={status} />
+                 </div>
+            </div>
+
+            {/* Scene Grid */}
+            <div className="grid grid-cols-1 gap-12">
+                {filteredScenes.map((scene) => (
+                    <CinematicSceneCard 
+                        key={scene.id} 
+                        scene={scene} 
+                        characters={characters}
+                        onUpdate={handleSceneUpdate}
+                        onGenerateVideo={handleGenerateVideo}
+                        onGenerateImage={handleGenerateImage}
+                        onRegenerateVideoPrompt={handleRegenerateVideoPrompt}
+                        onRegenerateImagePrompt={handleRegenerateImagePrompt}
+                        isVideoGenerating={generatingVideoId === scene.id}
+                        isImageGenerating={generatingImageId === scene.id}
+                        isVeoKeySelected={isVeoKeySelected}
                     />
-                </div>
-                <div className="relative w-full md:w-64">
-                    <select 
-                        value={locationFilter}
-                        onChange={(e) => setLocationFilter(e.target.value)}
-                        className="w-full bg-black/30 border border-white/10 rounded-sm py-2 px-4 text-sm text-white focus:border-cyan-400 outline-none appearance-none cursor-pointer"
-                    >
-                        <option value="ALL">All Locations</option>
-                        {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                    </select>
-                    <div className="absolute right-3 top-2.5 pointer-events-none text-slate-500"><FilterIcon /></div>
-                </div>
+                ))}
             </div>
             
-            <div className="space-y-12">
-                {filteredScenes.length > 0 ? (
-                    filteredScenes.map(scene => (
-                        <CinematicSceneCard 
-                            key={scene.id} 
-                            scene={scene} 
-                            characters={characters}
-                            onUpdate={handleSceneUpdate}
-                            onGenerateVideo={handleGenerateVideo}
-                            onGenerateImage={handleGenerateImage}
-                            onRegenerateVideoPrompt={handleRegenerateVideoPrompt}
-                            onRegenerateImagePrompt={handleRegenerateImagePrompt}
-                            isVideoGenerating={generatingVideoId === scene.id}
-                            isImageGenerating={generatingImageId === scene.id}
-                            isVeoKeySelected={isVeoKeySelected}
-                        />
-                    ))
-                ) : (
-                    <div className="text-center py-20 text-slate-500 font-mono border border-dashed border-white/10 rounded-lg">
-                        No scenes found. Adjust filters to proceed.
-                    </div>
-                )}
-            </div>
+            {filteredScenes.length === 0 && (
+                <div className="text-center py-20 border border-dashed border-white/10 rounded-sm">
+                    <p className="text-slate-500 font-mono text-sm">No scenes found matching parameters.</p>
+                </div>
+            )}
         </div>
     );
 };
