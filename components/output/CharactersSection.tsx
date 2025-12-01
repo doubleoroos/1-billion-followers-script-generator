@@ -209,7 +209,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                  {isEditing ? (
                     <div className="flex gap-2">
                         <button onClick={handleCancelClick} className="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5">Cancel</button>
-                        <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 bg-cyan-600 text-white font-bold py-1.5 px-4 rounded text-xs hover:bg-cyan-500">
+                        <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 px-4 rounded text-xs py-1.5">
                             <SaveIcon /> Save
                         </button>
                     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Scene, VisualStyle, Character } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene, regenerateDescriptionForScene } from '../../services/geminiService';
@@ -136,17 +137,21 @@ const CinematicSceneCard: React.FC<any> = ({
                     </div>
                 </div>
                 
-                {/* Hardware Toggle Switch */}
-                <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0">
+                {/* Hardware Toggle Switch - Tactile Logic Applied */}
+                <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0 shadow-inner">
                     <button 
                         onClick={() => setActiveTab('video')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
-                        ${activeTab === 'video' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400 opacity-50'}`}
+                        ${activeTab === 'video' 
+                            ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30' 
+                            : 'text-slate-600 hover:text-slate-400 opacity-50 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] bg-transparent'}`}
                     >Video</button>
                     <button 
                         onClick={() => setActiveTab('image')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
-                        ${activeTab === 'image' ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-400 opacity-50'}`}
+                        ${activeTab === 'image' 
+                             ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30' 
+                            : 'text-slate-600 hover:text-slate-400 opacity-50 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] bg-transparent'}`}
                     >Image</button>
                 </div>
             </div>
@@ -469,6 +474,7 @@ export const VisualOutlineSection: React.FC<{
         playSound();
 
         try {
+             // Process in batches of 3, utilizing the specific image prompt in generateImageForScene service
              const results = await processInBatches<Scene, Scene>(scenesMissingImages, async (scene) => {
                  try {
                      const imageUrl = await generateImageForScene(scene, visualStyle);

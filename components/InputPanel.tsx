@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
@@ -41,7 +42,8 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
             onClick={() => { playSound(); onClick(); }}
             className={`group relative flex flex-col items-start text-left p-0 transition-all duration-200 w-full h-full 
             bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-800 hover:border-slate-600 bg-gunmetal'} 
-            border-y border-r border-y-black border-r-black border-opacity-30 ${className}`}
+            border-y border-r border-y-black border-r-black border-opacity-30 ${className}
+            active:translate-y-[1px] active:shadow-inner`}
         >
             {/* Mechanical Screw Detail */}
             <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-black border border-slate-800 opacity-50 shadow-inner"></div>
@@ -175,8 +177,8 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                     ${isLoading || !themeSelected ? 'opacity-70 grayscale cursor-not-allowed' : 'opacity-100 hover:-translate-y-1 cursor-pointer'}
                     `}
                 >
-                     {/* The Ignition Switch */}
-                     <div className="relative bg-gradient-to-r from-cyan-600 to-slate-600 hover:from-cyan-500 hover:to-slate-500 text-white font-display font-bold uppercase text-xl py-4 px-12 md:px-20 clip-path-polygon border-2 border-black shadow-[0_4px_0_rgb(0,0,0)] active:shadow-none active:translate-y-[4px] transition-all flex items-center gap-3">
+                     {/* The Ignition Switch - Tactile Logic Applied */}
+                     <div className="relative bg-gradient-to-r from-cyan-600 to-slate-600 hover:from-cyan-500 hover:to-slate-500 text-white font-display font-bold uppercase text-xl py-4 px-12 md:px-20 clip-path-polygon border-2 border-black shadow-[0_4px_0_rgb(0,0,0)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] active:translate-y-[1px] active:border-b transition-all flex items-center gap-3">
                         {isLoading ? (
                             <>
                                 <svg className="animate-spin h-6 w-6 text-cyan-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
