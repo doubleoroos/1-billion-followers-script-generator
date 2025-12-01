@@ -224,10 +224,11 @@ For each scene, define:
 2. Location & Atmosphere
 3. Description (Review content and characters. Generate a concise, evocative, and sensory-rich description. Capture the essence. Align with positive future narrative. Max 3 sentences.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
-5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition.)
+5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition, strictly photorealistic.)
 6. Pacing & Emotion (Describe rhythm and feeling, e.g., "Slow and melancholic")
 7. Transition: How does this scene end/transition to the next? (e.g., "Match cut to...", "Sound bridge of...")
-8. Dependencies: Analyze narrative flow. If this scene logically or visually depends on a previous scene (e.g. continuing an action, reaction shot), add that scene's ID (e.g. "scene-1") to the 'dependsOn' list.
+8. Dependencies: Analyze the logical sequence and narrative dependencies. Identify if this scene is a direct continuation, reaction, or consequence of specific preceding scenes. Populate 'dependsOn' with an array of those scene IDs (e.g. ["scene-1", "scene-3"]) to establish a coherent flow.
+9. Key Visual Elements: Briefly describe the most important visual elements to capture (lighting, props, color palette).
 
 Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "...", "dependsOn": ["scene-X"] }] }
 `;
@@ -266,44 +267,57 @@ A single, highly detailed, and evocative paragraph optimized for Veo. Do not inc
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-You are a world-class AI Prompt Engineer and Director of Photography specializing in high-end cinema.
-Task: Write a strictly photorealistic, evocative image generation prompt for this scene.
+You are a world-class Director of Photography and AI Prompt Engineer (Imagen 3 expert).
+Task: Write a highly technical, photorealistic image generation prompt for this scene.
 
-Scene Context:
-- Description: ${scene.description}
-- Location: ${scene.location}
-- Atmosphere: ${scene.atmosphere}
-- Visual Style: ${visualStyle} (Strict adherence)
-- Atmosphere: Evocative, emotional, sensory-rich details
+Scene Details:
+- Action/Subject: ${scene.description}
+- Setting: ${scene.location}
+- Mood: ${scene.atmosphere}
+- Visual Style: ${visualStyle}
+- Key Visual Elements: ${scene.keyVisualElements || 'N/A'}
 
-Guidelines for Maximum Photorealism:
-1. **Camera & Lens**: Specify "Shot on Arri Alexa LF", "Panavision Anamorphic", "35mm Film Grain", "Depth of Field".
-2. **Lighting**: Use cinematic lighting terms like "Volumetric", "Chiaroscuro", "Rim light", "Global Illumination".
-3. **Texture & Detail**: "8k", "Hyper-realistic", "Detailed skin texture", "Atmospheric haze", "Raw photography".
-4. **Composition**: "Cinematic framing", "Rule of thirds", "Wide shot" or "Close up" as appropriate.
-5. **Negative Prompts**: NO CGI, NO 3D render, NO illustration, NO cartoon, NO anime, NO low resolution, NO text.
+Prompt Structure Requirements:
+1.  **Medium & Format**: "Cinematic film still", "Raw photo", "8k resolution", "Wide angle shot".
+2.  **Camera & Lens**: "Shot on Arri Alexa LF", "Panavision Primo 70mm Anamorphic lenses", "f/1.8", "Depth of field", "Bokeh".
+3.  **Lighting**: "Volumetric lighting", "Chiaroscuro", "Cinematic color grading", "Global illumination", "Natural light".
+4.  **Texture & Detail**: "Hyper-detailed", "Film grain", "Detailed skin texture" (if characters present), "Ray tracing", "Subsurface scattering".
+5.  **Style Enforcement**: STRICTLY photorealistic. NO "concept art", NO "digital painting", NO "illustration", NO "CGI", NO "3D render".
+6.  **Style Integration**:
+    - If 'Cinematic': "Teal and orange contrast, dramatic shadows, wide aspect ratio, mood lighting".
+    - If 'Solarpunk': "Natural sunlight, lush vegetation integrated with high-tech, golden hour, organic curves".
+    - If 'Minimalist': "High contrast, clean lines, negative space, stark lighting, simple composition".
+    - If 'Biomorphic': "Fluid shapes, organic translucency, soft lighting, nature-inspired patterns".
+    - If 'Abstract': "Macro details, light leaks, experimental focus, ethereal, textural focus".
 
-Output: A single, highly detailed prompt string optimized for Imagen 3.
+Output: A single, comprehensive prompt string. No introduction.
 `;
 }
 
 const createTransitionRefinementPrompt = (currentScene: Scene, nextScene: Scene | undefined, visualStyle: VisualStyle): string => {
     return `
-You are an award-winning Film Editor known for seamless and meaningful transitions.
-Task: Design a cinematic transition from Scene ${currentScene.sceneNumber} to ${nextScene ? `Scene ${nextScene.sceneNumber}` : 'End Credits'}.
+You are an award-winning Film Editor.
+Task: Analyze the visual narrative flow between two scenes and write a cinematic transition.
 
-Scene A (${currentScene.location}): ${currentScene.description}
-Scene B (${nextScene ? nextScene.location : 'End of Film'}): ${nextScene ? nextScene.description : 'Fade to Black'}
 Visual Style: ${visualStyle}
 
-Instructions:
-1. Analyze the visual end of Scene A and the visual beginning of Scene B.
-2. Suggest a transition that connects them thematically, visually (e.g., match cut on shape/motion), or aurally (e.g., sound bridge, J-cut).
-3. Be specific about what is changing and how.
-4. Keep it concise (1-2 sentences).
+[SCENE A - OUT]
+Location: ${currentScene.location}
+Action/Visuals: ${currentScene.description}
+Key Elements: ${currentScene.keyVisualElements}
 
-Output example: "Match cut from the spinning fan blades to the helicopter rotor." or "Sound bridge: The ringing phone from the next scene starts over the character's sleeping face."
-Output: The transition description only.
+[SCENE B - IN]
+Location: ${nextScene ? nextScene.location : 'End Credits'}
+Action/Visuals: ${nextScene ? nextScene.description : 'Fade to Black'}
+
+Analysis:
+1. Identify the final visual focal point of Scene A.
+2. Identify the initial visual focal point of Scene B.
+3. Determine the best editorial technique to bridge them (e.g., Match Cut, J-Cut, L-Cut, Smash Cut, Whip Pan, Invisible Cut).
+
+Output:
+Write ONLY the transition description. It must be concise, technical, and evocative.
+Example: "Match cut from the circular drain to the spinning car wheel."
 `;
 }
 
