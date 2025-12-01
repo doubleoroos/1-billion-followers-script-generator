@@ -53,7 +53,7 @@ const ApiKeyManager: React.FC<{ isVeoKeySelected: boolean | null; onSelectKey: (
 };
 
 // Common Labels
-const LABEL_STYLE = "text-[9px] font-mono text-cyan-600 font-bold uppercase tracking-[0.15em] mb-1 block";
+const LABEL_STYLE = "font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-1 block";
 
 const CinematicSceneCard: React.FC<any> = ({
   scene, characters, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
