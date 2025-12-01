@@ -278,12 +278,13 @@ Scene Details:
 - Key Visual Elements: ${scene.keyVisualElements || 'N/A'}
 
 Prompt Structure Requirements:
-1.  **Medium & Format**: "Cinematic film still", "Raw photo", "8k resolution", "Wide angle shot".
-2.  **Camera & Lens**: "Shot on Arri Alexa LF", "Panavision Primo 70mm Anamorphic lenses", "f/1.8", "Depth of field", "Bokeh".
-3.  **Lighting**: "Volumetric lighting", "Chiaroscuro", "Cinematic color grading", "Global illumination", "Natural light".
-4.  **Texture & Detail**: "Hyper-detailed", "Film grain", "Detailed skin texture" (if characters present), "Ray tracing", "Subsurface scattering".
-5.  **Style Enforcement**: STRICTLY photorealistic. NO "concept art", NO "digital painting", NO "illustration", NO "CGI", NO "3D render".
-6.  **Style Integration**:
+1.  **Atmosphere**: Evocative, emotional, sensory-rich details.
+2.  **Medium & Format**: "Cinematic film still", "Raw photo", "8k resolution", "Wide angle shot".
+3.  **Camera & Lens**: "Shot on Arri Alexa LF", "Panavision Primo 70mm Anamorphic lenses", "f/1.8", "Depth of field", "Bokeh".
+4.  **Lighting**: "Volumetric lighting", "Chiaroscuro", "Cinematic color grading", "Global illumination", "Natural light".
+5.  **Texture & Detail**: "Hyper-detailed", "Film grain", "Detailed skin texture" (if characters present), "Ray tracing", "Subsurface scattering".
+6.  **Style Enforcement**: STRICTLY photorealistic. NO "concept art", NO "digital painting", NO "illustration", NO "CGI", NO "3D render".
+7.  **Style Integration**:
     - If 'Cinematic': "Teal and orange contrast, dramatic shadows, wide aspect ratio, mood lighting".
     - If 'Solarpunk': "Natural sunlight, lush vegetation integrated with high-tech, golden hour, organic curves".
     - If 'Minimalist': "High contrast, clean lines, negative space, stark lighting, simple composition".
@@ -537,7 +538,7 @@ export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: V
 
 export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = `
-You are a master storyteller and visual director.
+You are a master storyteller and visual director for a visionary film about a positive future.
 Rewrite the description for this film scene.
 
 Context:
@@ -549,10 +550,10 @@ Context:
 
 Task:
 1. Review the scene's content and the characters involved.
-2. Generate a more evocative and concise description (2-3 sentences).
-3. Capture the essence of the scene.
-4. Use sensory language (sight, sound, texture, feeling).
-5. Align strictly with a positive, hopeful future narrative.
+2. Generate a more evocative, poetic, and concise description (MAX 2-3 sentences).
+3. Use rich sensory language (sight, sound, texture, temperature).
+4. Strictly align with a positive, hopeful, and regenerative future narrative (Solarpunk/Protopian aesthetics).
+5. Focus on the mood and atmosphere.
 
 Output: The new description text only.
 `;
