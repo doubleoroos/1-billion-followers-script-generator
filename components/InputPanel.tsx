@@ -43,7 +43,7 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
             className={`group relative flex flex-col items-start text-left p-0 transition-all duration-200 w-full h-full 
             bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-800 hover:border-slate-600 bg-gunmetal'} 
             border-y border-r border-y-black border-r-black border-opacity-30 ${className}
-            active:translate-y-[1px] active:shadow-inner`}
+            active:translate-y-[1px] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]`}
         >
             {/* Mechanical Screw Detail */}
             <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-black border border-slate-800 opacity-50 shadow-inner"></div>
@@ -57,7 +57,8 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
                     {/* LED Indicator */}
                     <div className={`w-2 h-2 rounded-full border border-black transition-colors duration-300 ${isSelected ? activeLed : 'bg-black'}`}></div>
                 </div>
-                <p className={`text-xs font-mono leading-relaxed transition-colors ${isSelected ? activeText : 'text-slate-600'}`}>{description}</p>
+                {/* Description uses font-sans for readability */}
+                <p className={`text-xs font-sans leading-relaxed transition-colors ${isSelected ? activeText : 'text-slate-600'}`}>{description}</p>
             </div>
         </button>
     );
@@ -70,8 +71,8 @@ const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, ti
     </div>
 );
 
-// Standardized Technical Label Style: Mono, uppercase, wide tracking, specific Cyan-600
-const LABEL_STYLE = "font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-3 ml-1 block";
+// Standardized Technical Label Style: Mono, uppercase, wide tracking, specific Cyan-600, 12px
+const LABEL_STYLE = "font-mono text-[12px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-3 ml-1 block";
 
 export const InputPanel: React.FC<InputPanelProps> = ({ 
   onGenerate, isLoading, rewriteTomorrowTheme, setRewriteTomorrowTheme, emotionalArc, setEmotionalArc, visualStyle, setVisualStyle, narrativeTone, setNarrativeTone, error,

@@ -19,6 +19,9 @@ const VOICE_OPTIONS = [
     { value: 'Charon', label: 'Charon (Male - Authoritative)' },
 ];
 
+// Standardized Technical Label Style: 12px
+const LABEL_STYLE = "font-mono text-[12px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-1 block";
+
 interface CharacterCardProps {
     character: Character;
     onSave: (updatedCharacter: Character) => void;
@@ -110,10 +113,10 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                     <div className="space-y-4 animate-fade-in flex-grow">
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Role</label>
+                                <label className={LABEL_STYLE}>Role</label>
                                 <input
                                     type="text" value={editedRole} onChange={(e) => setEditedRole(e.target.value)}
-                                    className="w-full bg-slate-950 p-2 rounded-lg text-cyan-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-bold"
+                                    className="w-full bg-slate-950 p-2 rounded-lg text-cyan-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-bold font-mono"
                                     list={`roles-list-${character.id}`}
                                 />
                                 <datalist id={`roles-list-${character.id}`}>
@@ -121,11 +124,11 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                                 </datalist>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Voice Model</label>
+                                <label className={LABEL_STYLE}>Voice Model</label>
                                 <select
                                     value={editedVoice}
                                     onChange={(e) => setEditedVoice(e.target.value)}
-                                    className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-medium cursor-pointer"
+                                    className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-medium font-mono cursor-pointer"
                                 >
                                     {VOICE_OPTIONS.map(voice => (
                                         <option key={voice.value} value={voice.value}>{voice.label}</option>
@@ -135,15 +138,15 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                         </div>
 
                         <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Name</label>
+                            <label className={LABEL_STYLE}>Name</label>
                             <input
                                 type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-lg font-bold"
+                                className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-lg font-bold font-display uppercase tracking-wide"
                             />
                         </div>
                         <div>
                              <div className="flex justify-between items-center mb-1">
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Avatar URL</label>
+                                <label className={LABEL_STYLE}>Avatar URL</label>
                                 <button 
                                     onClick={handleGeneratePortrait}
                                     disabled={isGeneratingImage}
@@ -154,15 +157,15 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                              </div>
                              <input
                                 type="text" value={editedImageUrl} onChange={(e) => setEditedImageUrl(e.target.value)}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs"
+                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-mono"
                                 placeholder="https://..."
                             />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Dossier Description</label>
+                            <label className={LABEL_STYLE}>Dossier Description</label>
                             <textarea
                                 value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} rows={6}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm leading-relaxed resize-none"
+                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm leading-relaxed resize-none font-sans"
                             />
                         </div>
                     </div>
@@ -189,7 +192,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                                     )}
                                 </div>
 
-                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-mono">
                                     {character.role}
                                 </span>
                             </div>
@@ -199,8 +202,8 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                             </span>
                         </div>
                         
-                        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">{character.name}</h3>
-                        <p className="text-slate-400 text-sm leading-relaxed">{character.description}</p>
+                        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight font-display uppercase">{character.name}</h3>
+                        <p className="text-slate-400 text-sm leading-relaxed font-sans">{character.description}</p>
                     </div>
                 )}
             </div>
@@ -208,13 +211,13 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
             <div className="p-4 bg-black/20 border-t border-white/5 flex justify-end">
                  {isEditing ? (
                     <div className="flex gap-2">
-                        <button onClick={handleCancelClick} className="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5">Cancel</button>
-                        <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 px-4 rounded text-xs py-1.5">
+                        <button onClick={handleCancelClick} className="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5 font-sans">Cancel</button>
+                        <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 px-4 rounded text-xs py-1.5 active:translate-y-[1px] active:shadow-inner">
                             <SaveIcon /> Save
                         </button>
                     </div>
                 ) : (
-                    <button onClick={handleEditClick} className="text-xs font-medium text-slate-500 hover:text-white flex items-center gap-1.5 transition-colors px-2 py-1">
+                    <button onClick={handleEditClick} className="text-xs font-medium text-slate-500 hover:text-white flex items-center gap-1.5 transition-colors px-2 py-1 font-mono uppercase tracking-wide">
                         <EditIcon /> Edit Profile
                     </button>
                 )}

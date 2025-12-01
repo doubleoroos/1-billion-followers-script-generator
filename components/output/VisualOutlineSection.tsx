@@ -52,8 +52,8 @@ const ApiKeyManager: React.FC<{ isVeoKeySelected: boolean | null; onSelectKey: (
   );
 };
 
-// Common Labels
-const LABEL_STYLE = "font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-1 block";
+// Common Labels: Standardized to 12px
+const LABEL_STYLE = "font-mono text-[12px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-1 block";
 
 const CinematicSceneCard: React.FC<any> = ({
   scene, characters, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
@@ -143,14 +143,14 @@ const CinematicSceneCard: React.FC<any> = ({
                         onClick={() => setActiveTab('video')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
                         ${activeTab === 'video' 
-                            ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30' 
+                            ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30 translate-y-[0px]' 
                             : 'text-slate-600 hover:text-slate-400 opacity-50 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] bg-transparent'}`}
                     >Video</button>
                     <button 
                         onClick={() => setActiveTab('image')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
                         ${activeTab === 'image' 
-                             ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30' 
+                             ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30 translate-y-[0px]' 
                             : 'text-slate-600 hover:text-slate-400 opacity-50 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] bg-transparent'}`}
                     >Image</button>
                 </div>
@@ -229,10 +229,11 @@ const CinematicSceneCard: React.FC<any> = ({
                         <div>
                             <label className={LABEL_STYLE}>Action Description</label>
                             <div className={cartridgeStyle}>
+                                {/* Using font-sans for better readability of narrative text */}
                                 <textarea
                                     value={scene.description}
                                     onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
-                                    className="w-full bg-transparent text-slate-300 font-mono text-xs focus:outline-none resize-none h-28 p-1"
+                                    className="w-full bg-transparent text-slate-300 font-sans text-xs focus:outline-none resize-none h-28 p-1 leading-relaxed"
                                 />
                             </div>
                         </div>
