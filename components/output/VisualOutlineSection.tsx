@@ -567,7 +567,7 @@ export const VisualOutlineSection: React.FC<{
                     {/* Refine Content */}
                     <div className="h-6 w-px bg-white/10 mx-1"></div>
                     <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Titles</button>
-                    <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Story</button>
+                    <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Descriptions</button>
                     <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Transitions</button>
                     
                     {/* Optimize Prompts */}

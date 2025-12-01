@@ -42,7 +42,7 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
             onClick={() => { playSound(); onClick(); }}
             className={`group relative flex flex-col items-start text-left p-0 transition-all duration-200 w-full h-full 
             bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-800 hover:border-slate-600 bg-gunmetal'} 
-            border-y border-r border-y-black border-r-black ${className}`}
+            border-y border-r border-y-black border-r-black border-opacity-30 ${className}`}
         >
             {/* Mechanical Screw Detail */}
             <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-black border border-slate-800 opacity-50 shadow-inner"></div>

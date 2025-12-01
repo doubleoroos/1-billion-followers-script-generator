@@ -124,6 +124,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
     const { status, save } = useAutosave({ onSave });
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [isGeneratingAllAudio, setIsGeneratingAllAudio] = useState(false);
+    const [generationProgress, setGenerationProgress] = useState('');
 
     // Sync if prop changes externally
     useEffect(() => {
@@ -132,7 +133,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
 
     const handleGenerateVoice = async (blockIndex: number) => {
         const block = editedScript[blockIndex];
-        const char = characters.find((c: any) => c.id === block.characterId);
+        const char = characters.find(c => c.id === block.characterId);
         const voiceName = char?.voicePreference || 'Kore';
         
         playSound();
@@ -161,6 +162,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
         }
 
         setIsGeneratingAllAudio(true);
+        setGenerationProgress(`${blocksToProcess.length} clips...`);
         playSound();
 
         try {
@@ -168,7 +170,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
             const results = await processInBatches(blocksToProcess, async ({ block, index }) => {
                 let voiceName = 'Kore'; // Default narrator
                 if (block.characterId) {
-                    const char = characters.find((c: any) => c.id === block.characterId);
+                    const char = characters.find(c => c.id === block.characterId);
                     if (char && char.voicePreference) {
                         voiceName = char.voicePreference;
                     }
@@ -200,6 +202,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
             alert("Bulk audio generation failed.");
         } finally {
             setIsGeneratingAllAudio(false);
+            setGenerationProgress('');
         }
     };
     
@@ -223,12 +226,18 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                      <button 
                         onClick={handleGenerateAllAudio} 
                         disabled={isGeneratingAllAudio}
-                        className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-cyan-400 disabled:opacity-50 flex items-center gap-1 border border-transparent hover:border-cyan-500/20 px-2 py-1 rounded transition-all"
+                        className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-cyan-400 disabled:opacity-50 flex items-center gap-1 border border-transparent hover:border-cyan-500/20 px-2 py-1 rounded transition-all min-w-[120px] justify-center"
                     >
                         {isGeneratingAllAudio ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : <SpeakerIcon />}
-                        Generate All Audio
+                            <>
+                                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                {generationProgress || 'Processing...'}
+                            </>
+                        ) : (
+                            <>
+                                <SpeakerIcon /> Generate All Audio
+                            </>
+                        )}
                     </button>
 
                      {onRegenerate && (
@@ -276,7 +285,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                              ) : (
                                  <div className="flex flex-col items-center mb-2">
                                      <div className="font-bold text-white mb-0.5 tracking-wider mt-4">
-                                         {characters.find((c: any) => c.id === block.characterId)?.name.toUpperCase() || 'UNKNOWN'}
+                                         {characters.find((c: Character) => c.id === block.characterId)?.name.toUpperCase() || 'UNKNOWN'}
                                      </div>
                                      <div className="text-[#d4d4d4] text-center w-3/4 mb-2">
                                          {block.content}

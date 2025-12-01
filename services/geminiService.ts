@@ -222,7 +222,7 @@ Script: ${fullScript}
 For each scene, define:
 1. Title (Unique, evocative, 2-5 words, capturing the scene's essence and positive narrative)
 2. Location & Atmosphere
-3. Description (Review content and characters. Generate a concise, evocative, and sensory-rich description. Capture the essence. Align with positive future narrative. Max 3 sentences.)
+3. Description (Review content and characters. Generate a concise, evocative, and sensory-rich description. Capture the essence. Align with positive future narrative. Use sensory language. Max 3 sentences.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
 5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition, strictly photorealistic.)
 6. Pacing & Emotion (Describe rhythm and feeling, e.g., "Slow and melancholic")
@@ -560,15 +560,16 @@ Task: Rewrite the description for this film scene to be highly evocative, sensor
 
 Context:
 - Current Description: ${scene.description}
+- Characters in Scene: ${scene.charactersInScene}
 - Visual Style: ${visualStyle}
 - Location: ${scene.location}
 - Atmosphere: ${scene.atmosphere}
 
 Directives:
-1. **Sensory Immersion**: Use specific language describing light, texture, sound, and temperature (e.g., "warm golden hour light caressing biomorphic glass," "the hum of clean energy").
-2. **Mood & Atmosphere**: Capture the emotional resonance.
-3. **Positive Future**: Strictly align with a Protopian/Solarpunk narrative. Show harmony, abundance, or technological optimism.
-4. **Conciseness**: Keep it to 3-4 powerful sentences.
+1. **Sensory Immersion**: Use specific language describing light, texture, sound, and temperature (e.g., "warm golden hour light," "hum of clean energy").
+2. **Essence & Narrative**: Review the content and characters. Capture the essence of the scene.
+3. **Positive Future**: Strictly align with a Protopian/Solarpunk narrative (harmony, abundance).
+4. **Conciseness**: Keep it detailed but concise (2-3 powerful sentences).
 
 Output: The raw description text only.
 `;

@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartOver, showStartOver, onSu
                 <h1 className="font-display text-2xl font-bold uppercase tracking-widest text-white leading-none">
                 Rewrite<span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>
                 </h1>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 relative -top-[1px]">
                     <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse led-indicator"></span>
                     <p className="text-[9px] font-mono text-cyan-600 uppercase tracking-[0.2em] font-bold">Studio Online</p>
                 </div>
