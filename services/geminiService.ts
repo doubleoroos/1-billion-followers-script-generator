@@ -220,7 +220,7 @@ Synopsis: ${synopsis}
 Script: ${fullScript}
 
 For each scene, define:
-1. Title (Evocative, 2-5 words)
+1. Title (Unique, evocative, 2-5 words, capturing the scene's essence and positive narrative)
 2. Location & Atmosphere
 3. Description (Review content and characters. Generate a concise, evocative, and sensory-rich description. Capture the essence. Align with positive future narrative. Max 3 sentences.)
 4. Video Prompt (Veo, cinematic keywords, dynamic motion)
@@ -298,7 +298,7 @@ Output: A single, comprehensive prompt string. No introduction.
 const createTransitionRefinementPrompt = (currentScene: Scene, nextScene: Scene | undefined, visualStyle: VisualStyle): string => {
     return `
 You are an award-winning Film Editor.
-Task: Analyze the visual narrative flow between two scenes and write a cinematic transition.
+Task: Analyze the current scene's end and the next scene's beginning to suggest a more cinematic transition.
 
 Visual Style: ${visualStyle}
 
@@ -311,24 +311,31 @@ Key Elements: ${currentScene.keyVisualElements}
 Location: ${nextScene ? nextScene.location : 'End Credits'}
 Action/Visuals: ${nextScene ? nextScene.description : 'Fade to Black'}
 
-Analysis:
-1. Identify the final visual focal point of Scene A.
-2. Identify the initial visual focal point of Scene B.
-3. Determine the best editorial technique to bridge them (e.g., Match Cut, J-Cut, L-Cut, Smash Cut, Whip Pan, Invisible Cut).
+Analysis Requirements:
+1. Identify the visual connection between Scene A's end and Scene B's start.
+2. Determine the best editorial technique (Match Cut, J-Cut, L-Cut, Smash Cut, Whip Pan, Dissolve).
+3. The transition must align with the "${visualStyle}" aesthetic.
 
 Output:
 Write ONLY the transition description. It must be concise, technical, and evocative.
-Example: "Match cut from the circular drain to the spinning car wheel."
+Example: "Match cut from the circular drain to the spinning car wheel." or "J-Cut: The sound of the alarm begins before we cut to the busy street."
 `;
 }
 
 const createTitleRefinementPrompt = (scene: Scene): string => {
     return `
-Review this film scene content and characters:
+You are a visionary film director. Review this scene's content and characters:
 Description: ${scene.description}
 Characters: ${scene.charactersInScene}
+Location: ${scene.location}
 
-Task: Generate a unique, evocative, and concise title (2-5 words) that captures the essence and aligns with a positive future narrative.
+Task: Generate a UNIQUE, EVOCATIVE, and CONCISE title (2-5 words).
+Criteria:
+- Capture the poetic essence of the scene.
+- Align with a positive, regenerative future narrative.
+- Use strong verbs or sensory nouns.
+- Avoid generic titles like "Scene 1" or "The Beginning".
+
 Output: Title string only. Do not include quotes.
 `;
 }
@@ -538,24 +545,22 @@ export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: V
 
 export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
     const prompt = `
-You are a master storyteller and visual director for a visionary film about a positive future.
-Rewrite the description for this film scene.
+You are a master storyteller and atmospheric writer for cinema.
+Task: Rewrite the description for this film scene to be highly evocative, sensory-rich, and detailed.
 
 Context:
 - Current Description: ${scene.description}
-- Characters in Scene: ${scene.charactersInScene}
-- Location: ${scene.location}
-- Time: ${scene.timeOfDay}
 - Visual Style: ${visualStyle}
+- Location: ${scene.location}
+- Characters: ${scene.charactersInScene}
 
-Task:
-1. Review the scene's content and the characters involved.
-2. Generate a more evocative, poetic, and concise description (MAX 2-3 sentences).
-3. Use rich sensory language (sight, sound, texture, temperature).
-4. Strictly align with a positive, hopeful, and regenerative future narrative (Solarpunk/Protopian aesthetics).
-5. Focus on the mood and atmosphere.
+Guidelines:
+1. **Sensory Language**: Incorporate specific details about lighting (e.g., "dappled sunlight," "bioluminescent glow"), sound (e.g., "hum of magnetic levitation"), and texture.
+2. **Mood & Atmosphere**: Focus on the feeling of the scene. Is it serene? Energetic? Awe-inspiring?
+3. **Narrative Alignment**: Ensure it reflects a positive, regenerative future (Solarpunk/Abundance).
+4. **Detail**: Expand on generic statements. Instead of "people walking," describe "citizens weaving through living architecture."
 
-Output: The new description text only.
+Output: A single paragraph (3-4 sentences). Text only.
 `;
     const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text?.trim() || scene.description;
