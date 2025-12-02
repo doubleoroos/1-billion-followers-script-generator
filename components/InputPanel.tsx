@@ -179,7 +179,6 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                     `}
                 >
                      {/* The Ignition Switch - Tactile Logic Applied */}
-                     {/* Added active:translate-y-[1px] and active:shadow-[inset...] explicitly */}
                      <div className="relative bg-gradient-to-r from-cyan-600 to-slate-600 hover:from-cyan-500 hover:to-slate-500 text-white font-display font-bold uppercase text-xl py-4 px-12 md:px-20 clip-path-polygon border-2 border-black shadow-[0_4px_0_rgb(0,0,0)] group-active:shadow-[0_2px_0_rgb(0,0,0),inset_0_2px_4px_rgba(0,0,0,0.5)] group-active:translate-y-[1px] group-active:border-b transition-all flex items-center gap-3">
                         {isLoading ? (
                             <>
