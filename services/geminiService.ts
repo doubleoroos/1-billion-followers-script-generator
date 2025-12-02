@@ -212,12 +212,12 @@ Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": ".
 `;
 };
 
-const createVisualOutlinePrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, synopsis: string, fullScript: string): string => {
+const createVisualOutlinePrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, synopsis: string, scriptText: string): string => {
     return `
 Create a visual outline for this film script.
 Style: ${getVisualStyleDescription(visualStyle)}
 Synopsis: ${synopsis}
-Script: ${fullScript}
+Script: ${scriptText}
 
 For each scene, define:
 1. Title (Unique, evocative, 2-5 words, capturing the scene's essence and positive narrative)
@@ -245,7 +245,7 @@ Return raw Markdown.
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
 You are a world-class cinematographer and expert prompt engineer for the Google Veo AI video model.
-Task: Write a strictly cinematic, high-fidelity video generation prompt for this scene.
+Task: Write a strictly cinematic, high-fidelity video generation prompt for this scene, optimized for Veo's generative physics and camera control.
 
 Context:
 - Visual Style: ${visualStyle} (Strict adherence required)
@@ -255,10 +255,11 @@ Context:
 - Time: ${scene.timeOfDay}
 
 Prompt Requirements:
-1.  **Cinematography**: Define specific camera angles (e.g., "Low angle," "Wide master shot"), lens types (e.g., "Anamorphic," "Telephoto"), and movement (e.g., "Slow push-in," "Orbit," "Handheld shake").
-2.  **Lighting & Color**: Use evocative terms for lighting (e.g., "Chiaroscuro," "God rays," "Bioluminescent glow," "Hard rim light") consistent with the '${visualStyle}' style.
-3.  **Action & Physics**: Describe the motion within the frame vividly (e.g., "Dust particles floating," "Fabric rippling in wind," "Crowd moving in unison").
-4.  **Quality**: Enforce high production value keywords: "4k, photorealistic, highly detailed, film grain, cinematic color grading, award-winning cinematography."
+1.  **Camera Movement (Veo Specific)**: Use precise terminology: "Pan Left/Right", "Tilt Up/Down", "Truck Left/Right", "Dolly In/Out", "Boom Up/Down". Ensure the movement motivates the storytelling.
+2.  **Cinematography**: Specify lens characteristics (e.g., "Anamorphic 40mm", "Telephoto compression", "Wide angle distortion") and composition.
+3.  **Lighting & Physics**: Describe dynamic lighting (e.g., "Volumetric god rays", "Subsurface scattering", "Neon reflections") and physics-based motion (e.g., "Smoke turbulence", "Water fluidity", "Fabric cloth simulation").
+4.  **Visual Style**: Strictly enforce the '${visualStyle}' aesthetic.
+5.  **Quality Keywords**: "4k, photorealistic, highly detailed, film grain, cinematic color grading, award-winning cinematography, shot on film".
 
 Output:
 A single, highly detailed, and evocative paragraph optimized for Veo. Do not include introductory text or labels. Just the raw prompt.
