@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Scene, VisualStyle, Character } from '../../types';
-import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene, regenerateDescriptionForScene } from '../../services/geminiService';
+import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene, regenerateDescriptionForScene, analyzeSceneDependencies } from '../../services/geminiService';
 import { SparklesIcon } from '../icons/SparklesIcon';
 import { useAutosave, SaveStatus } from '../hooks/useAutosave';
 import { useSound } from '../hooks/useSound';
@@ -16,6 +16,7 @@ const SearchIcon = () => <svg className="h-4 w-4 text-slate-500" fill="none" vie
 const TextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const MagicWandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 9a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-4a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1V8a1 1 0 011-1z" clipRule="evenodd" /></svg>;
 const ArrowsExpandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>;
+const LinkIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" /></svg>;
 
 const StaticNoise = () => (
     <div className="absolute inset-0 bg-black flex flex-col justify-center items-center overflow-hidden pointer-events-none">
@@ -109,7 +110,7 @@ const CinematicSceneCard: React.FC<any> = ({
                             placeholder="SCENE TITLE"
                         />
                         {/* Editable Metadata */}
-                        <div className="font-mono text-[9px] text-slate-500 mt-1 flex items-center gap-2">
+                        <div className="font-mono text-[9px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
                              <input
                                 type="text"
                                 value={scene.location}
@@ -133,6 +134,15 @@ const CinematicSceneCard: React.FC<any> = ({
                                 className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-16 placeholder-slate-700"
                                 placeholder="0:00"
                             />
+                             {/* Narrative Dependency Indicator */}
+                             {scene.dependsOn && scene.dependsOn.length > 0 && (
+                                <>
+                                    <span className="text-cyan-500">///</span>
+                                    <span className="text-cyan-600 flex items-center gap-1" title={`Depends on: ${scene.dependsOn.join(', ')}`}>
+                                        <LinkIcon /> Linked: {scene.dependsOn.map((id:string) => id.replace(/\D/g,'')).join(', ')}
+                                    </span>
+                                </>
+                             )}
                         </div>
                     </div>
                 </div>
@@ -436,6 +446,25 @@ export const VisualOutlineSection: React.FC<{
         }
     };
 
+    const handleAnalyzeDependencies = async () => {
+        setMasterBulkStatus('Mapping Dependencies...');
+        playSound();
+        try {
+            const dependencies = await analyzeSceneDependencies(outlineRef.current);
+            const newOutline = outlineRef.current.map(scene => {
+                const dep = dependencies.find(d => d.id === scene.id);
+                return dep ? { ...scene, dependsOn: dep.dependsOn } : scene;
+            });
+            onSave(newOutline);
+            save(newOutline);
+        } catch (e) {
+            console.error(e);
+            alert("Dependency analysis failed.");
+        } finally {
+            setMasterBulkStatus(null);
+        }
+    };
+
     const handleFillMissingPrompts = async () => {
         setMasterBulkStatus('Filling Gaps...');
         playSound();
@@ -575,6 +604,7 @@ export const VisualOutlineSection: React.FC<{
                     <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Titles</button>
                     <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Descriptions</button>
                     <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2">Transitions</button>
+                    <button onClick={handleAnalyzeDependencies} disabled={!!masterBulkStatus} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase px-2 flex items-center gap-1"><LinkIcon /> Flow</button>
                     
                     {/* Optimize Prompts */}
                     <div className="h-6 w-px bg-white/10 mx-1"></div>

@@ -590,6 +590,41 @@ export const refineSceneTransitions = async (outline: Scene[], visualStyle: Visu
     }, 5, 200);
 };
 
+export const analyzeSceneDependencies = async (outline: Scene[]): Promise<{id: string, dependsOn: string[]}[]> => {
+    // Process in batches of 10 to check logic
+    const chunks: Scene[][] = [];
+    for (let i = 0; i < outline.length; i += 10) {
+        chunks.push(outline.slice(i, i + 10));
+    }
+
+    const allDependencies: {id: string, dependsOn: string[]}[] = [];
+
+    for (const chunk of chunks) {
+        const prompt = `
+        Analyze the narrative flow of these scenes.
+        Scenes: ${JSON.stringify(chunk.map(s => ({ id: s.id, title: s.title, description: s.description })))}
+
+        Task: For each scene, identify the IDs of preceding scenes it logically depends on (direct continuation, consequence, or callback).
+        Output JSON: { "dependencies": [{ "id": "scene-id", "dependsOn": ["prev-scene-id"] }] }
+        `;
+
+        try {
+            const response = await ai.models.generateContent({
+                 model: 'gemini-3-pro-preview',
+                 contents: prompt,
+                 config: { responseMimeType: 'application/json' }
+            });
+            const data = JSON.parse(cleanJson(response.text || '{}'));
+            if (Array.isArray(data.dependencies)) {
+                allDependencies.push(...data.dependencies);
+            }
+        } catch (e) {
+            console.error("Dependency analysis failed for chunk", e);
+        }
+    }
+    return allDependencies;
+};
+
 export const regenerateTitleForScene = async (scene: Scene): Promise<string> => {
     try {
         const prompt = createTitleRefinementPrompt(scene);
