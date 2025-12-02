@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -200,15 +199,18 @@ const createScriptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArc
 Write a script for a 7-10 minute film.
 Logline: ${logline}
 Synopsis: ${synopsis}
-Characters: ${charList}
+Characters: 
+${charList}
+
 Tone: ${getNarrativeToneDescription(narrativeTone)}
 
 Format Requirements:
 - Scene Headings: INT. / EXT. LOC - DAY/NIGHT
 - Dialogue: Natural, character-specific.
 - Narration: Evocative.
+- **IMPORTANT**: When writing dialogue, use the EXACT character names provided above. Do not invent new characters or change spellings.
 
-Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": "...", "characterName": "..." (if dialogue) }] }
+Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": "...", "characterName": "..." (if dialogue, MUST match provided character names) }] }
 `;
 };
 
@@ -438,14 +440,22 @@ export const generateCreativeAssets = async (
             : voices[i % voices.length]
     }));
     
+    // Improved Script Character Mapping
     const scriptWithIds = safeScript.map((block: any, i: number) => {
         let charId = undefined;
+        let characterNameFallback = undefined;
+        
         if (block.type === 'dialogue') {
             const charName = block.characterName;
-            const found = charactersWithVoices.find((c: any) => c.name.toLowerCase() === charName?.toLowerCase());
-            charId = found ? found.id : undefined;
+            // Case-insensitive, trimmed match
+            const found = charactersWithVoices.find((c: any) => c.name.trim().toLowerCase() === charName?.trim().toLowerCase());
+            if (found) {
+                charId = found.id;
+            } else {
+                characterNameFallback = charName; // Keep the raw name if no ID found
+            }
         }
-        return { ...block, id: `block-${i}`, characterId: charId };
+        return { ...block, id: `block-${i}`, characterId: charId, characterNameFallback };
     });
 
     return {
@@ -478,6 +488,7 @@ Format Requirements:
 - Scene Headings: INT. / EXT. LOC - DAY/NIGHT
 - Dialogue: Natural, character-specific.
 - Narration: Evocative.
+- **IMPORTANT**: Use EXACT character names.
 
 Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": "...", "characterName": "..." (if dialogue) }] }
 `;
@@ -494,12 +505,18 @@ Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": ".
     // Post-process IDs
     return rawScript.map((block: any, i: number) => {
         let charId = undefined;
+        let characterNameFallback = undefined;
+        
         if (block.type === 'dialogue') {
             const charName = block.characterName;
-            const found = characters.find((c: any) => c.name.toLowerCase() === charName?.toLowerCase());
-            charId = found ? found.id : undefined;
+            const found = characters.find((c: any) => c.name.trim().toLowerCase() === charName?.trim().toLowerCase());
+            if (found) {
+                charId = found.id;
+            } else {
+                characterNameFallback = charName;
+            }
         }
-        return { ...block, id: `block-regen-${Date.now()}-${i}`, characterId: charId };
+        return { ...block, id: `block-regen-${Date.now()}-${i}`, characterId: charId, characterNameFallback };
     });
 };
 

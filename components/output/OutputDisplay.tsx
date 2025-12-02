@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import type { GeneratedAssets, ScriptBlock, Scene, Character, VisualStyle, RewriteTomorrowTheme, EmotionalArcIntensity, NarrativeTone } from '../../types';
 import { LogoIcon } from '../icons/LogoIcon';
@@ -88,17 +89,12 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({
     
     const handleDownloadPDF = () => {
         playSound();
-        // If user hasn't selected ANY tier (free or paid), open modal.
-        if (!hasDonated && !hasSelectedTier) {
-            onOpenMonetization();
-        } else {
-            // Pass hasDonated state to service to determine if watermark should be added
-            try {
-                downloadPDF(generatedAssets, creativeChoices, hasDonated);
-            } catch (e) {
-                console.error("PDF Generation failed:", e);
-                alert("Failed to generate PDF. Please try regenerating some assets first.");
-            }
+        // Allow download immediately. Watermark logic is handled inside downloadPDF.
+        try {
+            downloadPDF(generatedAssets, creativeChoices, hasDonated);
+        } catch (e) {
+            console.error("PDF Generation failed:", e);
+            alert("Failed to generate PDF. Please try regenerating some assets first.");
         }
     };
 

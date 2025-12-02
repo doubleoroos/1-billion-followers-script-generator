@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -96,15 +97,15 @@
         color: white;
         border-color: #06b6d4;
       }
+      /* Tactile Active State for Tactical Button */
       .btn-tactical:active {
-        border-bottom: 1px solid #0f172a; /* Flatten bottom border */
-        transform: translateY(1px); /* Tactile press */
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); /* Inner shadow */
+        border-bottom: 1px solid #0f172a; 
+        transform: translateY(1px); 
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); 
       }
       .btn-tactical:disabled {
         opacity: 0.7;
         cursor: not-allowed;
-        /* Striped background for "Processing" state */
         background-image: repeating-linear-gradient(
           45deg,
           transparent,
@@ -117,9 +118,8 @@
       }
 
       .btn-gold {
-        /* Gradient Blue to Grey */
         background: linear-gradient(180deg, #06b6d4 0%, #334155 100%);
-        border: 1px solid rgba(34, 211, 238, 0.3); /* Reduced opacity */
+        border: 1px solid rgba(34, 211, 238, 0.3);
         color: #ffffff;
         font-weight: bold;
         text-shadow: 0 1px 2px rgba(0,0,0,0.5);
@@ -127,13 +127,13 @@
         transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .btn-gold:hover {
-        filter: brightness(1.1);
-        /* Backlit glow effect instead of solid border */
+        /* Backlit glow effect */
         box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
       }
+      /* Tactile Active State for Gold Button */
       .btn-gold:active {
-        transform: translateY(1px); /* Tactile press */
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); /* Inner shadow */
+        transform: translateY(1px); 
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); 
       }
       
       .btn-glow {
@@ -146,6 +146,7 @@
         background-color: #06b6d4;
         box-shadow: 0 0 10px rgba(6,182,212,0.5);
       }
+      /* Tactile Active State for Glow Button */
       .btn-glow:active {
         transform: translateY(1px);
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);

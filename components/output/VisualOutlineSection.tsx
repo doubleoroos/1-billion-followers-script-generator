@@ -60,6 +60,7 @@ const CinematicSceneCard: React.FC<any> = ({
   scene, characters, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
   isVideoGenerating, isImageGenerating, isVeoKeySelected
 }) => {
+    // Default to 'image' if no video exists, to prioritize visual preview
     const [activeTab, setActiveTab] = useState<'video' | 'image'>(scene.videoUrl ? 'video' : 'image');
     const playSound = useSound();
 
@@ -147,21 +148,21 @@ const CinematicSceneCard: React.FC<any> = ({
                     </div>
                 </div>
                 
-                {/* Hardware Toggle Switch - Tactile Logic Applied */}
+                {/* Hardware Toggle Switch - Tactile Active States Implemented */}
                 <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0 shadow-inner">
                     <button 
                         onClick={() => setActiveTab('video')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm focus:outline-none active:translate-y-[1px] active:shadow-inner
                         ${activeTab === 'video' 
-                            ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30 translate-y-[0px]' 
-                            : 'text-slate-600 hover:text-slate-400 opacity-50 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] bg-transparent'}`}
+                            ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-cyan-500/30 translate-y-[0px] z-10' 
+                            : 'text-slate-600 hover:text-slate-400 opacity-60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] bg-transparent'}`}
                     >Video</button>
                     <button 
                         onClick={() => setActiveTab('image')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm 
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm focus:outline-none active:translate-y-[1px] active:shadow-inner
                         ${activeTab === 'image' 
-                             ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] border border-cyan-500/30 translate-y-[0px]' 
-                            : 'text-slate-600 hover:text-slate-400 opacity-50 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] bg-transparent'}`}
+                             ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-cyan-500/30 translate-y-[0px] z-10' 
+                            : 'text-slate-600 hover:text-slate-400 opacity-60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] bg-transparent'}`}
                     >Image</button>
                 </div>
             </div>

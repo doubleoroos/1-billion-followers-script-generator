@@ -22,6 +22,7 @@ export interface ScriptBlock {
   id:string;
   type: 'narration' | 'dialogue';
   characterId?: string;
+  characterNameFallback?: string; // Added fallback for when ID mapping fails
   content: string;
   audioUrl?: string;
 }
