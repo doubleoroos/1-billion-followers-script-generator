@@ -305,13 +305,6 @@ export const VisualOutlineSection: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const [locationFilter, setLocationFilter] = useState('ALL');
 
-    // Auto-generate first preview on load
-    useEffect(() => {
-        if (outline.length > 0 && !outline[0].imageUrl && !generatingImageId) {
-             handleGenerateImage(outline[0]);
-        }
-    }, []);
-
     const handleSceneUpdate = useCallback((updatedScene: Scene) => {
         const newOutline = outline.map(s => s.id === updatedScene.id ? updatedScene : s);
         onSave(newOutline);

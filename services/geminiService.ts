@@ -263,7 +263,7 @@ Prompt Requirements:
 3.  **Lighting & Physics**: Describe dynamic lighting (e.g., "Volumetric god rays", "Subsurface scattering", "Neon reflections") and physics-based motion (e.g., "Smoke turbulence", "Water fluidity", "Fabric cloth simulation").
 4.  **Visual Style**: Strictly enforce the '${visualStyle}' aesthetic.
 5.  **Quality Keywords**: "4k, photorealistic, highly detailed, film grain, cinematic color grading, award-winning cinematography, shot on film".
-6.  **Duration & Stability**: Request "Long continuous shot", "Slow motion", or "Extended take" to maximize duration. Avoid morphing.
+6.  **Duration & Stability**: Request "Long continuous shot" (minimum 8-10 seconds context), "Slow motion", or "Extended take" to maximize duration and stability. Avoid morphing.
 
 Output:
 A single, highly detailed, and evocative paragraph optimized for Veo. Do not include introductory text or labels. Just the raw prompt.
@@ -410,7 +410,8 @@ export const generateCreativeAssets = async (
 
     // 3a. PARALLEL PREVIEW IMAGE GENERATION (Ensure "pictures everywhere" immediately)
     // We start generating images for the outline scenes immediately so the user sees visuals.
-    const outlineWithImages = await processInBatches<any, any>(safeOutline, async (scene) => {
+    // We use Promise.all to let them run while we fetch BTS and Moodboard
+    const outlineImagePromises = safeOutline.map(async (scene: Scene) => {
         try {
             const imagePrompt = scene.imagePrompt || `${scene.description} ${visualStyle} 8k cinematic photorealistic.`;
             const imageUrl = await generateRawImage(imagePrompt);
@@ -418,13 +419,11 @@ export const generateCreativeAssets = async (
         } catch (e) {
             return scene;
         }
-    }, 5, 0); // High concurrency for speed
-
-    safeOutline = outlineWithImages;
+    });
 
     // 4. BTS
     const btsPrompt = createBTSPrompt(theme, visualStyle, concept.synopsis || "", safeOutline);
-    const btsResp = await ai.models.generateContent({
+    const btsPromise = ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: btsPrompt
     });
@@ -437,15 +436,22 @@ export const generateCreativeAssets = async (
         { title: "Key Moment", prompt: `Dramatic film still, ${concept.logline || 'A futuristic scene'}, ${visualStyle}, 8k, volumetric lighting.` }
     ];
 
-    const refImages = await Promise.all(moodboardPrompts.map(async (item) => {
+    const refImagesPromises = moodboardPrompts.map(async (item) => {
         const imageUrl = await generateRawImage(item.prompt);
         return {
             title: item.title,
             imageUrl: imageUrl || `https://placehold.co/600x600/1a1a2e/FFF?text=${encodeURIComponent(item.title)}`
         };
-    }));
+    });
 
-    // Post-processing
+    // Await all parallel tasks
+    const [finalOutline, btsResp, refImages] = await Promise.all([
+        Promise.all(outlineImagePromises),
+        btsPromise,
+        Promise.all(refImagesPromises)
+    ]);
+
+    // Post-processing Characters with Voices and IDs
     const voices = ['Kore', 'Fenrir', 'Puck', 'Zephyr', 'Charon'];
     const charactersWithVoices = safeCharacters.map((c: any, i: number) => ({
         ...c,
@@ -467,7 +473,7 @@ export const generateCreativeAssets = async (
             if (found) {
                 charId = found.id;
             } else {
-                characterNameFallback = charName; // Keep the raw name if no ID found
+                characterNameFallback = charName; // Keep the raw name if no ID found to prevent "UNKNOWN"
             }
         }
         return { ...block, id: `block-${i}`, characterId: charId, characterNameFallback };
@@ -476,7 +482,7 @@ export const generateCreativeAssets = async (
     return {
         script: scriptWithIds,
         characters: charactersWithVoices,
-        visualOutline: safeOutline,
+        visualOutline: finalOutline,
         referenceImages: refImages,
         btsDocument: btsResp.text || "BTS Generation Failed"
     };

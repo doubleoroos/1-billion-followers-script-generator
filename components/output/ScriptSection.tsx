@@ -285,7 +285,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                              ) : (
                                  <div className="flex flex-col items-center mb-2">
                                      <div className="font-bold text-white mb-0.5 tracking-wider mt-4">
-                                         {/* Updated Character Name Logic */}
+                                         {/* Updated Character Name Logic with Fallback */}
                                          {(characters.find((c: Character) => c.id === block.characterId)?.name || block.characterNameFallback || 'UNKNOWN').toUpperCase()}
                                      </div>
                                      <div className="text-[#d4d4d4] text-center w-3/4 mb-2">
