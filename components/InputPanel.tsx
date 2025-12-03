@@ -174,18 +174,23 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 </div>
             )}
 
-            {/* Sticky Launch Button */}
+            {/* Sticky Launch Button - Tactile Physics */}
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gunmetal/95 backdrop-blur-sm border-t border-cyan-500/20 flex justify-center z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
                 <button
                     type="button"
                     onClick={handleGenerateClick}
                     disabled={isLoading || !themeSelected}
-                    className={`group relative overflow-hidden transition-all duration-200 
+                    className={`group relative overflow-hidden transition-all duration-100 
                     ${isLoading || !themeSelected ? 'opacity-70 grayscale cursor-not-allowed' : 'opacity-100 cursor-pointer'}
                     `}
                 >
                      {/* The Ignition Switch - Tactile Logic Applied */}
-                     <div className="relative bg-gradient-to-r from-cyan-600 to-slate-600 hover:from-cyan-500 hover:to-slate-500 text-white font-display font-bold uppercase text-xl py-4 px-12 md:px-20 clip-path-polygon border-2 border-black shadow-[0_4px_0_rgb(0,0,0)] group-active:shadow-[0_2px_0_rgb(0,0,0),inset_0_2px_4px_rgba(0,0,0,0.5)] group-active:translate-y-[1px] group-active:border-b transition-all flex items-center gap-3">
+                     <div className="relative bg-gradient-to-r from-cyan-600 to-slate-600 hover:from-cyan-500 hover:to-slate-500 text-white font-display font-bold uppercase text-xl py-4 px-12 md:px-20 clip-path-polygon border-2 border-black border-b-4 
+                     shadow-[0_4px_0_rgb(0,0,0)] 
+                     group-active:shadow-[0_0_0_rgb(0,0,0),inset_0_2px_6px_rgba(0,0,0,0.5)] 
+                     group-active:translate-y-[2px] 
+                     group-active:border-b-2
+                     transition-all flex items-center gap-3">
                         {isLoading ? (
                             <>
                                 <svg className="animate-spin h-6 w-6 text-cyan-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
