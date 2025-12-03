@@ -684,62 +684,51 @@ export const VisualOutlineSection: React.FC<{
                         <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[90px] justify-center" title="Auto-Fill Missing Prompts">
                             {activeBulkAction === 'fill_missing' ? <><SpinnerIcon /> Filling</> : <><MagicWandIcon /> Auto-Fill</>}
                         </button>
-                        <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-400 border-cyan-500/30 min-w-[120px] justify-center">
-                            {activeBulkAction === 'upgrade_prompts' ? <><SpinnerIcon /> Upgrading...</> : <><SparklesIcon /> Upgrade Prompts</>}
-                        </button>
                     </div>
 
-                    {/* Zone 4: Production (Rendering) */}
-                    <div className="h-6 w-px bg-white/10 mx-2"></div>
-                     <button onClick={handleGenerateAllPreviews} disabled={!!masterBulkStatus} className="btn-gold px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm min-w-[130px] justify-center">
-                        {activeBulkAction === 'render_images' ? <><SpinnerIcon /> Developing...</> : <><ImageIcon /> Render All Images</>}
-                    </button>
-                    <button onClick={handleGenerateAllVideos} disabled={!!masterBulkStatus} className="btn-gold px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm border-l border-white/20 min-w-[130px] justify-center">
-                        {activeBulkAction === 'render_videos' ? <><SpinnerIcon /> Rendering...</> : <><VideoIcon /> Render All Videos</>}
-                    </button>
+                    {/* Zone 4: Production (Render) */}
+                    <div className="flex items-center gap-2 pl-4 border-l border-white/10">
+                        <button 
+                            onClick={handleGenerateAllPreviews} 
+                            disabled={!!masterBulkStatus}
+                            className="btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg"
+                        >
+                            {activeBulkAction === 'render_images' ? <><SpinnerIcon /> Developing...</> : <><ImageIcon /> Render All Images</>}
+                        </button>
+                        <button 
+                            onClick={handleGenerateAllVideos} 
+                            disabled={!!masterBulkStatus || !isVeoKeySelected}
+                            className={`btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg ${(!isVeoKeySelected) ? 'opacity-50 grayscale' : ''}`}
+                            title={!isVeoKeySelected ? "Requires Veo Authentication" : "Generate Videos"}
+                        >
+                            {activeBulkAction === 'render_videos' ? <><SpinnerIcon /> Rendering...</> : <><VideoIcon /> Render All Videos</>}
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            {/* Status Bar */}
-            <div className="flex justify-between items-center px-4 -mt-4">
-                 <div className="text-[10px] font-mono text-slate-500 uppercase">
-                     Total Scenes: {outline.length} | Filtered: {filteredScenes.length}
-                 </div>
-                 <div className="flex items-center gap-4">
-                    {masterBulkStatus && (
-                        <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs uppercase animate-pulse">
-                            <SpinnerIcon />
-                            {masterBulkStatus}
-                        </div>
-                    )}
-                    <SaveStatusIndicator status={status} />
-                 </div>
             </div>
 
             {/* Scene Grid */}
             <div className="grid grid-cols-1 gap-12">
-                {filteredScenes.map((scene) => (
-                    <CinematicSceneCard 
-                        key={scene.id} 
-                        scene={scene} 
-                        characters={characters}
-                        onUpdate={handleSceneUpdate}
-                        onGenerateVideo={handleGenerateVideo}
-                        onGenerateImage={handleGenerateImage}
-                        onRegenerateVideoPrompt={handleRegenerateVideoPrompt}
-                        onRegenerateImagePrompt={handleRegenerateImagePrompt}
-                        isVideoGenerating={generatingVideoId === scene.id}
-                        isImageGenerating={generatingImageId === scene.id}
-                        isVeoKeySelected={isVeoKeySelected}
-                    />
-                ))}
+                {filteredScenes.length > 0 ? (
+                    filteredScenes.map((scene) => (
+                        <CinematicSceneCard 
+                            key={scene.id} 
+                            scene={scene} 
+                            characters={characters}
+                            onUpdate={handleSceneUpdate}
+                            onGenerateVideo={handleGenerateVideo}
+                            onGenerateImage={handleGenerateImage}
+                            onRegenerateVideoPrompt={handleRegenerateVideoPrompt}
+                            onRegenerateImagePrompt={handleRegenerateImagePrompt}
+                            isVideoGenerating={generatingVideoId === scene.id}
+                            isImageGenerating={generatingImageId === scene.id}
+                            isVeoKeySelected={isVeoKeySelected}
+                        />
+                    ))
+                ) : (
+                    <div className="text-center py-20 opacity-50 font-mono text-sm">NO SCENES FOUND MATCHING QUERY</div>
+                )}
             </div>
-            
-            {filteredScenes.length === 0 && (
-                <div className="text-center py-20 border border-dashed border-white/10 rounded-sm">
-                    <p className="text-slate-500 font-mono text-sm">No scenes found matching parameters.</p>
-                </div>
-            )}
         </div>
     );
 };
