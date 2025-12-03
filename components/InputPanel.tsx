@@ -71,7 +71,7 @@ const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, ti
     </div>
 );
 
-// Standardized Technical Label Style: Mono, uppercase, wide tracking, specific Cyan-600, 12px
+// Standardized Technical Label Style
 const LABEL_STYLE = "font-mono text-[12px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-3 ml-1 block";
 
 export const InputPanel: React.FC<InputPanelProps> = ({ 
@@ -97,7 +97,6 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 Rewrite <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>
             </h2>
             
-            {/* Added Competition Subtitle */}
             <p className="text-cyan-400 font-display text-lg md:text-xl uppercase tracking-[0.2em] font-bold drop-shadow-md pb-2">
                 1 Billion Followers Film Competition
             </p>

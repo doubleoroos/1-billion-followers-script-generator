@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -262,7 +263,7 @@ Prompt Requirements:
 3.  **Lighting & Physics**: Describe dynamic lighting (e.g., "Volumetric god rays", "Subsurface scattering", "Neon reflections") and physics-based motion (e.g., "Smoke turbulence", "Water fluidity", "Fabric cloth simulation").
 4.  **Visual Style**: Strictly enforce the '${visualStyle}' aesthetic.
 5.  **Quality Keywords**: "4k, photorealistic, highly detailed, film grain, cinematic color grading, award-winning cinematography, shot on film".
-6.  **Stability**: Focus on coherent, stable motion. Avoid "morphing" or surreal distortions unless the style is Abstract.
+6.  **Duration & Stability**: Request "Long continuous shot", "Slow motion", or "Extended take" to maximize duration. Avoid morphing.
 
 Output:
 A single, highly detailed, and evocative paragraph optimized for Veo. Do not include introductory text or labels. Just the raw prompt.
@@ -405,7 +406,21 @@ export const generateCreativeAssets = async (
         config: { responseMimeType: 'application/json' }
     });
     const outlineData = JSON.parse(cleanJson(outlineResp.text || '{}'));
-    const safeOutline = Array.isArray(outlineData.visualOutline) ? outlineData.visualOutline : [];
+    let safeOutline = Array.isArray(outlineData.visualOutline) ? outlineData.visualOutline : [];
+
+    // 3a. PARALLEL PREVIEW IMAGE GENERATION (Ensure "pictures everywhere" immediately)
+    // We start generating images for the outline scenes immediately so the user sees visuals.
+    const outlineWithImages = await processInBatches<any, any>(safeOutline, async (scene) => {
+        try {
+            const imagePrompt = scene.imagePrompt || `${scene.description} ${visualStyle} 8k cinematic photorealistic.`;
+            const imageUrl = await generateRawImage(imagePrompt);
+            return { ...scene, imageUrl: imageUrl || undefined };
+        } catch (e) {
+            return scene;
+        }
+    }, 5, 0); // High concurrency for speed
+
+    safeOutline = outlineWithImages;
 
     // 4. BTS
     const btsPrompt = createBTSPrompt(theme, visualStyle, concept.synopsis || "", safeOutline);
@@ -414,7 +429,7 @@ export const generateCreativeAssets = async (
         contents: btsPrompt
     });
 
-    // 5. Moodboard
+    // 5. Moodboard (Wait for results)
     const moodboardPrompts = [
         { title: "Cinematic Style", prompt: `Hyper-realistic film still, ${visualStyle}, 8k, Arri Alexa.` },
         { title: "The World", prompt: `Wide establishing shot, ${theme}, ${visualStyle}, 8k, photorealistic.` },
