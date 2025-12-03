@@ -605,6 +605,14 @@ export const VisualOutlineSection: React.FC<{
         <div className="space-y-8 animate-fade-in relative z-10">
             <ApiKeyManager isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} />
 
+            {/* Master Status Bar - NEW */}
+            {masterBulkStatus && (
+                <div className="bg-cyan-900/20 border border-cyan-500/30 p-2 text-center rounded-sm animate-fade-in flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(6,182,212,0.1)] mb-4">
+                    <div className="text-cyan-400"><SpinnerIcon /></div>
+                    <span className="text-cyan-400 font-mono text-xs uppercase tracking-widest font-bold animate-pulse">{masterBulkStatus}</span>
+                </div>
+            )}
+
             {/* Studio Toolbar - Organized into logical zones */}
             <div className="bg-gunmetal border-y border-white/10 p-4 sticky top-16 z-30 shadow-2xl backdrop-blur-md bg-opacity-95 flex flex-col xl:flex-row gap-4 justify-between items-center">
                 
@@ -664,6 +672,10 @@ export const VisualOutlineSection: React.FC<{
                     <div className="flex items-center gap-1">
                         <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[90px] justify-center" title="Auto-Fill Missing Prompts">
                             {activeBulkAction === 'fill_missing' ? <><SpinnerIcon /> Filling</> : <><MagicWandIcon /> Auto-Fill</>}
+                        </button>
+                        {/* New Button */}
+                        <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[110px] justify-center ml-1 border-l border-white/10" title="Refine All Prompts with AI">
+                            {activeBulkAction === 'upgrade_prompts' ? <><SpinnerIcon /> Upgrading</> : <><SparklesIcon /> Upgrade Prompts</>}
                         </button>
                     </div>
 
