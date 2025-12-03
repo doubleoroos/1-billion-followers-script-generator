@@ -101,39 +101,63 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
+// Wrapper for API calls with retry logic for 429/Quota errors
+async function generateWithRetry<T>(operation: () => Promise<T>, retries = 3, initialDelay = 10000): Promise<T> {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await operation();
+        } catch (error: any) {
+            const errorMessage = typeof error === 'string' ? error : (error.message || JSON.stringify(error));
+            const isQuotaError = errorMessage.includes('429') || errorMessage.includes('Quota') || errorMessage.includes('RESOURCE_EXHAUSTED') || error.status === 429 || error.code === 429;
+            
+            if (isQuotaError && i < retries - 1) {
+                // Exponential backoff: 10s, 20s, 40s...
+                const delayTime = initialDelay * Math.pow(2, i); 
+                console.warn(`Quota exceeded (429). Retrying in ${delayTime/1000}s...`, error);
+                await delay(delayTime);
+                continue;
+            }
+            throw error;
+        }
+    }
+    throw new Error("Max retries exceeded");
+}
+
 export const generateScriptAudio = async (text: string, voiceName: string = 'Kore'): Promise<string> => {
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-preview-tts",
-            contents: [{ parts: [{ text: text }] }],
-            config: {
-                responseModalities: [Modality.AUDIO],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: voiceName },
+    return generateWithRetry(async () => {
+        try {
+            const response = await ai.models.generateContent({
+                model: "gemini-2.5-flash-preview-tts",
+                contents: [{ parts: [{ text: text }] }],
+                config: {
+                    responseModalities: [Modality.AUDIO],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: voiceName },
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (!base64Audio) {
-            throw new Error("No audio data returned from model.");
+            const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            if (!base64Audio) {
+                throw new Error("No audio data returned from model.");
+            }
+
+            const pcmData = base64ToUint8Array(base64Audio);
+            const wavHeader = writeWavHeader(24000, 1, 16, pcmData.length);
+            const wavFile = new Uint8Array(wavHeader.length + pcmData.length);
+            wavFile.set(wavHeader);
+            wavFile.set(pcmData, wavHeader.length);
+
+            const blob = new Blob([wavFile], { type: 'audio/wav' });
+            return URL.createObjectURL(blob);
+
+        } catch (error) {
+            console.error("Audio generation failed:", error);
+            throw error;
         }
-
-        const pcmData = base64ToUint8Array(base64Audio);
-        const wavHeader = writeWavHeader(24000, 1, 16, pcmData.length);
-        const wavFile = new Uint8Array(wavHeader.length + pcmData.length);
-        wavFile.set(wavHeader);
-        wavFile.set(pcmData, wavHeader.length);
-
-        const blob = new Blob([wavFile], { type: 'audio/wav' });
-        return URL.createObjectURL(blob);
-
-    } catch (error) {
-        console.error("Audio generation failed:", error);
-        throw error;
-    }
+    }, 3, 10000); // Start with 10s wait, retry 3 times
 };
 
 // --- CONTENT GENERATION HELPERS ---

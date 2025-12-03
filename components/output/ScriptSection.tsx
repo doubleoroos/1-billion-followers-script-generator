@@ -166,7 +166,8 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
         playSound();
 
         try {
-            // Process in batches of 3 to respect API limits
+            // Process in batches of 1 to respect strict 10 RPM API limits
+            // 1 request every 6.5 seconds = ~9.2 RPM, staying under the 10 RPM limit
             const results = await processInBatches(blocksToProcess, async ({ block, index }) => {
                 let voiceName = 'Kore'; // Default narrator
                 if (block.characterId) {
@@ -182,7 +183,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
                     console.error(`Failed to generate audio for block ${index}`, e);
                     return { index, url: null };
                 }
-            }, 3, 500);
+            }, 1, 6500);
 
             // Update script with results
             const newScript = [...editedScript];
