@@ -88,7 +88,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto pb-48"> {/* Extra padding for mobile fixed button */}
+    <div className="max-w-6xl mx-auto pb-32 md:pb-24"> {/* Adjusted padding for better balance */}
         <div className="text-center mb-16 space-y-4 pt-10">
             <h2 className="font-display text-5xl md:text-7xl font-bold uppercase text-white leading-none tracking-tighter drop-shadow-2xl">
                 Rewrite <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>

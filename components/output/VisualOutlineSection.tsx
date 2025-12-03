@@ -138,18 +138,29 @@ const CinematicSceneCard: React.FC<any> = ({
                 <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0 shadow-inner">
                     <button 
                         onClick={() => setActiveTab('video')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px]
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px] relative
                         ${activeTab === 'video' 
                             ? 'toggle-active translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] bg-transparent opacity-60'}`}
-                    >Video</button>
+                    >
+                        Video
+                        {/* Status Indicator for Inactive but present media */}
+                        {activeTab !== 'video' && scene.videoUrl && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4]"></span>
+                        )}
+                    </button>
                     <button 
                         onClick={() => setActiveTab('image')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px]
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px] relative
                         ${activeTab === 'image' 
                              ? 'toggle-active translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] bg-transparent opacity-60'}`}
-                    >Image</button>
+                    >
+                        Image
+                        {activeTab !== 'image' && scene.imageUrl && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4]"></span>
+                        )}
+                    </button>
                 </div>
             </div>
 
@@ -170,7 +181,7 @@ const CinematicSceneCard: React.FC<any> = ({
                      <div className="relative z-10 w-full h-full flex items-center justify-center bg-black">
                         {activeTab === 'video' ? (
                              scene.videoUrl ? (
-                                <video src={scene.videoUrl} controls className="w-full h-full object-contain" />
+                                <video src={scene.videoUrl} controls playsInline className="w-full h-full object-contain" key={scene.videoUrl} />
                             ) : (
                                 <div className="text-center w-full h-full relative flex flex-col items-center justify-center">
                                     <StaticNoise />
@@ -621,8 +632,8 @@ export const VisualOutlineSection: React.FC<{
             <div className="bg-gunmetal border-y border-white/10 p-4 sticky top-16 z-30 shadow-2xl backdrop-blur-md bg-opacity-95 flex flex-col xl:flex-row gap-4 justify-between items-center">
                 
                 {/* Zone 1: Query & Filter */}
-                <div className="flex items-center gap-4 w-full xl:w-auto h-[34px]">
-                    <div className="relative flex-grow xl:flex-grow-0 flex items-center bg-black/40 border border-white/10 rounded-sm h-full w-[200px] px-2">
+                <div className="flex items-center gap-4 w-full xl:w-auto h-auto xl:h-[34px]">
+                    <div className="relative flex-grow xl:flex-grow-0 flex items-center bg-black/40 border border-white/10 rounded-sm h-[34px] w-full xl:w-[200px] px-2">
                         <div className="flex-shrink-0 mr-2">
                             <SearchIcon />
                         </div>
@@ -636,14 +647,14 @@ export const VisualOutlineSection: React.FC<{
                     </div>
                     
                     {/* Fixed Alignment Flex Container */}
-                    <div className="relative h-full flex items-center bg-black/40 border border-white/10 rounded-sm">
+                    <div className="relative h-[34px] flex items-center bg-black/40 border border-white/10 rounded-sm w-full xl:w-auto">
                          <div className="absolute left-3 pointer-events-none z-10 text-slate-500">
                             <FilterIcon />
                          </div>
                         <select 
                             value={locationFilter}
                             onChange={(e) => setLocationFilter(e.target.value)}
-                            className="appearance-none bg-transparent pl-9 pr-8 text-[10px] font-mono font-bold text-white uppercase tracking-wide focus:outline-none focus:border-cyan-500/50 cursor-pointer min-w-[160px] h-full"
+                            className="appearance-none bg-transparent pl-9 pr-8 text-[10px] font-mono font-bold text-white uppercase tracking-wide focus:outline-none focus:border-cyan-500/50 cursor-pointer min-w-[160px] h-full w-full"
                         >
                             <option value="ALL">All Locations</option>
                             {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
@@ -654,21 +665,21 @@ export const VisualOutlineSection: React.FC<{
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 justify-end items-center">
+                <div className="flex flex-wrap gap-2 justify-end items-center w-full xl:w-auto">
                     
                     {/* Zone 2: Analysis & Refinement */}
-                    <div className="flex items-center gap-1 bg-black/20 p-1 rounded-sm border border-white/5">
+                    <div className="flex items-center gap-1 bg-black/20 p-1 rounded-sm border border-white/5 overflow-x-auto">
                         <button onClick={handleAnalyzeDependencies} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm min-w-[80px] justify-center" title="Analyze Narrative Flow">
                             {activeBulkAction === 'analyze_flow' ? <><SpinnerIcon /> Analyzing</> : <><LinkIcon /> Flow</>}
                         </button>
                         <div className="h-4 w-px bg-white/10 mx-1"></div>
-                        <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1">
+                        <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap">
                             {activeBulkAction === 'refine_titles' && <SpinnerIcon />} Titles
                         </button>
-                        <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1">
+                        <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap">
                             {activeBulkAction === 'refine_descriptions' && <SpinnerIcon />} Story
                         </button>
-                        <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1">
+                        <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap">
                             {activeBulkAction === 'refine_transitions' && <SpinnerIcon />} Trans.
                         </button>
                     </div>
