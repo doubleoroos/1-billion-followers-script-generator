@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { Character } from '../../types';
 import { useSound } from '../hooks/useSound';

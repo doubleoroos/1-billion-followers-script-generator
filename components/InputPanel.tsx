@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
@@ -40,7 +39,7 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
         <button
             type="button"
             onClick={() => { playSound(); onClick(); }}
-            className={`group relative flex flex-col items-start text-left p-0 transition-all duration-200 w-full h-full 
+            className={`group relative flex flex-col items-start text-left p-0 transition-all duration-100 w-full h-full 
             bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-800 hover:border-slate-600 bg-gunmetal'} 
             border-y border-r border-y-black border-r-black border-opacity-30 ${className}
             active:translate-y-[1px] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]`}
@@ -188,7 +187,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                      <div className="relative bg-gradient-to-r from-cyan-600 to-slate-600 hover:from-cyan-500 hover:to-slate-500 text-white font-display font-bold uppercase text-xl py-4 px-12 md:px-20 clip-path-polygon border-2 border-black border-b-4 
                      shadow-[0_4px_0_rgb(0,0,0)] 
                      group-active:shadow-[0_0_0_rgb(0,0,0),inset_0_2px_6px_rgba(0,0,0,0.5)] 
-                     group-active:translate-y-[2px] 
+                     group-active:translate-y-[1px] 
                      group-active:border-b-2
                      transition-all flex items-center gap-3">
                         {isLoading ? (

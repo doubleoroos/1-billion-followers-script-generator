@@ -1,7 +1,7 @@
 # Rewrite Tomorrow Studio | AI Command Center
 
 ![Status](https://img.shields.io/badge/Status-Production-success)
-![Tech](https://img.shields.io/badge/Stack-React_19_|_TypeScript_|_Tailwind-blue)
+![Tech](https://img.shields.io/badge/Stack-React_|_TypeScript_|_Tailwind-blue)
 ![AI](https://img.shields.io/badge/AI-Gemini_Pro_|_Veo_|_Imagen_3-purple)
 
 **Rewrite Tomorrow** is a professional-grade AI Film Generation Studio designed specifically for the **1 Billion Followers Film Competition**. It orchestrates a suite of Google's most advanced Generative AI models to assist filmmakers in visualizing positive, regenerative futures (Solarpunk, Protopian, Abundance).
