@@ -623,19 +623,19 @@ export const VisualOutlineSection: React.FC<{
                         />
                     </div>
                     
-                    <div className="relative h-full">
-                         <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                    <div className="relative h-full flex items-center bg-black/40 border border-white/10 rounded-sm">
+                         <div className="absolute left-3 pointer-events-none z-10">
                             <FilterIcon />
                          </div>
                         <select 
                             value={locationFilter}
                             onChange={(e) => setLocationFilter(e.target.value)}
-                            className="appearance-none bg-black/40 border border-white/10 rounded-sm pl-9 pr-8 py-2 text-[10px] font-mono font-bold text-white uppercase tracking-wide focus:outline-none focus:border-cyan-500/50 cursor-pointer min-w-[160px] h-full"
+                            className="appearance-none bg-transparent pl-9 pr-8 text-[10px] font-mono font-bold text-white uppercase tracking-wide focus:outline-none focus:border-cyan-500/50 cursor-pointer min-w-[160px] h-full"
                         >
                             <option value="ALL">All Locations</option>
                             {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
                         </select>
-                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                         <div className="absolute right-3 pointer-events-none">
                             <svg className="w-2 h-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
                          </div>
                     </div>
