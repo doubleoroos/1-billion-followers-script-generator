@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
@@ -70,9 +71,6 @@ const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, ti
     </div>
 );
 
-// Standardized Technical Label Style
-const LABEL_STYLE = "font-mono text-[12px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-3 ml-1 block";
-
 export const InputPanel: React.FC<InputPanelProps> = ({ 
   onGenerate, isLoading, rewriteTomorrowTheme, setRewriteTomorrowTheme, emotionalArc, setEmotionalArc, visualStyle, setVisualStyle, narrativeTone, setNarrativeTone, error,
 }) => {
@@ -117,7 +115,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent opacity-50"></div>
 
             {/* Step 1: Theme */}
-            <section>
+            <section className="mb-8">
                 <SectionHeader number="01" title="Core Theme Protocol" />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <ChoiceCard label="Abundance" description="Post-scarcity prosperity." isSelected={rewriteTomorrowTheme === 'abundance'} onClick={() => handleThemeSelection('abundance')} />
@@ -130,11 +128,11 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             {themeSelected && (
                 <>
                 {/* Step 2: Tone & Style */}
-                <section className="animate-fade-in">
+                <section className="animate-fade-in mb-8">
                     <SectionHeader number="02" title="Aesthetic Configuration" />
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
-                            <span className={LABEL_STYLE}>Narrative Tone</span>
+                            <span className="label-studio">Narrative Tone</span>
                             <div className="grid grid-cols-2 gap-3">
                                 <ChoiceCard label="Poetic" description="Lyrical imagery." isSelected={narrativeTone === 'poetic'} onClick={() => setNarrativeTone('poetic')} />
                                 <ChoiceCard label="Philosophical" description="Deep questioning." isSelected={narrativeTone === 'philosophical'} onClick={() => setNarrativeTone('philosophical')} />
@@ -143,7 +141,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                             </div>
                         </div>
                         <div>
-                            <span className={LABEL_STYLE}>Visual Style</span>
+                            <span className="label-studio">Visual Style</span>
                             <div className="grid grid-cols-2 gap-3">
                                 <ChoiceCard label="Cinematic" description="Photorealistic drama." isSelected={visualStyle === 'cinematic'} onClick={() => setVisualStyle('cinematic')} />
                                 <ChoiceCard label="Solarpunk" description="Organic tech." isSelected={visualStyle === 'solarpunk'} onClick={() => setVisualStyle('solarpunk')} />
@@ -156,7 +154,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 </section>
 
                 {/* Step 3: Pacing */}
-                <section className="animate-fade-in">
+                <section className="animate-fade-in mb-8">
                     <SectionHeader number="03" title="Arc Intensity" />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <ChoiceCard label="Subtle" description="Gentle flow." isSelected={emotionalArc === 'subtle'} onClick={() => setEmotionalArc('subtle')} />

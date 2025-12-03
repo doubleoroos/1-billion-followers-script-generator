@@ -220,7 +220,7 @@ export const ScriptSection: React.FC<ScriptSectionProps> = ({ script, characters
             <div className="sticky top-[64px] z-30 flex justify-between items-center bg-gunmetal border border-white/10 border-b-0 rounded-t-sm p-3 shadow-xl backdrop-blur-md bg-opacity-95">
                  <div className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_8px_#06b6d4]"></div>
-                    <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">Screenplay_Final_Draft.fdx</span>
+                    <span className="label-studio mb-0">Screenplay_Final_Draft.fdx</span>
                  </div>
                  <div className="flex gap-2">
                      <button 

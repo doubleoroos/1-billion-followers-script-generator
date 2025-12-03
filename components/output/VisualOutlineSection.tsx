@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Scene, VisualStyle, Character } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene, regenerateDescriptionForScene, analyzeSceneDependencies } from '../../services/geminiService';
@@ -29,13 +30,6 @@ const StaticNoise = () => (
     </div>
 );
 
-const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
-    if (status === 'dirty') return <span className="text-cyan-400 text-[10px] font-mono uppercase">Saving...</span>;
-    if (status === 'saving') return <span className="text-cyan-400 text-[10px] font-mono uppercase flex items-center gap-1"><SpinnerIcon />Sync</span>;
-    if (status === 'saved') return <span className="text-slate-500 text-[10px] font-mono uppercase flex items-center gap-1"><CheckmarkIcon />Synced</span>;
-    return <div className="h-4"></div>;
-};
-
 const ApiKeyManager: React.FC<{ isVeoKeySelected: boolean | null; onSelectKey: () => Promise<void>; }> = ({ isVeoKeySelected, onSelectKey }) => {
   const playSound = useSound();
   if (isVeoKeySelected === true) return null;
@@ -50,9 +44,6 @@ const ApiKeyManager: React.FC<{ isVeoKeySelected: boolean | null; onSelectKey: (
     </div>
   );
 };
-
-// Common Labels: Standardized to 12px
-const LABEL_STYLE = "font-mono text-[12px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-1 block";
 
 const CinematicSceneCard: React.FC<any> = ({
   scene, characters, onUpdate, onGenerateVideo, onGenerateImage, onRegenerateVideoPrompt, onRegenerateImagePrompt,
@@ -87,9 +78,6 @@ const CinematicSceneCard: React.FC<any> = ({
     };
 
     const parsedCharacters = scene.charactersInScene ? scene.charactersInScene.split(',').map((c: string) => c.trim()) : [];
-
-    // Cartridge Input Wrapper - Darker, tighter, specific studio feel
-    const cartridgeStyle = "bg-black/40 border border-white/5 p-1 rounded-sm relative group-focus-within:border-cyan-500/30 transition-colors";
 
     return (
         <div className="bg-gunmetal border border-white/10 shadow-lg relative group overflow-hidden rounded-sm transition-all hover:border-cyan-500/20">
@@ -152,14 +140,14 @@ const CinematicSceneCard: React.FC<any> = ({
                         onClick={() => setActiveTab('video')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px]
                         ${activeTab === 'video' 
-                            ? 'bg-slate-800 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6),inset_0_1px_1px_rgba(255,255,255,0.15)] border border-cyan-500/30 translate-y-[0px] z-10' 
+                            ? 'toggle-active translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] bg-transparent opacity-60'}`}
                     >Video</button>
                     <button 
                         onClick={() => setActiveTab('image')} 
                         className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px]
                         ${activeTab === 'image' 
-                             ? 'bg-slate-800 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6),inset_0_1px_1px_rgba(255,255,255,0.15)] border border-cyan-500/30 translate-y-[0px] z-10' 
+                             ? 'toggle-active translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] bg-transparent opacity-60'}`}
                     >Image</button>
                 </div>
@@ -233,7 +221,7 @@ const CinematicSceneCard: React.FC<any> = ({
 
                 {/* Data Panel */}
                 <div className="lg:col-span-4 bg-gunmetal p-4 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
-                    <div className="flex flex-col gap-1"> {/* Tight gap for 'Studio Grid' feel */}
+                    <div className="flex flex-col gap-2"> {/* Studio Spacing */}
                          
                          {/* Characters */}
                          <div className="flex flex-wrap gap-2 mb-2 p-1">
@@ -242,48 +230,42 @@ const CinematicSceneCard: React.FC<any> = ({
                             ))}
                          </div>
 
-                        {/* Description Cartridge - STANDARD TYPOGRAPHY MATCHING PROMPT ENGINEER BOX */}
+                        {/* Description Cartridge */}
                         <div>
-                            <label className={LABEL_STYLE}>Action Description</label>
-                            <div className={cartridgeStyle}>
-                                {/* Switched to font-mono to match studio consistency, but kept readable size */}
-                                <textarea
-                                    value={scene.description}
-                                    onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
-                                    className="w-full bg-transparent text-slate-300 font-mono text-[10px] focus:outline-none resize-none h-28 p-1 leading-relaxed"
-                                />
-                            </div>
+                            <label className="label-studio">Action Description</label>
+                            {/* Switched to font-sans for creative readability, using standard input-studio style */}
+                            <textarea
+                                value={scene.description}
+                                onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
+                                className="w-full input-studio text-slate-300 font-sans text-xs resize-none h-28 p-2 leading-relaxed"
+                            />
                         </div>
                         
                         {/* Prompt Cartridge */}
                          <div className="mt-2">
                             <div className="flex justify-between items-center">
-                                <label className={LABEL_STYLE}>Prompt Engineer</label>
-                                <button onClick={() => activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene)} className="text-[9px] font-bold text-slate-400 hover:text-white uppercase flex items-center gap-1 transition-colors">
+                                <label className="label-studio">Prompt Engineer</label>
+                                <button onClick={() => activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene)} className="text-[9px] font-bold text-slate-400 hover:text-white uppercase flex items-center gap-1 transition-colors mb-1">
                                     <SparklesIcon /> AI Refine
                                 </button>
                             </div>
-                            <div className={cartridgeStyle}>
-                                <textarea
-                                    value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
-                                    onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
-                                    className="w-full bg-transparent text-slate-400 font-mono text-[10px] focus:outline-none resize-none h-24 leading-relaxed p-1"
-                                />
-                            </div>
+                            <textarea
+                                value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
+                                onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
+                                className="w-full input-studio text-slate-400 font-mono text-[10px] resize-none h-24 leading-relaxed p-2"
+                            />
                         </div>
                         
                         {/* Transition Cartridge */}
                         <div className="mt-2">
-                            <label className={LABEL_STYLE}>Transition</label>
-                            <div className={cartridgeStyle}>
-                                <input
-                                    type="text"
-                                    value={scene.transition || ''}
-                                    onChange={(e) => onUpdate({ ...scene, transition: e.target.value })}
-                                    className="w-full bg-transparent text-slate-300 font-mono text-xs focus:outline-none p-1"
-                                    placeholder="Cut to..."
-                                />
-                            </div>
+                            <label className="label-studio">Transition</label>
+                            <input
+                                type="text"
+                                value={scene.transition || ''}
+                                onChange={(e) => onUpdate({ ...scene, transition: e.target.value })}
+                                className="w-full input-studio text-slate-300 font-mono text-xs p-2"
+                                placeholder="Cut to..."
+                            />
                         </div>
                     </div>
                 </div>
@@ -627,28 +609,28 @@ export const VisualOutlineSection: React.FC<{
             <div className="bg-gunmetal border-y border-white/10 p-4 sticky top-16 z-30 shadow-2xl backdrop-blur-md bg-opacity-95 flex flex-col xl:flex-row gap-4 justify-between items-center">
                 
                 {/* Zone 1: Query & Filter */}
-                <div className="flex items-center gap-4 w-full xl:w-auto">
-                    <div className="relative flex-grow xl:flex-grow-0">
-                        <SearchIcon />
+                <div className="flex items-center gap-4 w-full xl:w-auto h-[34px]">
+                    <div className="relative flex-grow xl:flex-grow-0 flex items-center bg-black/40 border border-white/10 rounded-sm h-full w-[200px] px-2">
+                        <div className="flex-shrink-0 mr-2">
+                            <SearchIcon />
+                        </div>
                         <input 
                             type="text" 
                             placeholder="SEARCH SCENES" 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="absolute inset-0 pl-8 bg-transparent text-[10px] font-mono font-bold text-white placeholder-slate-600 focus:outline-none uppercase tracking-wide"
-                            style={{ width: '100%', height: '100%' }}
+                            className="bg-transparent text-[10px] font-mono font-bold text-white placeholder-slate-600 focus:outline-none uppercase tracking-wide w-full h-full"
                         />
-                         <div className="pl-8 py-2 pr-4 bg-black/40 border border-white/10 rounded-sm text-xs w-[200px] h-[34px]"></div>
                     </div>
                     
-                    <div className="relative group">
+                    <div className="relative h-full">
                          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                             <FilterIcon />
                          </div>
                         <select 
                             value={locationFilter}
                             onChange={(e) => setLocationFilter(e.target.value)}
-                            className="appearance-none bg-black/40 border border-white/10 rounded-sm pl-9 pr-8 py-2 text-[10px] font-mono font-bold text-white uppercase tracking-wide focus:outline-none focus:border-cyan-500/50 cursor-pointer min-w-[160px] h-[34px]"
+                            className="appearance-none bg-black/40 border border-white/10 rounded-sm pl-9 pr-8 py-2 text-[10px] font-mono font-bold text-white uppercase tracking-wide focus:outline-none focus:border-cyan-500/50 cursor-pointer min-w-[160px] h-full"
                         >
                             <option value="ALL">All Locations</option>
                             {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}

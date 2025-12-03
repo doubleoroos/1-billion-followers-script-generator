@@ -263,7 +263,7 @@ Prompt Requirements:
 3.  **Lighting & Physics**: Describe dynamic lighting (e.g., "Volumetric god rays", "Subsurface scattering", "Neon reflections") and physics-based motion (e.g., "Smoke turbulence", "Water fluidity", "Fabric cloth simulation").
 4.  **Visual Style**: Strictly enforce the '${visualStyle}' aesthetic.
 5.  **Quality Keywords**: "4k, photorealistic, highly detailed, film grain, cinematic color grading, award-winning cinematography, shot on film".
-6.  **Duration & Stability**: Request "Long continuous shot" (minimum 8-10 seconds context), "Slow motion", or "Extended take" to maximize duration and stability. Avoid morphing.
+6.  **Duration & Stability**: MANDATORY: Request "Slow motion (0.5x speed)", "High frame rate", "Long continuous shot", or "Extended take" to maximize duration and visual stability. Avoid fast cuts or morphing.
 
 Output:
 A single, highly detailed, and evocative paragraph optimized for Veo. Do not include introductory text or labels. Just the raw prompt.

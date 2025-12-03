@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Character } from '../../types';
 import { useSound } from '../hooks/useSound';
@@ -17,9 +18,6 @@ const VOICE_OPTIONS = [
     { value: 'Fenrir', label: 'Fenrir (Male - Deep)' },
     { value: 'Charon', label: 'Charon (Male - Authoritative)' },
 ];
-
-// Standardized Technical Label Style: 12px
-const LABEL_STYLE = "font-mono text-[12px] uppercase tracking-[0.15em] text-cyan-600 font-bold mb-1 block";
 
 interface CharacterCardProps {
     character: Character;
@@ -112,10 +110,10 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                     <div className="space-y-4 animate-fade-in flex-grow">
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className={LABEL_STYLE}>Role</label>
+                                <label className="label-studio">Role</label>
                                 <input
                                     type="text" value={editedRole} onChange={(e) => setEditedRole(e.target.value)}
-                                    className="w-full bg-slate-950 p-2 rounded-lg text-cyan-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-bold font-mono"
+                                    className="w-full input-studio p-2 text-cyan-300 text-xs font-bold font-mono"
                                     list={`roles-list-${character.id}`}
                                 />
                                 <datalist id={`roles-list-${character.id}`}>
@@ -123,11 +121,11 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                                 </datalist>
                             </div>
                             <div>
-                                <label className={LABEL_STYLE}>Voice Model</label>
+                                <label className="label-studio">Voice Model</label>
                                 <select
                                     value={editedVoice}
                                     onChange={(e) => setEditedVoice(e.target.value)}
-                                    className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-medium font-mono cursor-pointer"
+                                    className="w-full input-studio p-2 text-white text-xs font-medium font-mono cursor-pointer"
                                 >
                                     {VOICE_OPTIONS.map(voice => (
                                         <option key={voice.value} value={voice.value}>{voice.label}</option>
@@ -137,15 +135,15 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                         </div>
 
                         <div>
-                            <label className={LABEL_STYLE}>Name</label>
+                            <label className="label-studio">Name</label>
                             <input
                                 type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-white border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-lg font-bold font-display uppercase tracking-wide"
+                                className="w-full input-studio p-2 text-white text-lg font-bold font-display uppercase tracking-wide"
                             />
                         </div>
                         <div>
                              <div className="flex justify-between items-center mb-1">
-                                <label className={LABEL_STYLE}>Avatar URL</label>
+                                <label className="label-studio">Avatar URL</label>
                                 <button 
                                     onClick={handleGeneratePortrait}
                                     disabled={isGeneratingImage}
@@ -156,15 +154,15 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                              </div>
                              <input
                                 type="text" value={editedImageUrl} onChange={(e) => setEditedImageUrl(e.target.value)}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs font-mono"
+                                className="w-full input-studio p-2 text-slate-300 text-xs font-mono"
                                 placeholder="https://..."
                             />
                         </div>
                         <div>
-                            <label className={LABEL_STYLE}>Dossier Description</label>
+                            <label className="label-studio">Dossier Description</label>
                             <textarea
                                 value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} rows={6}
-                                className="w-full bg-slate-950 p-2 rounded-lg text-slate-300 border border-white/10 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm leading-relaxed resize-none font-sans"
+                                className="w-full input-studio p-2 text-slate-300 text-sm leading-relaxed resize-none font-sans"
                             />
                         </div>
                     </div>
@@ -211,7 +209,6 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
                  {isEditing ? (
                     <div className="flex gap-2">
                         <button onClick={handleCancelClick} className="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5 font-sans">Cancel</button>
-                        {/* Applied btn-glow with tactile active states via index.html CSS */}
                         <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 px-4 rounded text-xs py-1.5">
                             <SaveIcon /> Save
                         </button>
