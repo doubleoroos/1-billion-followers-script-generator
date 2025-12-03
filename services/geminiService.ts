@@ -1,27 +1,40 @@
 
-import { GoogleGenAI, Type, Modality } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// Dynamic helper to ensure we always get a fresh instance with the latest key
+const getAI = () => {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+        throw new Error("API_KEY environment variable not set. Please select an API Key.");
+    }
+    return new GoogleGenAI({ apiKey });
+};
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Processes a list of items in batches.
+ * Processes a list of items in batches with optional progress callback.
  */
-export async function processInBatches<T, R>(items: T[], processItem: (item: T) => Promise<R>, batchSize: number, batchDelay: number = 0): Promise<R[]> {
+export async function processInBatches<T, R>(
+    items: T[], 
+    processItem: (item: T) => Promise<R>, 
+    batchSize: number, 
+    batchDelay: number = 0,
+    onProgress?: (completed: number, total: number) => void
+): Promise<R[]> {
     const results: R[] = [];
+    let completed = 0;
+    
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
         const batchPromises = batch.map(processItem);
         const batchResults = await Promise.all(batchPromises);
         results.push(...batchResults);
+        
+        completed += batch.length;
+        if (onProgress) onProgress(completed, items.length);
+
         if (i + batchSize < items.length && batchDelay > 0) {
             await delay(batchDelay);
         }
@@ -34,29 +47,23 @@ const cleanJson = (text: string): string => {
     if (!text) return '{}';
     let cleaned = text.trim();
     
-    // 1. Extract content from Markdown code blocks first
     const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
     const matches = [...cleaned.matchAll(codeBlockRegex)];
     if (matches.length > 0) {
-        // Use the content of the first code block found
         cleaned = matches[0][1].trim();
     }
     
-    // 2. Remove any text before the first '{' and after the last '}'
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
     
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
         cleaned = cleaned.substring(firstBrace, lastBrace + 1);
     } else {
-        // If no braces found, return empty object string to prevent crash
         console.warn("No valid JSON object found in response");
         return '{}';
     }
     
-    // 3. Simple cleanup of common issues (optional but helpful)
-    cleaned = cleaned.replace(/,\s*}/g, '}'); // Remove trailing commas
-    
+    cleaned = cleaned.replace(/,\s*}/g, '}');
     return cleaned;
 };
 
@@ -111,7 +118,6 @@ async function generateWithRetry<T>(operation: () => Promise<T>, retries = 3, in
             const isQuotaError = errorMessage.includes('429') || errorMessage.includes('Quota') || errorMessage.includes('RESOURCE_EXHAUSTED') || error.status === 429 || error.code === 429;
             
             if (isQuotaError && i < retries - 1) {
-                // Exponential backoff: 10s, 20s, 40s...
                 const delayTime = initialDelay * Math.pow(2, i); 
                 console.warn(`Quota exceeded (429). Retrying in ${delayTime/1000}s...`, error);
                 await delay(delayTime);
@@ -126,6 +132,7 @@ async function generateWithRetry<T>(operation: () => Promise<T>, retries = 3, in
 export const generateScriptAudio = async (text: string, voiceName: string = 'Kore'): Promise<string> => {
     return generateWithRetry(async () => {
         try {
+            const ai = getAI();
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-flash-preview-tts",
                 contents: [{ parts: [{ text: text }] }],
@@ -157,7 +164,7 @@ export const generateScriptAudio = async (text: string, voiceName: string = 'Kor
             console.error("Audio generation failed:", error);
             throw error;
         }
-    }, 3, 10000); // Start with 10s wait, retry 3 times
+    }, 3, 10000); 
 };
 
 // --- CONTENT GENERATION HELPERS ---
@@ -264,7 +271,12 @@ Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "ti
 const createBTSPrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, synopsis: string, outline: Scene[]): string => {
     return `
 Write a "Behind The Scenes" doc for the film "${synopsis.substring(0, 30)}...".
-Includes: Director's Statement, Visual Approach (${visualStyle}), AI Workflow (Phase | Tool), and Ethical AI Usage.
+Includes: 
+- Director's Statement (Director: Roos van der Jagt, Date: December 3, 2025)
+- Visual Approach (${visualStyle})
+- AI Workflow (Phase | Tool)
+- Ethical AI Usage
+
 Return raw Markdown.
 `;
 }
@@ -376,15 +388,21 @@ const generateRawImage = async (prompt: string): Promise<string | null> => {
     sanitizedPrompt = sanitizedPrompt.replace(/\b(boy|girl)\b/gi, 'character');
 
     try {
+        const ai = getAI();
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image',
             contents: sanitizedPrompt,
         });
 
-        const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-        if (part && part.inlineData) {
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        // Search through all parts for image data
+        if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
+            for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                }
+            }
         }
+        console.warn("No image data found in response");
         return null;
     } catch (e) {
         console.error("Image generation failed:", e);
@@ -399,6 +417,8 @@ export const generateCreativeAssets = async (
     narrativeTone: NarrativeTone
 ): Promise<GeneratedAssets> => {
     
+    const ai = getAI();
+
     // 1. Core Concept
     const conceptPrompt = createCoreConceptPrompt(theme, intensity, visualStyle, narrativeTone);
     const conceptResp = await ai.models.generateContent({
@@ -492,7 +512,6 @@ export const generateCreativeAssets = async (
         
         if (block.type === 'dialogue') {
             const charName = block.characterName;
-            // Case-insensitive, trimmed match
             const found = charactersWithVoices.find((c: any) => c.name.trim().toLowerCase() === charName?.trim().toLowerCase());
             if (found) {
                 charId = found.id;
@@ -518,6 +537,7 @@ export const regenerateFullScript = async (
     tone: NarrativeTone,
     characters: Character[]
 ): Promise<ScriptBlock[]> => {
+    const ai = getAI();
     // Reconstruct prompt with existing context to keep continuity
     const charList = characters.map(c => `${c.name} (${c.role}): ${c.description}`).join('\n');
     const prompt = `
@@ -567,6 +587,7 @@ Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": ".
 
 export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal): Promise<string> => {
     if (signal?.aborted) throw new Error('Operation aborted');
+    const ai = getAI();
 
     let operation = await ai.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
@@ -574,8 +595,13 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
         config: { numberOfVideos: 1, resolution: '1080p', aspectRatio: '16:9' }
     });
 
+    const startTime = Date.now();
+    const TIMEOUT_MS = 300000; // 5 minutes timeout
+
     while (!operation.done) {
         if (signal?.aborted) throw new Error('Operation aborted');
+        if (Date.now() - startTime > TIMEOUT_MS) throw new Error('Video generation timed out.');
+        
         await new Promise(resolve => setTimeout(resolve, 5000));
         operation = await ai.operations.getVideosOperation({ operation: operation });
     }
@@ -584,7 +610,8 @@ export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal):
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!downloadLink) throw new Error("No video URI returned.");
 
-    const response = await fetch(`${downloadLink}&key=${API_KEY}`);
+    // Note: The key is appended here, relying on process.env.API_KEY being up to date
+    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
     if (!response.ok) throw new Error("Failed to download generated video.");
     const blob = await response.blob();
     return URL.createObjectURL(blob);
@@ -606,18 +633,21 @@ export const generateCharacterPortrait = async (character: Character, visualStyl
 };
 
 export const regenerateVideoPromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    const ai = getAI();
     const prompt = createVideoPromptRefinementPrompt(scene, visualStyle);
     const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text?.trim() || scene.description;
 };
 
 export const regenerateImagePromptForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    const ai = getAI();
     const prompt = createImagePromptRefinementPrompt(scene, visualStyle);
     const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text?.trim() || scene.description;
 };
 
 export const regenerateDescriptionForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
+    const ai = getAI();
     const prompt = `
 You are a visionary film director and atmospheric writer.
 Task: Rewrite the description for this film scene to be highly evocative, sensory-rich, and cinematic.
@@ -645,6 +675,7 @@ export const refineSceneTransitions = async (outline: Scene[], visualStyle: Visu
     const pairs = outline.map((scene, i) => ({ current: scene, next: outline[i + 1] }));
     return processInBatches(pairs, async ({ current, next }) => {
         try {
+            const ai = getAI();
             const prompt = createTransitionRefinementPrompt(current, next, visualStyle);
             const resp = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
             return { id: current.id, transition: resp.text?.trim() || "Cut to next." };
@@ -673,6 +704,7 @@ export const analyzeSceneDependencies = async (outline: Scene[]): Promise<{id: s
         `;
 
         try {
+            const ai = getAI();
             const response = await ai.models.generateContent({
                  model: 'gemini-3-pro-preview',
                  contents: prompt,
@@ -691,6 +723,7 @@ export const analyzeSceneDependencies = async (outline: Scene[]): Promise<{id: s
 
 export const regenerateTitleForScene = async (scene: Scene): Promise<string> => {
     try {
+        const ai = getAI();
         const prompt = createTitleRefinementPrompt(scene);
         const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
         return response.text?.trim() || scene.title;
@@ -700,6 +733,7 @@ export const regenerateTitleForScene = async (scene: Scene): Promise<string> => 
 };
 
 export const regenerateBTS = async (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone, script: ScriptBlock[], characters: Character[], outline: Scene[]): Promise<string> => {
+    const ai = getAI();
     const prompt = createBTSPrompt(theme, visualStyle, `Story about ${theme}`, outline);
     const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: prompt });
     return response.text || "Failed to regenerate BTS.";

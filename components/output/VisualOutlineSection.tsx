@@ -81,8 +81,8 @@ const CinematicSceneCard: React.FC<any> = ({
     return (
         <div className="bg-gunmetal border border-white/10 shadow-lg relative group overflow-hidden rounded-sm transition-all hover:border-cyan-500/20">
             {/* Monitor Header */}
-            <div className="bg-black/80 border-b border-white/10 p-3 flex justify-between items-center">
-                <div className="flex items-center gap-4 flex-grow">
+            <div className="bg-black/80 border-b border-white/10 p-3 flex flex-col md:flex-row md:justify-between items-start md:items-center gap-4 md:gap-0">
+                <div className="flex items-center gap-4 flex-grow w-full md:w-auto">
                     <div className="font-mono text-cyan-400 text-xl font-bold border-r border-white/10 pr-4">
                         {String(scene.sceneNumber).padStart(2, '0')}
                     </div>
@@ -134,10 +134,10 @@ const CinematicSceneCard: React.FC<any> = ({
                 </div>
                 
                 {/* Hardware Toggle Switch - Tactile Active States Implemented */}
-                <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0 shadow-inner">
+                <div className="flex bg-black p-0.5 rounded-sm border border-white/20 flex-shrink-0 shadow-inner w-full md:w-auto justify-center">
                     <button 
                         onClick={() => setActiveTab('video')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px] relative
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px] relative flex-1 md:flex-none text-center
                         ${activeTab === 'video' 
                             ? 'toggle-active translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] bg-transparent opacity-60'}`}
@@ -150,7 +150,7 @@ const CinematicSceneCard: React.FC<any> = ({
                     </button>
                     <button 
                         onClick={() => setActiveTab('image')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px] relative
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all duration-100 rounded-sm focus:outline-none active:translate-y-[1px] relative flex-1 md:flex-none text-center
                         ${activeTab === 'image' 
                              ? 'toggle-active translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] bg-transparent opacity-60'}`}
@@ -165,7 +165,7 @@ const CinematicSceneCard: React.FC<any> = ({
 
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[400px]">
                 {/* Viewport */}
-                <div className="lg:col-span-8 bg-black relative border-r border-white/10 flex items-center justify-center overflow-hidden">
+                <div className="lg:col-span-8 bg-black relative border-r border-white/10 flex items-center justify-center overflow-hidden min-h-[300px]">
                      {/* CRT Vignette Effect */}
                      <div className="absolute inset-0 z-20 shadow-[inset_0_0_50px_rgba(0,0,0,1)] pointer-events-none"></div>
 
@@ -234,7 +234,7 @@ const CinematicSceneCard: React.FC<any> = ({
                     <div className="flex flex-col gap-1 h-full"> {/* Studio Spacing: gap-1 */}
                          
                          {/* Characters Slot */}
-                         <div className="bg-black/40 border border-white/5 p-2 rounded-sm min-h-[40px]">
+                         <div className="input-studio p-2 rounded-sm min-h-[40px]">
                             <div className="flex flex-wrap gap-2">
                                 {parsedCharacters.map((char: string, idx: number) => (
                                     <React.Fragment key={idx}>{getCharacterChip(char)}</React.Fragment>
@@ -243,19 +243,19 @@ const CinematicSceneCard: React.FC<any> = ({
                          </div>
 
                         {/* Description Slot */}
-                        <div className="bg-black/40 border border-white/5 p-2 rounded-sm flex-grow flex flex-col">
+                        <div className="input-studio p-2 rounded-sm flex-grow flex flex-col">
                             <label className="label-studio mb-1">Action Description</label>
                             {/* Input container is the slot; Textarea is transparent content */}
                             <textarea
                                 value={scene.description}
                                 onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
-                                className="w-full bg-transparent border-none p-0 text-slate-300 font-sans text-xs resize-none focus:ring-0 leading-relaxed flex-grow placeholder-slate-600 focus:bg-black/20 transition-colors rounded-sm"
+                                className="w-full bg-transparent border-none p-0 text-slate-300 font-sans text-xs resize-none focus:ring-0 leading-relaxed flex-grow placeholder-slate-600 transition-colors"
                                 placeholder="Describe the action..."
                             />
                         </div>
                         
                         {/* Prompt Slot */}
-                         <div className="bg-black/40 border border-white/5 p-2 rounded-sm">
+                         <div className="input-studio p-2 rounded-sm">
                             <div className="flex justify-between items-center mb-1">
                                 <label className="label-studio mb-0">Prompt Engineer</label>
                                 <button onClick={() => activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene)} className="text-[9px] font-bold text-slate-400 hover:text-white uppercase flex items-center gap-1 transition-colors">
@@ -265,13 +265,13 @@ const CinematicSceneCard: React.FC<any> = ({
                             <textarea
                                 value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
                                 onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
-                                className="w-full bg-transparent border-none p-0 text-slate-400 font-mono text-[10px] resize-none h-20 leading-relaxed focus:ring-0 focus:bg-black/20 transition-colors rounded-sm"
+                                className="w-full bg-transparent border-none p-0 text-slate-400 font-mono text-[10px] resize-none h-20 leading-relaxed focus:ring-0 transition-colors"
                                 placeholder="Technical prompt..."
                             />
                         </div>
                         
                         {/* Transition Slot */}
-                        <div className="bg-black/40 border border-white/5 p-2 rounded-sm">
+                        <div className="input-studio p-2 rounded-sm">
                             <label className="label-studio mb-1">Transition</label>
                             <input
                                 type="text"
@@ -367,7 +367,7 @@ export const VisualOutlineSection: React.FC<{
                     const imagePrompt = await regenerateImagePromptForScene(s, visualStyle);
                     return { ...s, imagePrompt };
                 } catch { return s; }
-            }, 3, 100);
+            }, 3, 100, (completed, total) => setMasterBulkStatus(`Enhancing Image Prompts ${completed}/${total}...`));
             
             // 2. Refine Video Prompts
             const finalOutline = await processInBatches<Scene, Scene>(withImages, async (s) => {
@@ -375,7 +375,7 @@ export const VisualOutlineSection: React.FC<{
                     const videoPrompt = await regenerateVideoPromptForScene(s, visualStyle);
                     return { ...s, videoPrompt };
                 } catch { return s; }
-            }, 3, 100);
+            }, 3, 100, (completed, total) => setMasterBulkStatus(`Enhancing Video Prompts ${completed}/${total}...`));
 
             onSave(finalOutline);
             save(finalOutline);
@@ -419,7 +419,7 @@ export const VisualOutlineSection: React.FC<{
                     const description = await regenerateDescriptionForScene(s, visualStyle);
                     return { ...s, description };
                 } catch { return s; }
-            }, 3, 100);
+            }, 3, 100, (completed, total) => setMasterBulkStatus(`Deepening Narrative ${completed}/${total}...`));
             onSave(newOutline);
             save(newOutline);
         } catch (e) {
@@ -440,7 +440,7 @@ export const VisualOutlineSection: React.FC<{
                     const title = await regenerateTitleForScene(s);
                     return { ...s, title };
                 } catch { return s; }
-            }, 4, 50);
+            }, 4, 50, (completed, total) => setMasterBulkStatus(`Refining Titles ${completed}/${total}...`));
             onSave(newOutline);
             save(newOutline);
         } catch (e) {
@@ -485,7 +485,7 @@ export const VisualOutlineSection: React.FC<{
                 if (!updated.imagePrompt) updated.imagePrompt = await regenerateImagePromptForScene(s, visualStyle);
                 if (!updated.videoPrompt) updated.videoPrompt = await regenerateVideoPromptForScene(s, visualStyle);
                 return updated;
-            }, 3, 100);
+            }, 3, 100, (completed, total) => setMasterBulkStatus(`Filling Prompts ${completed}/${total}...`));
 
             const newOutline = outlineRef.current.map(s => {
                 const update = updatedScenes.find(u => u.id === s.id);
@@ -523,7 +523,7 @@ export const VisualOutlineSection: React.FC<{
                      console.error(`Failed to generate image for scene ${scene.id}`, e);
                      return scene;
                  }
-             }, 3, 500);
+             }, 3, 500, (completed, total) => setMasterBulkStatus(`Developing ${completed}/${total} Previews...`));
 
              const newOutline = outlineRef.current.map(s => {
                  const updated = results.find(r => r.id === s.id);
@@ -570,7 +570,7 @@ export const VisualOutlineSection: React.FC<{
                     console.error(`Failed to generate video for scene ${scene.id}`, e);
                     return scene;
                 }
-            }, 1, 2000);
+            }, 1, 2000, (completed, total) => setMasterBulkStatus(`Rendering ${completed}/${total} Clips...`));
 
             const newOutline = outlineRef.current.map(s => {
                 const updated = results.find(r => r.id === s.id);
