@@ -15,6 +15,7 @@ const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 
 const SearchIcon = () => <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const MagicWandIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 9a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-4a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1V8a1 1 0 011-1z" clipRule="evenodd" /></svg>;
 const LinkIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" /></svg>;
+const SpinnerIcon = () => <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>;
 
 const StaticNoise = () => (
     <div className="absolute inset-0 bg-black flex flex-col justify-center items-center overflow-hidden pointer-events-none">
@@ -31,7 +32,7 @@ const StaticNoise = () => (
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     if (status === 'dirty') return <span className="text-cyan-400 text-[10px] font-mono uppercase">Saving...</span>;
-    if (status === 'saving') return <span className="text-cyan-400 text-[10px] font-mono uppercase flex items-center gap-1"><svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Sync</span>;
+    if (status === 'saving') return <span className="text-cyan-400 text-[10px] font-mono uppercase flex items-center gap-1"><SpinnerIcon />Sync</span>;
     if (status === 'saved') return <span className="text-slate-500 text-[10px] font-mono uppercase flex items-center gap-1"><CheckmarkIcon />Synced</span>;
     return <div className="h-4"></div>;
 };
@@ -192,7 +193,11 @@ const CinematicSceneCard: React.FC<any> = ({
                                             disabled={isVideoGenerating || isVeoKeySelected === null}
                                             className="btn-gold px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-wider flex items-center gap-2"
                                         >
-                                            {isVideoGenerating ? 'Rendering Clip...' : 'Generate Video'}
+                                            {isVideoGenerating ? (
+                                                <><SpinnerIcon /> Rendering...</>
+                                            ) : (
+                                                'Generate Video'
+                                            )}
                                         </button>
                                         {(isVeoKeySelected === false || isVeoKeySelected === null) && (
                                             <div className="text-[10px] text-red-400 mt-2 font-mono bg-black/50 px-2 rounded">
@@ -214,7 +219,11 @@ const CinematicSceneCard: React.FC<any> = ({
                                             disabled={isImageGenerating}
                                             className="btn-tactical px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-wider text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10"
                                         >
-                                            {isImageGenerating ? 'Developing...' : 'Generate Preview'}
+                                            {isImageGenerating ? (
+                                                <><SpinnerIcon /> Developing...</>
+                                            ) : (
+                                                'Generate Preview'
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -301,6 +310,7 @@ export const VisualOutlineSection: React.FC<{
     const [generatingVideoId, setGeneratingVideoId] = useState<string | null>(null);
     const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
     const [masterBulkStatus, setMasterBulkStatus] = useState<string | null>(null);
+    const [activeBulkAction, setActiveBulkAction] = useState<string | null>(null);
     
     const [searchQuery, setSearchQuery] = useState('');
     const [locationFilter, setLocationFilter] = useState('ALL');
@@ -351,6 +361,7 @@ export const VisualOutlineSection: React.FC<{
     useEffect(() => { outlineRef.current = outline; }, [outline]);
 
     const handleOptimizeAllPrompts = async () => {
+        setActiveBulkAction('upgrade_prompts');
         setMasterBulkStatus('Enhancing Prompts...');
         playSound();
         
@@ -378,10 +389,12 @@ export const VisualOutlineSection: React.FC<{
             alert("Bulk refinement failed.");
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
     const handleRefineTransitions = async () => {
+        setActiveBulkAction('refine_transitions');
         setMasterBulkStatus('Analyzing Flow...');
         playSound();
         try {
@@ -397,10 +410,12 @@ export const VisualOutlineSection: React.FC<{
             alert("Transition refinement failed.");
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
     const handleRefineDescriptions = async () => {
+        setActiveBulkAction('refine_descriptions');
         setMasterBulkStatus('Deepening Narrative...');
         playSound();
         try {
@@ -416,10 +431,12 @@ export const VisualOutlineSection: React.FC<{
             console.error(e);
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
     const handleRefineTitles = async () => {
+        setActiveBulkAction('refine_titles');
         setMasterBulkStatus('Refining Titles...');
         playSound();
         try {
@@ -435,10 +452,12 @@ export const VisualOutlineSection: React.FC<{
             console.error(e);
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
     const handleAnalyzeDependencies = async () => {
+        setActiveBulkAction('analyze_flow');
         setMasterBulkStatus('Mapping Dependencies...');
         playSound();
         try {
@@ -454,10 +473,12 @@ export const VisualOutlineSection: React.FC<{
             alert("Dependency analysis failed.");
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
     const handleFillMissingPrompts = async () => {
+        setActiveBulkAction('fill_missing');
         setMasterBulkStatus('Filling Gaps...');
         playSound();
         try {
@@ -482,6 +503,7 @@ export const VisualOutlineSection: React.FC<{
              console.error(e);
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
@@ -492,6 +514,7 @@ export const VisualOutlineSection: React.FC<{
             return;
         }
         
+        setActiveBulkAction('render_images');
         setMasterBulkStatus(`Developing ${scenesMissingImages.length} Previews...`);
         playSound();
 
@@ -520,6 +543,7 @@ export const VisualOutlineSection: React.FC<{
             alert("Bulk preview generation failed.");
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
@@ -536,6 +560,7 @@ export const VisualOutlineSection: React.FC<{
             return;
         }
 
+        setActiveBulkAction('render_videos');
         setMasterBulkStatus(`Rendering ${scenesMissingVideos.length} Clips...`);
         playSound();
 
@@ -565,6 +590,7 @@ export const VisualOutlineSection: React.FC<{
             alert("Bulk video generation failed.");
         } finally {
             setMasterBulkStatus(null);
+            setActiveBulkAction(null);
         }
     };
 
@@ -638,32 +664,38 @@ export const VisualOutlineSection: React.FC<{
                     
                     {/* Zone 2: Analysis & Refinement */}
                     <div className="flex items-center gap-1 bg-black/20 p-1 rounded-sm border border-white/5">
-                        <button onClick={handleAnalyzeDependencies} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm" title="Analyze Narrative Flow">
-                            <LinkIcon /> Flow
+                        <button onClick={handleAnalyzeDependencies} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm min-w-[80px] justify-center" title="Analyze Narrative Flow">
+                            {activeBulkAction === 'analyze_flow' ? <><SpinnerIcon /> Analyzing</> : <><LinkIcon /> Flow</>}
                         </button>
                         <div className="h-4 w-px bg-white/10 mx-1"></div>
-                        <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono">Titles</button>
-                        <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono">Story</button>
-                        <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono">Trans.</button>
+                        <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1">
+                            {activeBulkAction === 'refine_titles' && <SpinnerIcon />} Titles
+                        </button>
+                        <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1">
+                            {activeBulkAction === 'refine_descriptions' && <SpinnerIcon />} Story
+                        </button>
+                        <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1">
+                            {activeBulkAction === 'refine_transitions' && <SpinnerIcon />} Trans.
+                        </button>
                     </div>
 
                     {/* Zone 3: AI Enhancement */}
                     <div className="flex items-center gap-1">
-                        <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300" title="Auto-Fill Missing Prompts">
-                            <MagicWandIcon /> Auto-Fill
+                        <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[90px] justify-center" title="Auto-Fill Missing Prompts">
+                            {activeBulkAction === 'fill_missing' ? <><SpinnerIcon /> Filling</> : <><MagicWandIcon /> Auto-Fill</>}
                         </button>
-                        <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-400 border-cyan-500/30">
-                            <SparklesIcon /> Upgrade Prompts
+                        <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-400 border-cyan-500/30 min-w-[120px] justify-center">
+                            {activeBulkAction === 'upgrade_prompts' ? <><SpinnerIcon /> Upgrading...</> : <><SparklesIcon /> Upgrade Prompts</>}
                         </button>
                     </div>
 
                     {/* Zone 4: Production (Rendering) */}
                     <div className="h-6 w-px bg-white/10 mx-2"></div>
-                     <button onClick={handleGenerateAllPreviews} disabled={!!masterBulkStatus} className="btn-gold px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm">
-                        <ImageIcon /> Render All Images
+                     <button onClick={handleGenerateAllPreviews} disabled={!!masterBulkStatus} className="btn-gold px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm min-w-[130px] justify-center">
+                        {activeBulkAction === 'render_images' ? <><SpinnerIcon /> Developing...</> : <><ImageIcon /> Render All Images</>}
                     </button>
-                    <button onClick={handleGenerateAllVideos} disabled={!!masterBulkStatus} className="btn-gold px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm border-l border-white/20">
-                        <VideoIcon /> Render All Videos
+                    <button onClick={handleGenerateAllVideos} disabled={!!masterBulkStatus} className="btn-gold px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm border-l border-white/20 min-w-[130px] justify-center">
+                        {activeBulkAction === 'render_videos' ? <><SpinnerIcon /> Rendering...</> : <><VideoIcon /> Render All Videos</>}
                     </button>
                 </div>
             </div>
@@ -676,7 +708,7 @@ export const VisualOutlineSection: React.FC<{
                  <div className="flex items-center gap-4">
                     {masterBulkStatus && (
                         <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs uppercase animate-pulse">
-                            <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                            <SpinnerIcon />
                             {masterBulkStatus}
                         </div>
                     )}
