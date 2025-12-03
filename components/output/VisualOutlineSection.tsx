@@ -150,14 +150,14 @@ const CinematicSceneCard: React.FC<any> = ({
                 <div className="flex bg-black p-0.5 rounded-sm border border-white/20 ml-4 flex-shrink-0 shadow-inner">
                     <button 
                         onClick={() => setActiveTab('video')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm focus:outline-none active:translate-y-[1px] active:shadow-inner
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm focus:outline-none active:translate-y-[1px] active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]
                         ${activeTab === 'video' 
                             ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-cyan-500/30 translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 opacity-60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] bg-transparent'}`}
                     >Video</button>
                     <button 
                         onClick={() => setActiveTab('image')} 
-                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm focus:outline-none active:translate-y-[1px] active:shadow-inner
+                        className={`px-4 py-1 text-[10px] font-bold uppercase font-mono transition-all rounded-sm focus:outline-none active:translate-y-[1px] active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]
                         ${activeTab === 'image' 
                              ? 'bg-slate-800 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-cyan-500/30 translate-y-[0px] z-10' 
                             : 'text-slate-600 hover:text-slate-400 opacity-60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] bg-transparent'}`}

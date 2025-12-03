@@ -105,6 +105,13 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             <p className="font-mono text-slate-500 text-sm tracking-wider uppercase">
                 System Ready. Initialize Narrative Parameters.
             </p>
+            {/* Created for badge */}
+            <div className="inline-block mt-4 px-4 py-1.5 bg-gunmetal border border-white/10 rounded-sm shadow-xl">
+                 <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                    Created for the 1 Billion Followers Competition
+                 </span>
+            </div>
         </div>
       
         <div className="space-y-12 bg-studio-black p-4 md:p-8 border border-white/5 rounded-sm shadow-2xl relative">
