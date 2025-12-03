@@ -221,49 +221,53 @@ const CinematicSceneCard: React.FC<any> = ({
 
                 {/* Data Panel */}
                 <div className="lg:col-span-4 bg-gunmetal p-4 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
-                    <div className="flex flex-col gap-2"> {/* Studio Spacing */}
+                    <div className="flex flex-col gap-1 h-full"> {/* Studio Spacing: gap-1 */}
                          
-                         {/* Characters */}
-                         <div className="flex flex-wrap gap-2 mb-2 p-1">
-                            {parsedCharacters.map((char: string, idx: number) => (
-                                <React.Fragment key={idx}>{getCharacterChip(char)}</React.Fragment>
-                            ))}
+                         {/* Characters Slot */}
+                         <div className="bg-black/40 border border-white/5 p-2 rounded-sm min-h-[40px]">
+                            <div className="flex flex-wrap gap-2">
+                                {parsedCharacters.map((char: string, idx: number) => (
+                                    <React.Fragment key={idx}>{getCharacterChip(char)}</React.Fragment>
+                                ))}
+                            </div>
                          </div>
 
-                        {/* Description Cartridge */}
-                        <div>
-                            <label className="label-studio">Action Description</label>
-                            {/* Switched to font-sans for creative readability, using standard input-studio style */}
+                        {/* Description Slot */}
+                        <div className="bg-black/40 border border-white/5 p-2 rounded-sm flex-grow flex flex-col">
+                            <label className="label-studio mb-1">Action Description</label>
+                            {/* Input container is the slot; Textarea is transparent content */}
                             <textarea
                                 value={scene.description}
                                 onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
-                                className="w-full input-studio text-slate-300 font-sans text-xs resize-none h-28 p-2 leading-relaxed"
+                                className="w-full bg-transparent border-none p-0 text-slate-300 font-sans text-xs resize-none focus:ring-0 leading-relaxed flex-grow placeholder-slate-600 focus:bg-black/20 transition-colors rounded-sm"
+                                placeholder="Describe the action..."
                             />
                         </div>
                         
-                        {/* Prompt Cartridge */}
-                         <div className="mt-2">
-                            <div className="flex justify-between items-center">
-                                <label className="label-studio">Prompt Engineer</label>
-                                <button onClick={() => activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene)} className="text-[9px] font-bold text-slate-400 hover:text-white uppercase flex items-center gap-1 transition-colors mb-1">
+                        {/* Prompt Slot */}
+                         <div className="bg-black/40 border border-white/5 p-2 rounded-sm">
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="label-studio mb-0">Prompt Engineer</label>
+                                <button onClick={() => activeTab === 'video' ? onRegenerateVideoPrompt(scene) : onRegenerateImagePrompt(scene)} className="text-[9px] font-bold text-slate-400 hover:text-white uppercase flex items-center gap-1 transition-colors">
                                     <SparklesIcon /> AI Refine
                                 </button>
                             </div>
                             <textarea
                                 value={activeTab === 'video' ? (scene.videoPrompt || '') : (scene.imagePrompt || '')}
                                 onChange={(e) => onUpdate({ ...scene, [activeTab === 'video' ? 'videoPrompt' : 'imagePrompt']: e.target.value })}
-                                className="w-full input-studio text-slate-400 font-mono text-[10px] resize-none h-24 leading-relaxed p-2"
+                                className="w-full bg-transparent border-none p-0 text-slate-400 font-mono text-[10px] resize-none h-20 leading-relaxed focus:ring-0 focus:bg-black/20 transition-colors rounded-sm"
+                                placeholder="Technical prompt..."
                             />
                         </div>
                         
-                        {/* Transition Cartridge */}
-                        <div className="mt-2">
-                            <label className="label-studio">Transition</label>
+                        {/* Transition Slot */}
+                        <div className="bg-black/40 border border-white/5 p-2 rounded-sm">
+                            <label className="label-studio mb-1">Transition</label>
                             <input
                                 type="text"
                                 value={scene.transition || ''}
                                 onChange={(e) => onUpdate({ ...scene, transition: e.target.value })}
-                                className="w-full input-studio text-slate-300 font-mono text-xs p-2"
+                                className="w-full bg-transparent border-none p-0 text-slate-300 font-mono text-xs focus:ring-0 placeholder-slate-600"
                                 placeholder="Cut to..."
                             />
                         </div>
@@ -631,8 +635,9 @@ export const VisualOutlineSection: React.FC<{
                         />
                     </div>
                     
+                    {/* Fixed Alignment Flex Container */}
                     <div className="relative h-full flex items-center bg-black/40 border border-white/10 rounded-sm">
-                         <div className="absolute left-3 pointer-events-none z-10">
+                         <div className="absolute left-3 pointer-events-none z-10 text-slate-500">
                             <FilterIcon />
                          </div>
                         <select 
