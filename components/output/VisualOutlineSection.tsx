@@ -133,7 +133,7 @@ const CinematicSceneCard: React.FC<any> = ({
                     </div>
                 </div>
                 
-                {/* Hardware Toggle Switch */}
+                {/* Hardware Toggle Switch - Tactile Active States Implemented */}
                 <div className="flex bg-black p-0.5 rounded-sm border border-white/20 flex-shrink-0 shadow-inner w-full md:w-auto justify-center">
                     <button 
                         onClick={() => setActiveTab('video')} 
@@ -143,6 +143,7 @@ const CinematicSceneCard: React.FC<any> = ({
                             : 'text-slate-600 hover:text-slate-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] bg-transparent opacity-60'}`}
                     >
                         Video
+                        {/* Status Indicator for Inactive but present media */}
                         {activeTab !== 'video' && scene.videoUrl && (
                             <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4]"></span>
                         )}
@@ -165,14 +166,17 @@ const CinematicSceneCard: React.FC<any> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[400px]">
                 {/* Viewport */}
                 <div className="lg:col-span-8 bg-black relative border-r border-white/10 flex items-center justify-center overflow-hidden min-h-[300px]">
+                     {/* CRT Vignette Effect */}
                      <div className="absolute inset-0 z-20 shadow-[inset_0_0_50px_rgba(0,0,0,1)] pointer-events-none"></div>
 
+                     {/* HUD */}
                      <div className="absolute top-4 left-4 text-[8px] font-mono text-cyan-500/50 pointer-events-none z-30 leading-tight">
                          MODE: {activeTab.toUpperCase()}<br/>
                          ASPECT: 16:9<br/>
                          CODEC: H.264
                      </div>
 
+                     {/* Display Area */}
                      <div className="relative z-10 w-full h-full flex items-center justify-center bg-black">
                         {activeTab === 'video' ? (
                              scene.videoUrl ? (
@@ -227,7 +231,7 @@ const CinematicSceneCard: React.FC<any> = ({
 
                 {/* Data Panel */}
                 <div className="lg:col-span-4 bg-gunmetal p-4 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
-                    <div className="flex flex-col gap-1 h-full"> 
+                    <div className="flex flex-col gap-1 h-full"> {/* Studio Spacing: gap-1 */}
                          
                          {/* Characters Slot */}
                          <div className="input-studio p-2 rounded-sm min-h-[40px]">
@@ -238,9 +242,10 @@ const CinematicSceneCard: React.FC<any> = ({
                             </div>
                          </div>
 
-                        {/* Description Slot - Updated to font-mono for consistency */}
+                        {/* Description Slot */}
                         <div className="input-studio p-2 rounded-sm flex-grow flex flex-col">
                             <label className="label-studio mb-1">Action Description</label>
+                            {/* Input container is the slot; Textarea is transparent content */}
                             <textarea
                                 value={scene.description}
                                 onChange={(e) => onUpdate({ ...scene, description: e.target.value })}
@@ -509,6 +514,7 @@ export const VisualOutlineSection: React.FC<{
         playSound();
 
         try {
+             // Process in batches of 3, utilizing the specific image prompt in generateImageForScene service
              const results = await processInBatches<Scene, Scene>(scenesMissingImages, async (scene) => {
                  try {
                      const imageUrl = await generateImageForScene(scene, visualStyle);
@@ -554,6 +560,8 @@ export const VisualOutlineSection: React.FC<{
         playSound();
 
         try {
+            // Process in batches of 1 (sequential) to avoid hitting Veo rate limits aggressively
+            // This is safer for video generation which is resource intensive
             const results = await processInBatches<Scene, Scene>(scenesMissingVideos, async (scene) => {
                 try {
                     const videoUrl = await generateVideoForScene(scene);
@@ -596,6 +604,7 @@ export const VisualOutlineSection: React.FC<{
         } catch (e) { console.error(e); }
     };
 
+    // Filter Logic
     const uniqueLocations = Array.from(new Set(outline.map(s => s.location))).filter(Boolean);
     const filteredScenes = outline.filter(scene => {
         const matchesSearch = 
@@ -610,6 +619,7 @@ export const VisualOutlineSection: React.FC<{
         <div className="space-y-8 animate-fade-in relative z-10">
             <ApiKeyManager isVeoKeySelected={isVeoKeySelected} onSelectKey={onSelectKey} />
 
+            {/* Master Status Bar - NEW */}
             {masterBulkStatus && (
                 <div className="bg-cyan-900/20 border border-cyan-500/30 p-2 text-center rounded-sm animate-fade-in flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(6,182,212,0.1)] mb-4">
                     <div className="text-cyan-400"><SpinnerIcon /></div>
@@ -617,6 +627,7 @@ export const VisualOutlineSection: React.FC<{
                 </div>
             )}
 
+            {/* Studio Toolbar - Organized into logical zones */}
             <div className="bg-gunmetal border-y border-white/10 p-4 sticky top-16 z-30 shadow-2xl backdrop-blur-md bg-opacity-95 flex flex-col xl:flex-row gap-4 justify-between items-center">
                 
                 {/* Zone 1: Query & Filter */}
@@ -654,51 +665,57 @@ export const VisualOutlineSection: React.FC<{
                 </div>
 
                 <div className="flex flex-wrap gap-2 justify-end items-center w-full xl:w-auto">
-                    <div className="flex items-center gap-1 bg-black/20 p-1 rounded-sm border border-white/5 overflow-x-auto max-w-[200px] xl:max-w-none no-scrollbar">
-                        <button onClick={handleAnalyzeDependencies} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm min-w-[80px] justify-center flex-shrink-0" title="Analyze Narrative Flow">
+                    
+                    {/* Zone 2: Analysis & Refinement */}
+                    <div className="flex items-center gap-1 bg-black/20 p-1 rounded-sm border border-white/5 overflow-x-auto">
+                        <button onClick={handleAnalyzeDependencies} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm min-w-[80px] justify-center active:translate-y-px active:shadow-inner" title="Analyze Narrative Flow">
                             {activeBulkAction === 'analyze_flow' ? <><SpinnerIcon /> Analyzing</> : <><LinkIcon /> Flow</>}
                         </button>
-                        <div className="h-4 w-px bg-white/10 mx-1 flex-shrink-0"></div>
-                        <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+                        <div className="h-4 w-px bg-white/10 mx-1"></div>
+                        <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap active:translate-y-px active:text-cyan-600 transition-transform">
                             {activeBulkAction === 'refine_titles' && <SpinnerIcon />} Titles
                         </button>
-                        <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+                        <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap active:translate-y-px active:text-cyan-600 transition-transform">
                             {activeBulkAction === 'refine_descriptions' && <SpinnerIcon />} Story
                         </button>
-                        <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+                        <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap active:translate-y-px active:text-cyan-600 transition-transform">
                             {activeBulkAction === 'refine_transitions' && <SpinnerIcon />} Trans.
                         </button>
                     </div>
 
+                    {/* Zone 3: AI Enhancement */}
                     <div className="flex items-center gap-1">
-                        <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[90px] justify-center" title="Auto-Fill Missing Prompts">
+                        <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[90px] justify-center active:translate-y-px active:shadow-inner" title="Auto-Fill Missing Prompts">
                             {activeBulkAction === 'fill_missing' ? <><SpinnerIcon /> Filling</> : <><MagicWandIcon /> Auto-Fill</>}
                         </button>
-                        <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[110px] justify-center ml-1 border-l border-white/10" title="Refine All Prompts with AI">
+                        {/* New Button */}
+                        <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[110px] justify-center ml-1 border-l border-white/10 active:translate-y-px active:shadow-inner" title="Refine All Prompts with AI">
                             {activeBulkAction === 'upgrade_prompts' ? <><SpinnerIcon /> Upgrading</> : <><SparklesIcon /> Upgrade Prompts</>}
                         </button>
                     </div>
 
-                    <div className="flex flex-wrap md:flex-nowrap items-center gap-2 pl-4 border-l border-white/10 w-full md:w-auto justify-end mt-2 md:mt-0">
+                    {/* Zone 4: Production (Render) */}
+                    <div className="flex items-center gap-2 pl-4 border-l border-white/10">
                         <button 
                             onClick={handleGenerateAllPreviews} 
                             disabled={!!masterBulkStatus}
-                            className="btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg flex-1 md:flex-none justify-center whitespace-nowrap"
+                            className="btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg active:translate-y-px active:shadow-inner"
                         >
-                            {activeBulkAction === 'render_images' ? <><SpinnerIcon /> Developing...</> : <><ImageIcon /> Render Images</>}
+                            {activeBulkAction === 'render_images' ? <><SpinnerIcon /> Developing...</> : <><ImageIcon /> Render All Images</>}
                         </button>
                         <button 
                             onClick={handleGenerateAllVideos} 
                             disabled={!!masterBulkStatus || !isVeoKeySelected}
-                            className={`btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg flex-1 md:flex-none justify-center whitespace-nowrap ${(!isVeoKeySelected) ? 'opacity-50 grayscale' : ''}`}
+                            className={`btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg active:translate-y-px active:shadow-inner ${(!isVeoKeySelected) ? 'opacity-50 grayscale' : ''}`}
                             title={!isVeoKeySelected ? "Requires Veo Authentication" : "Generate Videos"}
                         >
-                            {activeBulkAction === 'render_videos' ? <><SpinnerIcon /> Rendering...</> : <><VideoIcon /> Render Videos</>}
+                            {activeBulkAction === 'render_videos' ? <><SpinnerIcon /> Rendering...</> : <><VideoIcon /> Render All Videos</>}
                         </button>
                     </div>
                 </div>
             </div>
 
+            {/* Scene Grid */}
             <div className="grid grid-cols-1 gap-12">
                 {filteredScenes.length > 0 ? (
                     filteredScenes.map((scene) => (

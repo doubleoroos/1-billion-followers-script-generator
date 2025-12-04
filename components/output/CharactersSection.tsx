@@ -208,13 +208,13 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSave }) => {
             <div className="p-4 bg-black/20 border-t border-white/5 flex justify-end">
                  {isEditing ? (
                     <div className="flex gap-2">
-                        <button onClick={handleCancelClick} className="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5 font-sans">Cancel</button>
+                        <button onClick={handleCancelClick} className="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5 font-sans active:translate-y-px">Cancel</button>
                         <button onClick={handleSaveClick} className="btn-glow flex items-center gap-1.5 px-4 rounded text-xs py-1.5">
                             <SaveIcon /> Save
                         </button>
                     </div>
                 ) : (
-                    <button onClick={handleEditClick} className="text-xs font-medium text-slate-500 hover:text-white flex items-center gap-1.5 transition-colors px-2 py-1 font-mono uppercase tracking-wide">
+                    <button onClick={handleEditClick} className="text-xs font-medium text-slate-500 hover:text-white flex items-center gap-1.5 transition-colors px-2 py-1 font-mono uppercase tracking-wide active:translate-y-px">
                         <EditIcon /> Edit Profile
                     </button>
                 )}
