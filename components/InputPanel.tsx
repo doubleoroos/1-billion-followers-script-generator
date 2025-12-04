@@ -98,11 +98,18 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                     1 Billion Followers Film Competition
                 </p>
                 
-                {/* Official Selection Badge */}
-                <div className="relative inline-flex items-center justify-center px-8 py-2 border-y border-cyan-500/30 bg-gradient-to-r from-transparent via-cyan-900/20 to-transparent">
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-cyan-500 rotate-45 shadow-[0_0_10px_#06b6d4]"></div>
-                    <span className="text-[10px] font-mono text-slate-300 uppercase tracking-[0.3em] font-bold">Official AI Generator</span>
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-cyan-500 rotate-45 shadow-[0_0_10px_#06b6d4]"></div>
+                {/* Official Selection Badge - Refined for "Official" Feel */}
+                <div className="relative inline-flex items-center justify-center px-10 py-3 border-y border-cyan-500/50 bg-gradient-to-r from-transparent via-cyan-950/40 to-transparent shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+                     {/* Laurel-like decorations */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-cyan-400 rotate-45 shadow-[0_0_8px_#06b6d4]"></div>
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 h-px w-4 bg-cyan-500/50"></div>
+                    
+                    <span className="text-[10px] font-mono text-slate-200 uppercase tracking-[0.3em] font-bold flex items-center gap-2">
+                        <SparklesIcon /> Official AI Generator <SparklesIcon />
+                    </span>
+                    
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-px w-4 bg-cyan-500/50"></div>
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-cyan-400 rotate-45 shadow-[0_0_8px_#06b6d4]"></div>
                 </div>
             </div>
 
