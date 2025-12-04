@@ -24,9 +24,10 @@ interface ChoiceCardProps {
   onClick: () => void;
   className?: string;
   color?: 'blue' | 'red';
+  tooltip?: string;
 }
 
-const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected, onClick, className = '', color = 'blue' }) => {
+const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected, onClick, className = '', color = 'blue', tooltip }) => {
     const playSound = useSound();
     
     // Strict Blue/Slate Theme
@@ -39,6 +40,7 @@ const ChoiceCard: React.FC<ChoiceCardProps> = ({ label, description, isSelected,
         <button
             type="button"
             onClick={() => { playSound(); onClick(); }}
+            title={tooltip}
             className={`group relative flex flex-col items-start text-left p-0 transition-all duration-100 w-full h-full 
             bg-gunmetal border-l-4 ${isSelected ? activeBorder + ' ' + activeBg : 'border-slate-800 hover:border-slate-600 bg-gunmetal'} 
             border-y border-r border-y-black border-r-black border-opacity-30 ${className}
@@ -126,10 +128,34 @@ export const InputPanel: React.FC<InputPanelProps> = ({
             <section className="mb-8">
                 <SectionHeader number="01" title="Core Theme Protocol" />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <ChoiceCard label="Abundance" description="Post-scarcity prosperity." isSelected={rewriteTomorrowTheme === 'abundance'} onClick={() => handleThemeSelection('abundance')} />
-                    <ChoiceCard label="Ascension" description="Evolutionary consciousness." isSelected={rewriteTomorrowTheme === 'ascension'} onClick={() => handleThemeSelection('ascension')} />
-                    <ChoiceCard label="Harmony" description="Nature/Tech symbiosis." isSelected={rewriteTomorrowTheme === 'harmony'} onClick={() => handleThemeSelection('harmony')} />
-                    <ChoiceCard label="Enlightenment" description="Universal wisdom." isSelected={rewriteTomorrowTheme === 'enlightenment'} onClick={() => handleThemeSelection('enlightenment')} />
+                    <ChoiceCard 
+                        label="Abundance" 
+                        description="Post-scarcity prosperity." 
+                        isSelected={rewriteTomorrowTheme === 'abundance'} 
+                        onClick={() => handleThemeSelection('abundance')}
+                        tooltip="A world where technology has solved scarcity, focusing on human flourishing." 
+                    />
+                    <ChoiceCard 
+                        label="Ascension" 
+                        description="Evolutionary consciousness." 
+                        isSelected={rewriteTomorrowTheme === 'ascension'} 
+                        onClick={() => handleThemeSelection('ascension')} 
+                        tooltip="Humanity evolving alongside AI to reach higher states of being."
+                    />
+                    <ChoiceCard 
+                        label="Harmony" 
+                        description="Nature/Tech symbiosis." 
+                        isSelected={rewriteTomorrowTheme === 'harmony'} 
+                        onClick={() => handleThemeSelection('harmony')} 
+                        tooltip="Perfect balance between advanced technology and the natural world."
+                    />
+                    <ChoiceCard 
+                        label="Enlightenment" 
+                        description="Universal wisdom." 
+                        isSelected={rewriteTomorrowTheme === 'enlightenment'} 
+                        onClick={() => handleThemeSelection('enlightenment')} 
+                        tooltip="A society driven by the pursuit of knowledge and universal understanding."
+                    />
                 </div>
             </section>
 

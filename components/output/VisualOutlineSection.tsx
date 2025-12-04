@@ -616,6 +616,7 @@ export const VisualOutlineSection: React.FC<{
     const uniqueLocations = Array.from(new Set(outline.map(s => s.location))).filter(Boolean);
     const filteredScenes = outline.filter(scene => {
         const query = searchQuery.toLowerCase();
+        // Defensive coding: handle potentially undefined strings to avoid runtime errors
         const matchesSearch = 
             (scene.title || '').toLowerCase().includes(query) ||
             (scene.description || '').toLowerCase().includes(query) ||
