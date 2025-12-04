@@ -512,6 +512,7 @@ export const generateCreativeAssets = async (
         
         if (block.type === 'dialogue') {
             const charName = block.characterName;
+            // Case-insensitive, trimmed match
             const found = charactersWithVoices.find((c: any) => c.name.trim().toLowerCase() === charName?.trim().toLowerCase());
             if (found) {
                 charId = found.id;
