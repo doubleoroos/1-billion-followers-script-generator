@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import type { GeneratedAssets, ReferenceImage, EmotionalArcIntensity, VisualStyle, NarrativeTone, Character, ScriptBlock, Scene, RewriteTomorrowTheme } from '../types';
 
@@ -188,13 +187,16 @@ const getIntensityDescription = (intensity: EmotionalArcIntensity): string => {
 };
 
 const getVisualStyleDescription = (style: VisualStyle): string => {
-    switch (style) {
-        case 'solarpunk': return "Solarpunk: eco-conscious, lush greenery, organic architecture, photorealistic.";
-        case 'minimalist': return "Minimalist: clean, simple geometric forms, ample negative space, photorealistic.";
-        case 'biomorphic': return "Biomorphic: fluid, organic, nature-inspired shapes, flowing and elegant, photorealistic.";
-        case 'abstract': return "Abstract: non-representational, emotionally driven color and light, experiential.";
-        default: return "Cinematic: dramatic lighting, grand scale, hyper-detailed textures, photorealistic.";
-    }
+    const baseStyle = (() => {
+        switch (style) {
+            case 'solarpunk': return "Solarpunk: eco-conscious, lush greenery, organic architecture, photorealistic.";
+            case 'minimalist': return "Minimalist: clean, simple geometric forms, ample negative space, photorealistic.";
+            case 'biomorphic': return "Biomorphic: fluid, organic, nature-inspired shapes, flowing and elegant, photorealistic.";
+            case 'abstract': return "Abstract: non-representational, emotionally driven color and light, experiential.";
+            default: return "Cinematic: dramatic lighting, grand scale, hyper-detailed textures, photorealistic.";
+        }
+    })();
+    return `${baseStyle} + High-Fashion Aesthetic: subtle luxury details, editorial composition, Chanel-esque accessories, hyper-realistic skin textures.`;
 }
 
 const getNarrativeToneDescription = (tone: NarrativeTone): string => {
@@ -210,16 +212,22 @@ const getNarrativeToneDescription = (tone: NarrativeTone): string => {
 
 const createCoreConceptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, visualStyle: VisualStyle, narrativeTone: NarrativeTone): string => {
     return `
-You are an expert storyteller. Create a film concept for "Rewrite Tomorrow - Positive Future".
+You are an expert Senior Scriptwriter for the 1 Billion Followers Film Award.
 Theme: ${getThemeDescription(theme)}
 Tone: ${getNarrativeToneDescription(narrativeTone)}
 Style: ${getVisualStyleDescription(visualStyle)}
 Arc: ${getIntensityDescription(intensity)}
 
+Goal: Create a concept for a 7-10 minute film that presents a positive, regenerative future.
+Criteria:
+- Strong World-Building: Cohesive, original, and hopeful.
+- Ethical AI: Demonstrate how AI aids humanity (collaborator, not conqueror).
+- Fashion & Aesthetic: Characters should feel modern, elegant, with subtle high-end details.
+
 Task:
-1. Logline (1 sentence)
-2. Synopsis (1 paragraph)
-3. Characters (2-4 people). For each: Name, Role, Description (evocative), VoicePreference ('Kore','Zephyr','Puck','Fenrir','Charon'). Select a voice that matches their gender and personality.
+1. Logline (1 sentence, high concept)
+2. Synopsis (1 paragraph, clear beginning-middle-end)
+3. Characters (2-4 people). For each: Name, Role, Description (evocative, fashion-forward), VoicePreference ('Kore','Zephyr','Puck','Fenrir','Charon').
 
 Output JSON format: { "logline": "...", "synopsis": "...", "characters": [{ "name": "...", "role": "...", "description": "...", "voicePreference": "..." }] }
 `;
@@ -228,19 +236,21 @@ Output JSON format: { "logline": "...", "synopsis": "...", "characters": [{ "nam
 const createScriptPrompt = (theme: RewriteTomorrowTheme, intensity: EmotionalArcIntensity, narrativeTone: NarrativeTone, logline: string, synopsis: string, characters: Character[]): string => {
     const charList = characters.map(c => `${c.name} (${c.role}): ${c.description}`).join('\n');
     return `
-Write a script for a 7-10 minute film.
+You are a WGA Senior Screenwriter. Write a script for a 7-10 minute film for the 1 Billion Followers Competition.
 Logline: ${logline}
 Synopsis: ${synopsis}
 Characters: 
 ${charList}
 
 Tone: ${getNarrativeToneDescription(narrativeTone)}
+Theme: Ethical AI, Positive Future, Human Agency.
 
 Format Requirements:
-- Scene Headings: INT. / EXT. LOC - DAY/NIGHT
-- Dialogue: Natural, character-specific.
-- Narration: Evocative.
-- **IMPORTANT**: When writing dialogue, use the EXACT character names provided above. Do not invent new characters or change spellings.
+- Professional Industry Standard: Scene Headings, Action Lines, Dialogue.
+- Structure: Establish Normalcy -> Inciting Incident (Opportunity) -> Rising Action (Collaboration with AI) -> Climax -> Resolution.
+- Dialogue: Natural, subtext-rich, no clichés.
+- Narration: Poetic, philosophical, driving the theme.
+- **IMPORTANT**: Use EXACT character names provided.
 
 Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": "...", "characterName": "..." (if dialogue, MUST match provided character names) }] }
 `;
@@ -248,21 +258,21 @@ Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": ".
 
 const createVisualOutlinePrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, synopsis: string, scriptText: string): string => {
     return `
-Create a visual outline for this film script.
+You are a Senior Visual Director. Create a visual outline for this film script.
 Style: ${getVisualStyleDescription(visualStyle)}
 Synopsis: ${synopsis}
 Script: ${scriptText}
 
 For each scene, define:
-1. Title (Unique, evocative, 2-5 words, capturing the scene's essence and positive narrative)
+1. Title (Unique, evocative, 2-5 words)
 2. Location & Atmosphere
-3. Description (Review content and characters. Generate a concise, evocative, and sensory-rich description. Capture the essence. Align with positive future narrative. Use sensory language. Max 3 sentences.)
-4. Video Prompt (Veo, cinematic keywords, dynamic motion)
-5. Image Prompt (Expert prompt for Imagen 3: 8k, photorealistic, Arri Alexa LF, anamorphic, cinematic lighting, ${visualStyle}, highly detailed texture, no text. Focus on lighting and composition, strictly photorealistic.)
-6. Pacing & Emotion (Describe rhythm and feeling, e.g., "Slow and melancholic")
-7. Transition: How does this scene end/transition to the next? (e.g., "Match cut to...", "Sound bridge of...")
-8. Dependencies: Analyze the logical sequence and narrative dependencies. Identify if this scene is a direct continuation, reaction, or consequence of specific preceding scenes. Populate 'dependsOn' with an array of those scene IDs (e.g. ["scene-1", "scene-3"]) to establish a coherent flow.
-9. Key Visual Elements: Briefly describe the most important visual elements to capture (lighting, props, color palette).
+3. Description (Review content. Generate a concise, sensory-rich description. Focus on lighting, texture, and mood. Max 3 sentences.)
+4. Video Prompt (Veo optimized: 10-second pacing, facial clarity, cinematic motion)
+5. Image Prompt (Imagen 3 expert: 8k, photorealistic, Arri Alexa LF, fashion editorial aesthetic, anamorphic, cinematic lighting)
+6. Pacing & Emotion (e.g., "Slow and melancholic")
+7. Transition (Cinematic edits: Match cut, J-Cut, etc.)
+8. Dependencies (Logical narrative flow IDs)
+9. Key Visual Elements (Lighting, Props, Colors - Mention specific textures like silk, chrome, glass)
 
 Output JSON format: { "visualOutline": [{ "id": "scene-1", "sceneNumber": 1, "title": "...", "location": "...", "timeOfDay": "...", "duration": "...", "atmosphere": "...", "charactersInScene": "...", "description": "...", "keyVisualElements": "...", "visuals": "...", "transition": "...", "pacingEmotion": "...", "videoPrompt": "...", "imagePrompt": "...", "dependsOn": ["scene-X"] }] }
 `;
@@ -273,9 +283,9 @@ const createBTSPrompt = (theme: RewriteTomorrowTheme, visualStyle: VisualStyle, 
 Write a "Behind The Scenes" doc for the film "${synopsis.substring(0, 30)}...".
 Includes: 
 - Director's Statement (Director: Roos van der Jagt, Date: December 3, 2025)
-- Visual Approach (${visualStyle})
+- Visual Approach (${visualStyle} + High Fashion Influence)
 - AI Workflow (Phase | Tool)
-- Ethical AI Usage
+- Ethical AI Usage (Explain how AI was used to amplify human creativity, not replace it)
 
 Return raw Markdown.
 `;
@@ -283,56 +293,48 @@ Return raw Markdown.
 
 const createVideoPromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-You are a world-class cinematographer and expert prompt engineer for the Google Veo AI video model.
-Task: Write a strictly cinematic, high-fidelity video generation prompt for this scene, optimized for Veo's generative physics and camera control.
+You are a world-class cinematographer and expert prompt engineer for Google Veo.
+Task: Write a strictly cinematic, high-fidelity video generation prompt.
 
 Context:
-- Visual Style: ${visualStyle} (Strict adherence required)
+- Visual Style: ${visualStyle} (High-Fashion, Photorealistic)
 - Scene Content: ${scene.description}
 - Location: ${scene.location}
 - Atmosphere: ${scene.atmosphere}
-- Time: ${scene.timeOfDay}
 
 Prompt Requirements:
-1.  **Camera Movement (Veo Specific)**: Use precise terminology: "Pan Left/Right", "Tilt Up/Down", "Truck Left/Right", "Dolly In/Out", "Boom Up/Down". Ensure the movement motivates the storytelling.
-2.  **Cinematography**: Specify lens characteristics (e.g., "Anamorphic 40mm", "Telephoto compression", "Wide angle distortion") and composition.
-3.  **Lighting & Physics**: Describe dynamic lighting (e.g., "Volumetric god rays", "Subsurface scattering", "Neon reflections") and physics-based motion (e.g., "Smoke turbulence", "Water fluidity", "Fabric cloth simulation").
-4.  **Visual Style**: Strictly enforce the '${visualStyle}' aesthetic.
-5.  **Quality Keywords**: "4k, photorealistic, highly detailed, film grain, cinematic color grading, award-winning cinematography, shot on film".
-6.  **Duration & Stability**: MANDATORY: Request "Slow motion (0.5x speed)", "High frame rate", "Long continuous shot", or "Extended take" to maximize duration and visual stability. Avoid fast cuts or morphing.
+1.  **Camera Movement**: Precise terminology (Pan, Tilt, Dolly). Movement must be smooth and motivated.
+2.  **Subject Focus**: "Clear facial features", "Expressive eyes", "Lip-sync ready framing".
+3.  **Lighting & Physics**: Volumetric lighting, accurate physics (hair movement, fabric drape).
+4.  **Style**: ${visualStyle} aesthetic.
+5.  **Quality Keywords**: "4k, photorealistic, film grain, cinematic color grading, Arri Alexa".
+6.  **Duration & Pacing**: MANDATORY: "Long continuous take (10 seconds)", "Slow motion (0.5x speed) for gravitas", "Stable composition".
 
 Output:
-A single, highly detailed, and evocative paragraph optimized for Veo. Do not include introductory text or labels. Just the raw prompt.
+A single, highly detailed paragraph. No introduction.
 `;
 }
 
 const createImagePromptRefinementPrompt = (scene: Scene, visualStyle: VisualStyle): string => {
     return `
-You are a world-class Director of Photography and AI Prompt Engineer (Imagen 3 expert).
-Task: Write a highly technical, photorealistic image generation prompt for this scene.
+You are a world-class Director of Photography and AI Prompt Engineer (Imagen 3).
+Task: Write a highly technical, photorealistic image generation prompt.
 
 Scene Details:
-- Action/Subject: ${scene.description}
+- Subject: ${scene.description}
 - Setting: ${scene.location}
 - Mood: ${scene.atmosphere}
-- Visual Style: ${visualStyle}
-- Key Visual Elements: ${scene.keyVisualElements || 'N/A'}
+- Style: ${visualStyle}
 
 Prompt Structure Requirements:
-1.  **Atmosphere**: Evocative, emotional, sensory-rich details.
-2.  **Medium & Format**: "Cinematic film still", "Raw photo", "8k resolution", "Wide angle shot".
-3.  **Camera & Lens**: "Shot on Arri Alexa LF", "Panavision Primo 70mm Anamorphic lenses", "f/1.8", "Depth of field", "Bokeh".
-4.  **Lighting**: "Volumetric lighting", "Chiaroscuro", "Cinematic color grading", "Global illumination", "Natural light".
-5.  **Texture & Detail**: "Hyper-detailed", "Film grain", "Detailed skin texture" (if characters present), "Ray tracing", "Subsurface scattering".
-6.  **Style Enforcement**: STRICTLY photorealistic. NO "concept art", NO "digital painting", NO "illustration", NO "CGI", NO "3D render".
-7.  **Style Integration**:
-    - If 'Cinematic': "Teal and orange contrast, dramatic shadows, wide aspect ratio, mood lighting".
-    - If 'Solarpunk': "Natural sunlight, lush vegetation integrated with high-tech, golden hour, organic curves".
-    - If 'Minimalist': "High contrast, clean lines, negative space, stark lighting, simple composition".
-    - If 'Biomorphic': "Fluid shapes, organic translucency, soft lighting, nature-inspired patterns".
-    - If 'Abstract': "Macro details, light leaks, experimental focus, ethereal, textural focus".
+1.  **Aesthetic**: High-fashion editorial meets cinematic storytelling.
+2.  **Medium**: "Cinematic film still", "Raw photo", "8k resolution".
+3.  **Camera**: "Shot on Arri Alexa LF", "Panavision Primo 70mm Anamorphic", "f/1.8".
+4.  **Details**: "Subtle luxury accessories (Chanel-esque)", "Detailed skin texture", "Haute couture elements".
+5.  **Lighting**: "Chiaroscuro", "Rembrandt lighting", "Volumetric fog".
+6.  **Negative Prompt Injection**: NO CGI, NO cartoon, NO 3D render, NO illustration.
 
-Output: A single, comprehensive prompt string. No introduction.
+Output: A single, comprehensive prompt string.
 `;
 }
 
@@ -394,15 +396,10 @@ const generateRawImage = async (prompt: string): Promise<string | null> => {
             contents: sanitizedPrompt,
         });
 
-        // Search through all parts for image data
-        if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
-            for (const part of response.candidates[0].content.parts) {
-                if (part.inlineData) {
-                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                }
-            }
+        const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+        if (part && part.inlineData) {
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
-        console.warn("No image data found in response");
         return null;
     } catch (e) {
         console.error("Image generation failed:", e);

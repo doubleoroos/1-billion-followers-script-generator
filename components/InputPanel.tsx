@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import type { EmotionalArcIntensity, VisualStyle, NarrativeTone, RewriteTomorrowTheme } from '../types';
@@ -94,21 +93,23 @@ export const InputPanel: React.FC<InputPanelProps> = ({
                 Rewrite <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-slate-400">Tomorrow</span>
             </h2>
             
-            <p className="text-cyan-400 font-display text-lg md:text-xl uppercase tracking-[0.2em] font-bold drop-shadow-md pb-2">
-                1 Billion Followers Film Competition
-            </p>
+            <div className="flex flex-col items-center gap-4">
+                <p className="text-cyan-400 font-display text-lg md:text-xl uppercase tracking-[0.2em] font-bold drop-shadow-md">
+                    1 Billion Followers Film Competition
+                </p>
+                
+                {/* Official Selection Badge */}
+                <div className="relative inline-flex items-center justify-center px-8 py-2 border-y border-cyan-500/30 bg-gradient-to-r from-transparent via-cyan-900/20 to-transparent">
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-cyan-500 rotate-45 shadow-[0_0_10px_#06b6d4]"></div>
+                    <span className="text-[10px] font-mono text-slate-300 uppercase tracking-[0.3em] font-bold">Official AI Generator</span>
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-cyan-500 rotate-45 shadow-[0_0_10px_#06b6d4]"></div>
+                </div>
+            </div>
 
-            <div className="h-0.5 w-24 bg-cyan-500/50 mx-auto shadow-[0_0_10px_#06b6d4]"></div>
-            <p className="font-mono text-slate-500 text-sm tracking-wider uppercase">
+            <div className="h-0.5 w-24 bg-cyan-500/50 mx-auto shadow-[0_0_10px_#06b6d4] mt-6"></div>
+            <p className="font-mono text-slate-500 text-sm tracking-wider uppercase mt-2">
                 System Ready. Initialize Narrative Parameters.
             </p>
-            {/* Created for badge */}
-            <div className="inline-block mt-4 px-4 py-1.5 bg-gunmetal border border-white/10 rounded-sm shadow-xl">
-                 <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                    Created for the 1 Billion Followers Competition
-                 </span>
-            </div>
         </div>
       
         <div className="space-y-12 bg-studio-black p-4 md:p-8 border border-white/5 rounded-sm shadow-2xl relative">

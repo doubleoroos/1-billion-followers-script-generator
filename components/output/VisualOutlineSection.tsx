@@ -95,37 +95,46 @@ const CinematicSceneCard: React.FC<any> = ({
                             className="bg-transparent border-b border-transparent focus:border-cyan-500 text-white font-display uppercase tracking-wider text-sm w-full outline-none placeholder-slate-700 transition-colors"
                             placeholder="SCENE TITLE"
                         />
-                        {/* Editable Metadata - Compact Layout */}
-                        <div className="font-mono text-[9px] text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-1 items-center">
-                             <input
-                                type="text"
-                                value={scene.location}
-                                onChange={(e) => onUpdate({ ...scene, location: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[60px] max-w-[120px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-colors"
-                                placeholder="LOCATION"
-                            />
-                             <span className="text-cyan-500/50">|</span>
-                             <input
-                                type="text"
-                                value={scene.timeOfDay}
-                                onChange={(e) => onUpdate({ ...scene, timeOfDay: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[40px] max-w-[80px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-colors"
-                                placeholder="TIME"
-                            />
-                             <span className="text-cyan-500/50">|</span>
-                             <input
-                                type="text"
-                                value={scene.duration || ''}
-                                onChange={(e) => onUpdate({ ...scene, duration: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-16 placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-colors"
-                                placeholder="0:00"
-                            />
+                        {/* Editable Metadata - Compact Data Strip Layout */}
+                        <div className="font-mono text-[10px] text-slate-500 mt-2 flex items-center gap-3 bg-black/30 border border-white/5 px-2 py-1 rounded-sm w-fit">
+                             <div className="flex items-center gap-2">
+                                 <span className="text-cyan-600/70 text-[8px] uppercase tracking-widest">LOC:</span>
+                                 <input
+                                    type="text"
+                                    value={scene.location}
+                                    onChange={(e) => onUpdate({ ...scene, location: e.target.value })}
+                                    className="bg-transparent uppercase text-slate-300 focus:text-cyan-400 outline-none min-w-[40px] max-w-[120px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-all"
+                                    placeholder="INT/EXT..."
+                                />
+                             </div>
+                             <span className="text-white/10">|</span>
+                             <div className="flex items-center gap-2">
+                                 <span className="text-cyan-600/70 text-[8px] uppercase tracking-widest">TIME:</span>
+                                 <input
+                                    type="text"
+                                    value={scene.timeOfDay}
+                                    onChange={(e) => onUpdate({ ...scene, timeOfDay: e.target.value })}
+                                    className="bg-transparent uppercase text-slate-300 focus:text-cyan-400 outline-none min-w-[30px] max-w-[80px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-all"
+                                    placeholder="DAY/NIGHT"
+                                />
+                             </div>
+                             <span className="text-white/10">|</span>
+                             <div className="flex items-center gap-2">
+                                 <span className="text-cyan-600/70 text-[8px] uppercase tracking-widest">DUR:</span>
+                                 <input
+                                    type="text"
+                                    value={scene.duration || ''}
+                                    onChange={(e) => onUpdate({ ...scene, duration: e.target.value })}
+                                    className="bg-transparent uppercase text-slate-300 focus:text-cyan-400 outline-none w-12 placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-all"
+                                    placeholder="0:00"
+                                />
+                             </div>
                              {/* Narrative Dependency Indicator */}
                              {scene.dependsOn && scene.dependsOn.length > 0 && (
                                 <>
-                                    <span className="text-cyan-500/50">|</span>
+                                    <span className="text-white/10">|</span>
                                     <span className="text-cyan-600 flex items-center gap-1" title={`Depends on: ${scene.dependsOn.join(', ')}`}>
-                                        <LinkIcon /> Linked: {scene.dependsOn.map((id:string) => id.replace(/\D/g,'')).join(', ')}
+                                        <LinkIcon /> <span className="text-[8px] tracking-wider">LINK:</span> {scene.dependsOn.map((id:string) => id.replace(/\D/g,'')).join(', ')}
                                     </span>
                                 </>
                              )}
@@ -607,10 +616,11 @@ export const VisualOutlineSection: React.FC<{
     // Filter Logic
     const uniqueLocations = Array.from(new Set(outline.map(s => s.location))).filter(Boolean);
     const filteredScenes = outline.filter(scene => {
+        const query = searchQuery.toLowerCase();
         const matchesSearch = 
-            scene.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            scene.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            scene.charactersInScene.toLowerCase().includes(searchQuery.toLowerCase());
+            (scene.title || '').toLowerCase().includes(query) ||
+            (scene.description || '').toLowerCase().includes(query) ||
+            (scene.charactersInScene || '').toLowerCase().includes(query);
         const matchesLocation = locationFilter === 'ALL' || scene.location === locationFilter;
         return matchesSearch && matchesLocation;
     });
@@ -621,122 +631,4 @@ export const VisualOutlineSection: React.FC<{
 
             {/* Master Status Bar - NEW */}
             {masterBulkStatus && (
-                <div className="bg-cyan-900/20 border border-cyan-500/30 p-2 text-center rounded-sm animate-fade-in flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(6,182,212,0.1)] mb-4">
-                    <div className="text-cyan-400"><SpinnerIcon /></div>
-                    <span className="text-cyan-400 font-mono text-xs uppercase tracking-widest font-bold animate-pulse">{masterBulkStatus}</span>
-                </div>
-            )}
-
-            {/* Studio Toolbar - Organized into logical zones */}
-            <div className="bg-gunmetal border-y border-white/10 p-4 sticky top-16 z-30 shadow-2xl backdrop-blur-md bg-opacity-95 flex flex-col xl:flex-row gap-4 justify-between items-center">
-                
-                {/* Zone 1: Query & Filter */}
-                <div className="flex items-center gap-4 w-full xl:w-auto h-auto xl:h-[34px]">
-                    <div className="relative flex-grow xl:flex-grow-0 flex items-center bg-black/40 border border-white/10 rounded-sm h-[34px] w-full xl:w-[200px] px-2">
-                        <div className="flex-shrink-0 mr-2">
-                            <SearchIcon />
-                        </div>
-                        <input 
-                            type="text" 
-                            placeholder="SEARCH SCENES" 
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-transparent text-[10px] font-mono font-bold text-white placeholder-slate-600 focus:outline-none uppercase tracking-wide w-full h-full"
-                        />
-                    </div>
-                    
-                    {/* Fixed Alignment Flex Container */}
-                    <div className="relative h-[34px] flex items-center bg-black/40 border border-white/10 rounded-sm w-full xl:w-auto">
-                         <div className="absolute left-3 pointer-events-none z-10 text-slate-500">
-                            <FilterIcon />
-                         </div>
-                        <select 
-                            value={locationFilter}
-                            onChange={(e) => setLocationFilter(e.target.value)}
-                            className="appearance-none bg-transparent pl-9 pr-8 text-[10px] font-mono font-bold text-white uppercase tracking-wide focus:outline-none focus:border-cyan-500/50 cursor-pointer min-w-[160px] h-full w-full"
-                        >
-                            <option value="ALL">All Locations</option>
-                            {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                        </select>
-                         <div className="absolute right-3 pointer-events-none">
-                            <svg className="w-2 h-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
-                         </div>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 justify-end items-center w-full xl:w-auto">
-                    
-                    {/* Zone 2: Analysis & Refinement */}
-                    <div className="flex items-center gap-1 bg-black/20 p-1 rounded-sm border border-white/5 overflow-x-auto">
-                        <button onClick={handleAnalyzeDependencies} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm min-w-[80px] justify-center active:translate-y-px active:shadow-inner" title="Analyze Narrative Flow">
-                            {activeBulkAction === 'analyze_flow' ? <><SpinnerIcon /> Analyzing</> : <><LinkIcon /> Flow</>}
-                        </button>
-                        <div className="h-4 w-px bg-white/10 mx-1"></div>
-                        <button onClick={handleRefineTitles} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap active:translate-y-px active:text-cyan-600 transition-transform">
-                            {activeBulkAction === 'refine_titles' && <SpinnerIcon />} Titles
-                        </button>
-                        <button onClick={handleRefineDescriptions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap active:translate-y-px active:text-cyan-600 transition-transform">
-                            {activeBulkAction === 'refine_descriptions' && <SpinnerIcon />} Story
-                        </button>
-                        <button onClick={handleRefineTransitions} disabled={!!masterBulkStatus} className="text-[9px] font-bold text-slate-500 hover:text-cyan-400 uppercase px-2 font-mono flex items-center gap-1 whitespace-nowrap active:translate-y-px active:text-cyan-600 transition-transform">
-                            {activeBulkAction === 'refine_transitions' && <SpinnerIcon />} Trans.
-                        </button>
-                    </div>
-
-                    {/* Zone 3: AI Enhancement */}
-                    <div className="flex items-center gap-1">
-                        <button onClick={handleFillMissingPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[90px] justify-center active:translate-y-px active:shadow-inner" title="Auto-Fill Missing Prompts">
-                            {activeBulkAction === 'fill_missing' ? <><SpinnerIcon /> Filling</> : <><MagicWandIcon /> Auto-Fill</>}
-                        </button>
-                        {/* New Button */}
-                        <button onClick={handleOptimizeAllPrompts} disabled={!!masterBulkStatus} className="btn-tactical px-3 py-1.5 text-[9px] flex items-center gap-1.5 rounded-sm text-cyan-300 min-w-[110px] justify-center ml-1 border-l border-white/10 active:translate-y-px active:shadow-inner" title="Refine All Prompts with AI">
-                            {activeBulkAction === 'upgrade_prompts' ? <><SpinnerIcon /> Upgrading</> : <><SparklesIcon /> Upgrade Prompts</>}
-                        </button>
-                    </div>
-
-                    {/* Zone 4: Production (Render) */}
-                    <div className="flex items-center gap-2 pl-4 border-l border-white/10">
-                        <button 
-                            onClick={handleGenerateAllPreviews} 
-                            disabled={!!masterBulkStatus}
-                            className="btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg active:translate-y-px active:shadow-inner"
-                        >
-                            {activeBulkAction === 'render_images' ? <><SpinnerIcon /> Developing...</> : <><ImageIcon /> Render All Images</>}
-                        </button>
-                        <button 
-                            onClick={handleGenerateAllVideos} 
-                            disabled={!!masterBulkStatus || !isVeoKeySelected}
-                            className={`btn-gold px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg active:translate-y-px active:shadow-inner ${(!isVeoKeySelected) ? 'opacity-50 grayscale' : ''}`}
-                            title={!isVeoKeySelected ? "Requires Veo Authentication" : "Generate Videos"}
-                        >
-                            {activeBulkAction === 'render_videos' ? <><SpinnerIcon /> Rendering...</> : <><VideoIcon /> Render All Videos</>}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Scene Grid */}
-            <div className="grid grid-cols-1 gap-12">
-                {filteredScenes.length > 0 ? (
-                    filteredScenes.map((scene) => (
-                        <CinematicSceneCard 
-                            key={scene.id} 
-                            scene={scene} 
-                            characters={characters}
-                            onUpdate={handleSceneUpdate}
-                            onGenerateVideo={handleGenerateVideo}
-                            onGenerateImage={handleGenerateImage}
-                            onRegenerateVideoPrompt={handleRegenerateVideoPrompt}
-                            onRegenerateImagePrompt={handleRegenerateImagePrompt}
-                            isVideoGenerating={generatingVideoId === scene.id}
-                            isImageGenerating={generatingImageId === scene.id}
-                            isVeoKeySelected={isVeoKeySelected}
-                        />
-                    ))
-                ) : (
-                    <div className="text-center py-20 opacity-50 font-mono text-sm">NO SCENES FOUND MATCHING QUERY</div>
-                )}
-            </div>
-        </div>
-    );
-};
+                <div className="bg-cyan-900/20 border border-cyan-5
