@@ -95,35 +95,35 @@ const CinematicSceneCard: React.FC<any> = ({
                             className="bg-transparent border-b border-transparent focus:border-cyan-500 text-white font-display uppercase tracking-wider text-sm w-full outline-none placeholder-slate-700 transition-colors"
                             placeholder="SCENE TITLE"
                         />
-                        {/* Editable Metadata */}
-                        <div className="font-mono text-[9px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                        {/* Editable Metadata - Compact Layout */}
+                        <div className="font-mono text-[9px] text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-1 items-center">
                              <input
                                 type="text"
                                 value={scene.location}
                                 onChange={(e) => onUpdate({ ...scene, location: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[60px] max-w-[120px] placeholder-slate-700"
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[60px] max-w-[120px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50"
                                 placeholder="LOCATION"
                             />
-                             <span className="text-cyan-500">///</span>
+                             <span className="text-cyan-500/50">|</span>
                              <input
                                 type="text"
                                 value={scene.timeOfDay}
                                 onChange={(e) => onUpdate({ ...scene, timeOfDay: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[40px] max-w-[80px] placeholder-slate-700"
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[40px] max-w-[80px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50"
                                 placeholder="TIME"
                             />
-                             <span className="text-cyan-500">///</span>
+                             <span className="text-cyan-500/50">|</span>
                              <input
                                 type="text"
                                 value={scene.duration || ''}
                                 onChange={(e) => onUpdate({ ...scene, duration: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-16 placeholder-slate-700"
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-16 placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50"
                                 placeholder="0:00"
                             />
                              {/* Narrative Dependency Indicator */}
                              {scene.dependsOn && scene.dependsOn.length > 0 && (
                                 <>
-                                    <span className="text-cyan-500">///</span>
+                                    <span className="text-cyan-500/50">|</span>
                                     <span className="text-cyan-600 flex items-center gap-1" title={`Depends on: ${scene.dependsOn.join(', ')}`}>
                                         <LinkIcon /> Linked: {scene.dependsOn.map((id:string) => id.replace(/\D/g,'')).join(', ')}
                                     </span>
