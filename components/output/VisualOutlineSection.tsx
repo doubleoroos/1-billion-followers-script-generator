@@ -101,7 +101,7 @@ const CinematicSceneCard: React.FC<any> = ({
                                 type="text"
                                 value={scene.location}
                                 onChange={(e) => onUpdate({ ...scene, location: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[60px] max-w-[120px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50"
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[60px] max-w-[120px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-colors"
                                 placeholder="LOCATION"
                             />
                              <span className="text-cyan-500/50">|</span>
@@ -109,7 +109,7 @@ const CinematicSceneCard: React.FC<any> = ({
                                 type="text"
                                 value={scene.timeOfDay}
                                 onChange={(e) => onUpdate({ ...scene, timeOfDay: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[40px] max-w-[80px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50"
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-auto min-w-[40px] max-w-[80px] placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-colors"
                                 placeholder="TIME"
                             />
                              <span className="text-cyan-500/50">|</span>
@@ -117,7 +117,7 @@ const CinematicSceneCard: React.FC<any> = ({
                                 type="text"
                                 value={scene.duration || ''}
                                 onChange={(e) => onUpdate({ ...scene, duration: e.target.value })}
-                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-16 placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50"
+                                className="bg-transparent uppercase hover:text-slate-300 focus:text-cyan-400 outline-none w-16 placeholder-slate-700 border-b border-transparent focus:border-cyan-500/50 transition-colors"
                                 placeholder="0:00"
                             />
                              {/* Narrative Dependency Indicator */}
