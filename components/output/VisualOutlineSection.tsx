@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Scene, VisualStyle, Character } from '../../types';
 import { generateVideoForScene, regenerateVideoPromptForScene, generateImageForScene, regenerateImagePromptForScene, refineSceneTransitions, processInBatches, regenerateTitleForScene, regenerateDescriptionForScene, analyzeSceneDependencies } from '../../services/geminiService';
@@ -83,7 +84,7 @@ const CinematicSceneCard: React.FC<any> = ({
             <div className="bg-black/80 border-b border-white/10 p-3 flex flex-col md:flex-row md:justify-between items-start md:items-center gap-4 md:gap-0">
                 <div className="flex items-center gap-4 flex-grow w-full md:w-auto">
                     <div className="font-mono text-cyan-400 text-xl font-bold border-r border-white/10 pr-4">
-                        {String(scene.sceneNumber).padStart(2, '0')}
+                        {`${scene.sceneNumber}`.padStart(2, '0')}
                     </div>
                     <div className="flex-grow max-w-xl">
                         {/* Editable Title */}
@@ -238,7 +239,7 @@ const CinematicSceneCard: React.FC<any> = ({
                 </div>
 
                 {/* Data Panel */}
-                <div className="lg:col-span-4 bg-gunmetal p-4 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
+                <div className="lg:col-span-4 bg-gunmetal p-3 flex flex-col justify-between border-t lg:border-t-0 border-white/10">
                     <div className="flex flex-col gap-1 h-full"> {/* Studio Spacing: gap-1 */}
                          
                          {/* Characters Slot */}
@@ -618,9 +619,9 @@ export const VisualOutlineSection: React.FC<{
         const query = searchQuery.toLowerCase();
         // Defensive coding: handle potentially undefined strings to avoid runtime errors
         const matchesSearch = 
-            (String(scene.title || '')).toLowerCase().includes(query) ||
-            (String(scene.description || '')).toLowerCase().includes(query) ||
-            (String(scene.charactersInScene || '')).toLowerCase().includes(query);
+            (`${scene.title || ''}`).toLowerCase().includes(query) ||
+            (`${scene.description || ''}`).toLowerCase().includes(query) ||
+            (`${scene.charactersInScene || ''}`).toLowerCase().includes(query);
         const matchesLocation = locationFilter === 'ALL' || scene.location === locationFilter;
         return matchesSearch && matchesLocation;
     });

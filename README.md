@@ -3,10 +3,21 @@
 ![Status](https://img.shields.io/badge/Status-Production-success)
 ![Tech](https://img.shields.io/badge/Stack-React_|_TypeScript_|_Tailwind-blue)
 ![AI](https://img.shields.io/badge/AI-Gemini_Pro_|_Veo_|_Imagen_3-purple)
+![Competition](https://img.shields.io/badge/Competition-1_Billion_Followers-gold)
 
-**Rewrite Tomorrow** is a professional-grade AI Film Generation Studio designed specifically for the **1 Billion Followers Film Competition**. It orchestrates a suite of Google's most advanced Generative AI models to assist filmmakers in visualizing positive, regenerative futures (Solarpunk, Protopian, Abundance).
+**Rewrite Tomorrow** is a professional-grade AI Film Generation Studio built specifically for the **1 Billion Followers Film Competition**. It functions as a "Senior Creative Partner," orchestrating Google's most advanced Generative AI models to assist filmmakers in visualizing positive, regenerative futures (Solarpunk, Protopian, Abundance).
 
 The application features a **"Hollywood Studio Control Panel"** aesthetic—a high-contrast, dark-mode interface designed for creative professionals, featuring rack-mount style components, LED indicators, and cinematic typography.
+
+---
+
+## 🏆 Official Selection Features (1BFS Optimization)
+
+This tool is tuned to strictly adhere to the competition criteria:
+
+*   **WGA-Standard Scriptwriting**: The AI is prompted to act as a Senior Screenwriter, prioritizing subtext, strong narrative structure (Inciting Incident -> Climax), and distinct character voices over generic AI dialogue.
+*   **High-Fashion Cinematic Aesthetic**: Visuals are automatically injected with "High-fashion editorial" and "Arri Alexa LF" keywords, ensuring a premium, cinematic look with subtle luxury details (Chanel-esque accessories) as per the director's vision.
+*   **10-Second Veo Pacing**: Video prompts are optimized for Google Veo to generate "Long continuous takes (10s)" and "Slow motion (0.5x)", maximizing the perceived duration and stability of the generated clips.
 
 ---
 
@@ -14,13 +25,19 @@ The application features a **"Hollywood Studio Control Panel"** aesthetic—a hi
 
 ### 🧠 Creative Orchestration (Gemini 3 Pro)
 - **Narrative Architecture**: Generates Loglines, Synopses, and Characters based on distinct themes (Abundance, Ascension, Harmony).
-- **Screenplay Generation**: Produces formatted scripts with Scene Headings, Dialogue, and Narration.
-- **Visual Outlining**: Creates scene-by-scene breakdowns with metadata (Location, Time, Atmosphere).
+- **Screenplay Generation**: Produces formatted scripts with Scene Headings, Dialogue, and Narration, adhering to strict industry formatting.
+- **Visual Outlining**: Creates scene-by-scene breakdowns using a **Compact Data Strip** layout for metadata (Location | Time | Duration), optimizing screen real estate.
 
 ### 🎨 Visual & Motion Synthesis
-- **Google Veo Integration**: Generates cinematic 1080p video previews for scenes using high-fidelity prompts.
+- **Google Veo Integration**: Generates cinematic 1080p video previews.
 - **Imagen 3 Integration**: Creates 8K photorealistic film stills for storyboards and moodboards.
-- **Prompt Engineering Engine**: Automated refinement system that upgrades generic descriptions into award-winning cinematography prompts (Arri Alexa, Anamorphic, Chiaroscuro).
+- **Prompt Engineering Engine**: Automated refinement system that upgrades generic descriptions into award-winning cinematography prompts.
+
+### 🎛️ Studio Workflow Tools
+- **Batch Rendering**: "Render All Images" and "Render All Videos" capability with real-time progress tracking.
+- **Smart Refinement**: Bulk actions to "Refine Titles", "Deepen Narrative", and "Analyze Flow" (Dependency mapping).
+- **Tactile UI**: A "Physical" interface design where buttons depress, toggles glow neon, and inputs look like rack-mounted hardware cartridges.
+- **Official Selection Badge**: Visual branding to elevate the project's prestige.
 
 ### 🔊 Audio Engineering
 - **TTS Pipeline**: Generates WAV audio stems for dialogue and narration using `gemini-2.5-flash-preview-tts`.
@@ -72,31 +89,6 @@ API_KEY=your_google_ai_studio_api_key
 ### 4. Run Development Server
 ```bash
 npm run dev
-```
-
----
-
-## 📂 Project Architecture
-
-The project utilizes a flat, functional architecture optimized for speed and clarity.
-
-```
-/
-├── components/
-│   ├── output/             # Visualization components (Script, Outline, Moodboard)
-│   ├── ui/                 # Reusable UI elements (Buttons, Modals, Cards)
-│   ├── icons/              # SVG Icon system
-│   ├── hooks/              # Custom hooks (useSound, useAutosave)
-│   ├── InputPanel.tsx      # Main configuration dashboard
-│   ├── Header.tsx          # Master Control Bar
-│   └── ContactPage.tsx     # Overlay pages
-├── services/
-│   ├── geminiService.ts    # Central AI Orchestrator (Prompt Engineering & API Calls)
-│   └── pdfService.ts       # PDF Generation Engine (jsPDF implementation)
-├── types.ts                # Shared TypeScript Interfaces (Scene, Character, Assets)
-├── App.tsx                 # Root Logic & State Management
-├── index.html              # Entry point & Global Styles
-└── index.tsx               # React Mount
 ```
 
 ---
