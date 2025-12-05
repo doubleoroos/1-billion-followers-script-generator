@@ -531,7 +531,7 @@ export const VisualOutlineSection: React.FC<{
                      console.error(`Failed to generate image for scene ${scene.id}`, e);
                      return scene;
                  }
-             }, 3, 500, (completed, total) => setMasterBulkStatus(`Developing ${completed}/${total} Previews...`));
+             }, 3, 2000, (completed, total) => setMasterBulkStatus(`Developing ${completed}/${total} Previews...`));
 
              const newOutline = outlineRef.current.map(s => {
                  const updated = results.find(r => r.id === s.id);
@@ -578,7 +578,7 @@ export const VisualOutlineSection: React.FC<{
                     console.error(`Failed to generate video for scene ${scene.id}`, e);
                     return scene;
                 }
-            }, 1, 2000, (completed, total) => setMasterBulkStatus(`Rendering ${completed}/${total} Clips...`));
+            }, 1, 15000, (completed, total) => setMasterBulkStatus(`Rendering ${completed}/${total} Clips...`));
 
             const newOutline = outlineRef.current.map(s => {
                 const updated = results.find(r => r.id === s.id);
@@ -618,9 +618,9 @@ export const VisualOutlineSection: React.FC<{
         const query = searchQuery.toLowerCase();
         // Defensive coding: handle potentially undefined strings to avoid runtime errors
         const matchesSearch = 
-            (scene.title || '').toLowerCase().includes(query) ||
-            (scene.description || '').toLowerCase().includes(query) ||
-            (scene.charactersInScene || '').toLowerCase().includes(query);
+            (String(scene.title || '')).toLowerCase().includes(query) ||
+            (String(scene.description || '')).toLowerCase().includes(query) ||
+            (String(scene.charactersInScene || '')).toLowerCase().includes(query);
         const matchesLocation = locationFilter === 'ALL' || scene.location === locationFilter;
         return matchesSearch && matchesLocation;
     });

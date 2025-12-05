@@ -107,18 +107,19 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
-// Wrapper for API calls with retry logic for 429/Quota errors
-async function generateWithRetry<T>(operation: () => Promise<T>, retries = 3, initialDelay = 10000): Promise<T> {
+// Wrapper for API calls with retry logic for 429/Quota and 500 errors
+async function generateWithRetry<T>(operation: () => Promise<T>, retries = 3, initialDelay = 5000): Promise<T> {
     for (let i = 0; i < retries; i++) {
         try {
             return await operation();
         } catch (error: any) {
             const errorMessage = typeof error === 'string' ? error : (error.message || JSON.stringify(error));
             const isQuotaError = errorMessage.includes('429') || errorMessage.includes('Quota') || errorMessage.includes('RESOURCE_EXHAUSTED') || error.status === 429 || error.code === 429;
+            const isServerError = errorMessage.includes('500') || errorMessage.includes('503') || error.status === 503 || error.status === 500 || errorMessage.includes('internal server issue');
             
-            if (isQuotaError && i < retries - 1) {
-                const delayTime = initialDelay * Math.pow(2, i); 
-                console.warn(`Quota exceeded (429). Retrying in ${delayTime/1000}s...`, error);
+            if ((isQuotaError || isServerError) && i < retries - 1) {
+                const delayTime = initialDelay * Math.pow(2, i); // Exponential backoff: 5s, 10s, 20s...
+                console.warn(`API Error (${isQuotaError ? 'Quota' : 'Server'}). Retrying in ${delayTime/1000}s...`, error);
                 await delay(delayTime);
                 continue;
             }
@@ -163,7 +164,7 @@ export const generateScriptAudio = async (text: string, voiceName: string = 'Kor
             console.error("Audio generation failed:", error);
             throw error;
         }
-    }, 3, 10000); 
+    }, 3, 5000); 
 };
 
 // --- CONTENT GENERATION HELPERS ---
@@ -187,16 +188,16 @@ const getIntensityDescription = (intensity: EmotionalArcIntensity): string => {
 };
 
 const getVisualStyleDescription = (style: VisualStyle): string => {
-    const baseStyle = (() => {
-        switch (style) {
-            case 'solarpunk': return "Solarpunk: eco-conscious, lush greenery, organic architecture, photorealistic.";
-            case 'minimalist': return "Minimalist: clean, simple geometric forms, ample negative space, photorealistic.";
-            case 'biomorphic': return "Biomorphic: fluid, organic, nature-inspired shapes, flowing and elegant, photorealistic.";
-            case 'abstract': return "Abstract: non-representational, emotionally driven color and light, experiential.";
-            default: return "Cinematic: dramatic lighting, grand scale, hyper-detailed textures, photorealistic.";
-        }
-    })();
-    return `${baseStyle} + High-Fashion Aesthetic: subtle luxury details, editorial composition, Chanel-esque accessories, hyper-realistic skin textures.`;
+    // Enforce Master Prompt Visual Rules: Fashion model, Chanel accessories, Hyperrealistic, Cinematic
+    const masterVisualRules = "Aesthetic: High-fashion editorial, hyper-realistic, cinematic 16:9. Details: Subtle luxury (Chanel-esque accessories), detailed skin texture, Arri Alexa LF quality.";
+    
+    switch (style) {
+        case 'solarpunk': return `Solarpunk: eco-conscious, lush greenery, organic architecture. ${masterVisualRules}`;
+        case 'minimalist': return `Minimalist: clean, simple geometric forms, ample negative space. ${masterVisualRules}`;
+        case 'biomorphic': return `Biomorphic: fluid, organic, nature-inspired shapes, flowing and elegant. ${masterVisualRules}`;
+        case 'abstract': return `Abstract: non-representational, emotionally driven color and light. ${masterVisualRules}`;
+        default: return `Cinematic: dramatic lighting, grand scale. ${masterVisualRules}`;
+    }
 }
 
 const getNarrativeToneDescription = (tone: NarrativeTone): string => {
@@ -248,6 +249,7 @@ Theme: Ethical AI, Positive Future, Human Agency.
 Format Requirements:
 - Professional Industry Standard: Scene Headings, Action Lines, Dialogue.
 - Structure: Establish Normalcy -> Inciting Incident (Opportunity) -> Rising Action (Collaboration with AI) -> Climax -> Resolution.
+- Conflict & Tension: Ensure emotional impact and internal logic. No weak lines.
 - Dialogue: Natural, subtext-rich, no clichés.
 - Narration: Poetic, philosophical, driving the theme.
 - **IMPORTANT**: Use EXACT character names provided.
@@ -308,7 +310,7 @@ Prompt Requirements:
 3.  **Lighting & Physics**: Volumetric lighting, accurate physics (hair movement, fabric drape).
 4.  **Style**: ${visualStyle} aesthetic.
 5.  **Quality Keywords**: "4k, photorealistic, film grain, cinematic color grading, Arri Alexa".
-6.  **Duration & Pacing**: MANDATORY: "Long continuous take (10 seconds)", "Slow motion (0.5x speed) for gravitas", "Stable composition".
+6.  **Duration & Pacing**: MANDATORY: "10-second continuous take", "Slow motion (0.5x speed) for gravitas", "Stable composition".
 
 Output:
 A single, highly detailed paragraph. No introduction.
@@ -389,22 +391,24 @@ const generateRawImage = async (prompt: string): Promise<string | null> => {
     let sanitizedPrompt = prompt.replace(/\b(child|children|kid|kids|toddler|baby)\b/gi, 'figure');
     sanitizedPrompt = sanitizedPrompt.replace(/\b(boy|girl)\b/gi, 'character');
 
-    try {
-        const ai = getAI();
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: sanitizedPrompt,
-        });
+    return generateWithRetry(async () => {
+        try {
+            const ai = getAI();
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash-image',
+                contents: sanitizedPrompt,
+            });
 
-        const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-        if (part && part.inlineData) {
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+            const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+            if (part && part.inlineData) {
+                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+            }
+            return null;
+        } catch (e) {
+            console.error("Image generation failed:", e);
+            throw e; // Re-throw to trigger retry
         }
-        return null;
-    } catch (e) {
-        console.error("Image generation failed:", e);
-        return null;
-    }
+    }, 3, 5000);
 };
 
 export const generateCreativeAssets = async (
@@ -585,34 +589,37 @@ Output JSON format: { "script": [{ "type": "narration"|"dialogue", "content": ".
 
 export const generateVideoForScene = async (scene: Scene, signal?: AbortSignal): Promise<string> => {
     if (signal?.aborted) throw new Error('Operation aborted');
-    const ai = getAI();
+    
+    return generateWithRetry(async () => {
+        const ai = getAI();
 
-    let operation = await ai.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
-        prompt: scene.videoPrompt || scene.description,
-        config: { numberOfVideos: 1, resolution: '1080p', aspectRatio: '16:9' }
-    });
+        let operation = await ai.models.generateVideos({
+            model: 'veo-3.1-fast-generate-preview',
+            prompt: scene.videoPrompt || scene.description,
+            config: { numberOfVideos: 1, resolution: '1080p', aspectRatio: '16:9' }
+        });
 
-    const startTime = Date.now();
-    const TIMEOUT_MS = 300000; // 5 minutes timeout
+        const startTime = Date.now();
+        const TIMEOUT_MS = 300000; // 5 minutes timeout
 
-    while (!operation.done) {
-        if (signal?.aborted) throw new Error('Operation aborted');
-        if (Date.now() - startTime > TIMEOUT_MS) throw new Error('Video generation timed out.');
-        
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        operation = await ai.operations.getVideosOperation({ operation: operation });
-    }
+        while (!operation.done) {
+            if (signal?.aborted) throw new Error('Operation aborted');
+            if (Date.now() - startTime > TIMEOUT_MS) throw new Error('Video generation timed out.');
+            
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            operation = await ai.operations.getVideosOperation({ operation: operation });
+        }
 
-    if (operation.error) throw new Error(`Video generation failed: ${operation.error.message}`);
-    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-    if (!downloadLink) throw new Error("No video URI returned.");
+        if (operation.error) throw new Error(`Video generation failed: ${operation.error.message}`);
+        const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+        if (!downloadLink) throw new Error("No video URI returned.");
 
-    // Note: The key is appended here, relying on process.env.API_KEY being up to date
-    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-    if (!response.ok) throw new Error("Failed to download generated video.");
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
+        // Note: The key is appended here, relying on process.env.API_KEY being up to date
+        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+        if (!response.ok) throw new Error("Failed to download generated video.");
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+    }, 3, 15000); // Retry logic (3 attempts, 15s initial delay for Veo)
 };
 
 export const generateImageForScene = async (scene: Scene, visualStyle: VisualStyle): Promise<string> => {
